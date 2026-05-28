@@ -1,5 +1,6 @@
 using System.Text;
 using AadharLocation.Api.Data;
+using AadharLocation.Api.Hubs;
 using AadharLocation.Api.Services;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -25,8 +26,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
+builder.Services.Configure<GeofenceSettings>(builder.Configuration.GetSection("GeofenceSettings"));
+
 builder.Services.AddHostedService<DatabaseSeeder>();
+builder.Services.AddHostedService<OfflineDetectionService>();
 builder.Services.AddSingleton<JwtService>();
+builder.Services.AddScoped<AlertService>();
+builder.Services.AddScoped<GeofenceService>();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
@@ -84,5 +90,6 @@ app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<AadharLocationHub>("/hubs/tracking");
 
 app.Run();
