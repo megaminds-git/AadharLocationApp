@@ -1,0 +1,35 @@
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: D:\Projects\AadharLocationApp
+info: System.Net.Http.HttpClient.ApiClient.LogicalHandler[100]
+      Start processing HTTP request GET http://localhost:5163/api/machines?*
+info: System.Net.Http.HttpClient.ApiClient.ClientHandler[100]
+      Sending HTTP request GET http://localhost:5163/api/machines?*
+info: System.Net.Http.HttpClient.ApiClient.LogicalHandler[100]
+      Start processing HTTP request GET http://localhost:5163/api/operators?*
+info: System.Net.Http.HttpClient.ApiClient.ClientHandler[100]
+      Sending HTTP request GET http://localhost:5163/api/operators?*
+info: System.Net.Http.HttpClient.ApiClient.LogicalHandler[100]
+      Start processing HTTP request GET http://localhost:5163/api/machines?*
+info: System.Net.Http.HttpClient.ApiClient.ClientHandler[100]
+      Sending HTTP request GET http://localhost:5163/api/machines?*
+info: System.Net.Http.HttpClient.ApiClient.LogicalHandler[100]
+      Start processing HTTP request GET http://localhost:5163/api/machines?*
+info: System.Net.Http.HttpClient.ApiClient.ClientHandler[100]
+      Sending HTTP request GET http://localhost:5163/api/machines?*
+info: System.Net.Http.HttpClient.ApiClient.LogicalHandler[100]
+      Start processing HTTP request GET http://localhost:5163/api/machines?*
+info: System.Net.Http.HttpClient.ApiClient.ClientHandler[100]
+      Sending HTTP request GET http://localhost:5163/api/machines?*
+info: System.Net.Http.HttpClient.ApiClient.LogicalHandler[100]
+      Start processing HTTP request GET http://localhost:5163/api/machines?*
+info: System.Net.Http.HttpClient.ApiClient.ClientHandler[100]
+      Sending HTTP request GET http://localhost:5163/api/machines?*
+info: System.Net.Http.HttpClient.ApiClient.LogicalHandler[100]
+      Start processing HTTP request POST http://localhost:5163/api/auth/login
+info: System.Net.Http.HttpClient.ApiClient.ClientHandler[100]
+      Sending HTTP request POST http://localhost:5163/api/auth/login
+^C

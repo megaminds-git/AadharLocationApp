@@ -1,0 +1,136 @@
+<UserControl x:Class="AadharLocation.AdminDashboard.Views.Pages.OperatorsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:converters="clr-namespace:AadharLocation.AdminDashboard.Converters">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Converters/ConverterResources.xaml"/>
+                <ResourceDictionary Source="/Styles/Buttons.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Operators" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <Button Grid.Column="1" Content="+ Add Operator"
+                    Command="{Binding AddOperatorCommand}"
+                    Style="{StaticResource PrimaryButtonStyle}"/>
+        </Grid>
+
+        <!-- Search bar -->
+        <Grid Grid.Row="1" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox materialDesign:HintAssist.Hint="Search operators..."
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                     materialDesign:TextFieldAssist.LeadingIcon="Magnify">
+            </TextBox>
+            <Button Grid.Column="1" Content="Search" Margin="8,0,0,0"
+                    Command="{Binding SearchCommand}"
+                    Style="{StaticResource MaterialDesignOutlinedButton}"/>
+        </Grid>
+
+        <!-- Table -->
+        <Border Grid.Row="2" CornerRadius="8" Background="{DynamicResource MaterialDesignPaper}"
+                ClipToBounds="True">
+            <DataGrid ItemsSource="{Binding Operators}"
+                      SelectedItem="{Binding SelectedOperator}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      IsReadOnly="True"
+                      Style="{StaticResource MaterialDesignDataGrid}"
+                      materialDesign:DataGridAssist.CellPadding="12 8 12 8">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name"        Binding="{Binding Name}"       Width="*"/>
+                    <DataGridTextColumn Header="Employee ID" Binding="{Binding EmployeeId}" Width="120"/>
+                    <DataGridTextColumn Header="Email"       Binding="{Binding Email}"      Width="*"/>
+                    <DataGridTextColumn Header="Phone"       Binding="{Binding Phone}"      Width="120"/>
+                    <DataGridTextColumn Header="Machine"     Binding="{Binding AssignedMachineName}" Width="130"/>
+                    <DataGridTemplateColumn Header="Status"  Width="100">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="8" Height="8"
+                                             Fill="{Binding Status, Converter={StaticResource StatusColor}}"
+                                             VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <TextBlock Text="{Binding Status}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Actions" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Style="{StaticResource MaterialDesignIconButton}"
+                                            ToolTip="Edit"
+                                            Command="{Binding DataContext.EditOperatorCommand,
+                                                RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}">
+                                        <materialDesign:PackIcon Kind="Pencil" Width="16" Height="16"/>
+                                    </Button>
+                                    <Button Style="{StaticResource MaterialDesignIconButton}"
+                                            ToolTip="Delete" Foreground="#F87171"
+                                            Command="{Binding DataContext.DeleteOperatorCommand,
+                                                RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}">
+                                        <materialDesign:PackIcon Kind="Delete" Width="16" Height="16"/>
+                                    </Button>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- Pagination + error -->
+        <Grid Grid.Row="3" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="#F87171"
+                       VerticalAlignment="Center"
+                       Visibility="{Binding ErrorMessage, Converter={StaticResource BoolToVisibility}}"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="←" Command="{Binding PrevPageCommand}"
+                        Style="{StaticResource MaterialDesignIconButton}"/>
+                <TextBlock VerticalAlignment="Center" Margin="8,0">
+                    <Run Text="Page "/><Run Text="{Binding CurrentPage}"/><Run Text=" of "/>
+                    <Run Text="{Binding TotalCount}"/>
+                </TextBlock>
+                <Button Content="→" Command="{Binding NextPageCommand}"
+                        Style="{StaticResource MaterialDesignIconButton}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Loading -->
+        <Grid Grid.RowSpan="4" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"
+              Background="#66000000">
+            <ProgressBar IsIndeterminate="True" Style="{StaticResource MaterialDesignCircularProgressBar}"
+                         Width="48" Height="48" HorizontalAlignment="Center" VerticalAlignment="Center"
+                         Value="35"/>
+        </Grid>
+    </Grid>
+</UserControl>

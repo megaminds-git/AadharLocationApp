@@ -1,9 +1,24 @@
-﻿<Application x:Class="AadharLocation.AdminDashboard.App"
+<Application x:Class="AadharLocation.AdminDashboard.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:AadharLocation.AdminDashboard"
-             StartupUri="MainWindow.xaml">
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             ShutdownMode="OnExplicitShutdown">
+
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- MaterialDesign base — runtime theme is applied via PaletteHelper in App.xaml.cs -->
+                <materialDesign:BundledTheme BaseTheme="Dark" PrimaryColor="Teal" SecondaryColor="Teal"/>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml"/>
+                <!-- App-wide converters and styles -->
+                <ResourceDictionary Source="/Converters/ConverterResources.xaml"/>
+                <ResourceDictionary Source="/Styles/Colors.xaml"/>
+                <!-- Active theme palette — swapped at runtime by App.SwitchTheme() -->
+                <ResourceDictionary Source="/Styles/DarkTheme.xaml"/>
+                <ResourceDictionary Source="/Styles/Typography.xaml"/>
+                <ResourceDictionary Source="/Styles/Buttons.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
+
 </Application>

@@ -1,0 +1,15 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:converters="clr-namespace:AadharLocation.AdminDashboard.Converters">
+
+    <converters:BoolToVisibilityConverter         x:Key="BoolToVisibility"/>
+    <converters:InverseBoolConverter              x:Key="InverseBool"/>
+    <converters:MachineStatusToColorConverter     x:Key="StatusColor"/>
+    <converters:AlertTypeToColorConverter         x:Key="AlertTypeColor"/>
+    <converters:DateTimeFormatConverter           x:Key="DateTimeConverter"/>
+    <converters:NullableDateTimeFormatConverter   x:Key="NullDateTimeConverter"/>
+    <converters:BoolToAcknowledgedConverter       x:Key="BoolToAck"/>
+    <converters:NullToVisibilityConverter         x:Key="NullToVisibility"/>
+    <converters:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibility"/>
+
+</ResourceDictionary>

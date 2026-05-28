@@ -1,0 +1,37 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Window / page background -->
+    <SolidColorBrush x:Key="AppBackgroundBrush"       Color="#0F172A"/>
+
+    <!-- Sidebar -->
+    <SolidColorBrush x:Key="SidebarBackgroundBrush"   Color="#111827"/>
+    <SolidColorBrush x:Key="SidebarTextBrush"         Color="#9CA3AF"/>
+    <!-- #AARRGGBB: alpha=1F(12%) on teal #2DD4BF -->
+    <SolidColorBrush x:Key="SidebarSelectedBrush"     Color="#1F2DD4BF"/>
+    <!-- #AARRGGBB: alpha=14(8%) on white -->
+    <SolidColorBrush x:Key="SidebarHoverBrush"        Color="#14FFFFFF"/>
+    <SolidColorBrush x:Key="SidebarBorderBrush"       Color="#1F2937"/>
+
+    <!-- Top bar -->
+    <SolidColorBrush x:Key="TopBarBackgroundBrush"    Color="#1E293B"/>
+    <SolidColorBrush x:Key="TopBarBorderBrush"        Color="#334155"/>
+
+    <!-- Cards -->
+    <SolidColorBrush x:Key="CardBackgroundBrush"      Color="#1E293B"/>
+    <SolidColorBrush x:Key="CardBorderBrush"          Color="#334155"/>
+
+    <!-- Text hierarchy -->
+    <SolidColorBrush x:Key="PrimaryTextBrush"         Color="#F8FAFC"/>
+    <SolidColorBrush x:Key="SecondaryTextBrush"       Color="#94A3B8"/>
+    <SolidColorBrush x:Key="TertiaryTextBrush"        Color="#64748B"/>
+
+    <!-- Misc -->
+    <SolidColorBrush x:Key="SeparatorBrush"           Color="#1F2937"/>
+
+    <!-- Login -->
+    <SolidColorBrush x:Key="LoginBackgroundBrush"     Color="#0F172A"/>
+    <SolidColorBrush x:Key="LoginCardBackgroundBrush" Color="#1E293B"/>
+    <SolidColorBrush x:Key="LoginCardBorderBrush"     Color="#334155"/>
+
+</ResourceDictionary>
