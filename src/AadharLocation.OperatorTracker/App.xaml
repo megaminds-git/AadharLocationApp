@@ -1,9 +1,17 @@
-﻿<Application x:Class="AadharLocation.OperatorTracker.App"
+<Application x:Class="AadharLocation.OperatorTracker.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:AadharLocation.OperatorTracker"
-             StartupUri="MainWindow.xaml">
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes">
+
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <md:BundledTheme BaseTheme="Dark" PrimaryColor="Teal" SecondaryColor="Teal"/>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        </ResourceDictionary>
     </Application.Resources>
+
 </Application>
