@@ -7,4 +7,5 @@ public record UpdateOperatorRequest(
     string Email,
     string? Phone,
     int? AssignedMachineId,
-    OperatorStatus Status);
+    OperatorStatus Status,
+    string? NewTrackerPassword);

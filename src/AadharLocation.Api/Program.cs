@@ -1,5 +1,8 @@
 using System.Text;
 using AadharLocation.Api.Data;
+using AadharLocation.Api.Services;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -16,11 +19,16 @@ builder.Host.UseSerilog((ctx, cfg) =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("Default"),
-        x => x.MigrationsAssembly("AadharLocation.Api")
+        x => x
+            .MigrationsAssembly("AadharLocation.Api")
+            .UseNetTopologySuite()
     )
 );
 
 builder.Services.AddHostedService<DatabaseSeeder>();
+builder.Services.AddSingleton<JwtService>();
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 var jwtKey = builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("Jwt:Secret is not configured");
@@ -54,7 +62,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
+    options.AddPolicy("TrackerOnly", p => p.RequireRole("Tracker"));
+});
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddOpenApi();

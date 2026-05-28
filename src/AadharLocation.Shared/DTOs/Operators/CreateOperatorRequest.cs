@@ -5,4 +5,5 @@ public record CreateOperatorRequest(
     string EmployeeId,
     string Email,
     string? Phone,
-    int? AssignedMachineId);
+    int? AssignedMachineId,
+    string? TrackerPassword);
