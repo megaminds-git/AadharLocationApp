@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AadharLocation.AdminDashboard/AadharLocation.AdminDashboard.csproj" />
+    <Project Path="src/AadharLocation.Api/AadharLocation.Api.csproj" />
+    <Project Path="src/AadharLocation.OperatorTracker/AadharLocation.OperatorTracker.csproj" />
+    <Project Path="src/AadharLocation.Shared/AadharLocation.Shared.csproj" />
+  </Folder>
+</Solution>

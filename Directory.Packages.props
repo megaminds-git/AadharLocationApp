@@ -1,0 +1,44 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Shared -->
+    <PackageVersion Include="System.Text.Json" Version="9.0.5" />
+    <PackageVersion Include="FluentValidation" Version="11.11.0" />
+
+    <!-- API - PostgreSQL / EF Core -->
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="9.0.4" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.5" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.5" />
+    <PackageVersion Include="NetTopologySuite" Version="2.5.0" />
+
+    <!-- API - Auth, Security, Email -->
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.5" />
+    <PackageVersion Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageVersion Include="MailKit" Version="4.13.0" />
+    <PackageVersion Include="MimeKit" Version="4.13.0" />
+
+    <!-- API - Logging, Validation, Docs -->
+    <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.6.0" />
+    <PackageVersion Include="FluentValidation.AspNetCore" Version="11.3.0" />
+
+    <!-- WPF - UI, MVVM, Hosting -->
+    <PackageVersion Include="MaterialDesignThemes" Version="5.2.1" />
+    <PackageVersion Include="MaterialDesignColors" Version="5.2.1" />
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.5" />
+    <PackageVersion Include="Serilog" Version="4.2.0" />
+
+    <!-- Admin Dashboard only -->
+    <PackageVersion Include="Mapsui" Version="5.1.0" />
+    <PackageVersion Include="Mapsui.Wpf" Version="5.1.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.5" />
+  </ItemGroup>
+</Project>
