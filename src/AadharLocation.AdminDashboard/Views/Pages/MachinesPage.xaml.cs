@@ -1,8 +1,10 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using AadharLocation.AdminDashboard.ViewModels;
 using AadharLocation.AdminDashboard.Views.Dialogs;
 using AadharLocation.Shared.DTOs.Machines;
+using Microsoft.Win32;
 
 namespace AadharLocation.AdminDashboard.Views.Pages;
 
@@ -23,6 +25,7 @@ public partial class MachinesPage : UserControl
         vm.AddRequested      += OnAddRequested;
         vm.EditRequested     += OnEditRequested;
         vm.GeofenceRequested += OnGeofenceRequested;
+        vm.ExportReady       += OnExportReady;
     }
 
     public async Task ActivateAsync() => await _vm.LoadAsync();
@@ -49,5 +52,16 @@ public partial class MachinesPage : UserControl
         await _geoVm.InitAsync(m.Id, m.Name, defLat, defLon);
         var dialog = new GeofenceEditorDialog(_geoVm) { Owner = Window.GetWindow(this) };
         dialog.ShowDialog();
+    }
+
+    private void OnExportReady(byte[] bytes, string suggestedName)
+    {
+        var dlg = new SaveFileDialog
+        {
+            Filter   = "CSV files (*.csv)|*.csv",
+            FileName = suggestedName,
+        };
+        if (dlg.ShowDialog() == true)
+            File.WriteAllBytes(dlg.FileName, bytes);
     }
 }

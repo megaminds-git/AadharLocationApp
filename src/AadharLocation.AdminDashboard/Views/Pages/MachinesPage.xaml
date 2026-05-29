@@ -16,12 +16,13 @@
     <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Grid Grid.Row="0" Margin="0,0,0,16">
+        <Grid Grid.Row="0" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -35,8 +36,42 @@
             </StackPanel>
         </Grid>
 
+        <!-- Export row -->
+        <Border Grid.Row="1" CornerRadius="6" Padding="12,8"
+                Background="{DynamicResource MaterialDesignPaper}"
+                Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="160"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="160"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Export CSV:" VerticalAlignment="Center"
+                           Opacity="0.7" Margin="0,0,12,0"/>
+                <DatePicker Grid.Column="1"
+                            materialDesign:HintAssist.Hint="From date"
+                            SelectedDate="{Binding ExportFromDate}"
+                            Style="{StaticResource MaterialDesignDatePicker}"/>
+                <DatePicker Grid.Column="3"
+                            materialDesign:HintAssist.Hint="To date"
+                            SelectedDate="{Binding ExportToDate}"
+                            Style="{StaticResource MaterialDesignDatePicker}"/>
+                <TextBlock Grid.Column="4" Text="{Binding ExportStatusMessage}"
+                           VerticalAlignment="Center" Margin="12,0,0,0"
+                           Foreground="#2DD4BF"
+                           Visibility="{Binding ExportStatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                <Button Grid.Column="5" Content="Export CSV"
+                        Command="{Binding ExportCsvCommand}"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBool}}"/>
+            </Grid>
+        </Border>
+
         <!-- Table -->
-        <Border Grid.Row="1" CornerRadius="8" Background="{DynamicResource MaterialDesignPaper}"
+        <Border Grid.Row="2" CornerRadius="8" Background="{DynamicResource MaterialDesignPaper}"
                 ClipToBounds="True">
             <DataGrid ItemsSource="{Binding Machines}"
                       SelectedItem="{Binding SelectedMachine}"
@@ -120,7 +155,7 @@
         </Border>
 
         <!-- Pagination + error -->
-        <Grid Grid.Row="2" Margin="0,12,0,0">
+        <Grid Grid.Row="3" Margin="0,12,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -140,7 +175,7 @@
         </Grid>
 
         <!-- Loading -->
-        <Grid Grid.RowSpan="3" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"
+        <Grid Grid.RowSpan="4" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"
               Background="#66000000">
             <ProgressBar IsIndeterminate="True" Style="{StaticResource MaterialDesignCircularProgressBar}"
                          Width="48" Height="48" HorizontalAlignment="Center" VerticalAlignment="Center"

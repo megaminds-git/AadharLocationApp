@@ -21,6 +21,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- Page header -->
@@ -97,8 +98,119 @@
                 </StackPanel>
             </Border>
 
+            <!-- Device management card -->
+            <Border Grid.Row="3" CornerRadius="8" Padding="24" Margin="0,0,0,16"
+                    Background="{DynamicResource MaterialDesignPaper}">
+                <StackPanel>
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Registered Devices" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Content="Refresh"
+                                Command="{Binding LoadDevicesCommand}"
+                                Style="{StaticResource MaterialDesignOutlinedButton}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
+                                Padding="12,4"/>
+                    </Grid>
+
+                    <TextBlock Text="{Binding DeviceStatusMessage}"
+                               Foreground="#2DD4BF" Margin="0,0,0,8"
+                               Visibility="{Binding DeviceStatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+
+                    <DataGrid ItemsSource="{Binding Devices}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              IsReadOnly="True"
+                              Style="{StaticResource MaterialDesignDataGrid}"
+                              RowHeight="44" MaxHeight="300"
+                              materialDesign:DataGridAssist.CellPadding="12 0 12 0"
+                              materialDesign:DataGridAssist.ColumnHeaderPadding="12 14 12 14">
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource MaterialDesignDataGridCell}">
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                            </Style>
+                        </DataGrid.CellStyle>
+                        <DataGrid.Resources>
+                            <Style x:Key="CellTxt" TargetType="TextBlock">
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGrid.Resources>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Machine"  Binding="{Binding MachineName}"  Width="*"   ElementStyle="{StaticResource CellTxt}"/>
+                            <DataGridTextColumn Header="Operator" Binding="{Binding OperatorName}" Width="*"   ElementStyle="{StaticResource CellTxt}"/>
+                            <DataGridTextColumn Header="Last Ping"
+                                                Binding="{Binding LastPingAt, Converter={StaticResource NullDateTimeConverter}}"
+                                                Width="140" ElementStyle="{StaticResource CellTxt}"/>
+                            <DataGridTemplateColumn Header="Status" Width="80">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Ellipse Width="8" Height="8" VerticalAlignment="Center" Margin="0,0,6,0">
+                                                <Ellipse.Style>
+                                                    <Style TargetType="Ellipse">
+                                                        <Setter Property="Fill" Value="#4ADE80"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                                                <Setter Property="Fill" Value="#F87171"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Ellipse.Style>
+                                            </Ellipse>
+                                            <TextBlock VerticalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource CellTxt}">
+                                                        <Setter Property="Text" Value="Active"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                                                <Setter Property="Text" Value="Inactive"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Width="180">
+                                <DataGridTemplateColumn.Header>
+                                    <TextBlock Text="Actions" VerticalAlignment="Center"/>
+                                </DataGridTemplateColumn.Header>
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                                    Padding="6,2" Height="28" FontSize="11"
+                                                    ToolTip="Generate 24-hour uninstall code"
+                                                    Command="{Binding DataContext.GenerateCodeCommand,
+                                                        RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}">
+                                                <materialDesign:PackIcon Kind="KeyVariant" Width="14" Height="14"/>
+                                            </Button>
+                                            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                                    Padding="6,2" Height="28" FontSize="11"
+                                                    Foreground="#F87171"
+                                                    ToolTip="Force deactivate device"
+                                                    Command="{Binding DataContext.DeactivateDeviceCommand,
+                                                        RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}">
+                                                <materialDesign:PackIcon Kind="DeviceOff" Width="14" Height="14"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+
             <!-- Save row -->
-            <Grid Grid.Row="3">
+            <Grid Grid.Row="4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>

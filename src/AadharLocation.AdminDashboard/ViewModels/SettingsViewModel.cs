@@ -1,4 +1,6 @@
+using System.Collections.ObjectModel;
 using AadharLocation.AdminDashboard.Infrastructure;
+using AadharLocation.Shared.DTOs.Activation;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MaterialDesignThemes.Wpf;
@@ -24,6 +26,12 @@ public partial class SettingsViewModel : ObservableObject
     // Timing settings
     [ObservableProperty] private string _offlineThresholdMinutes = "5";
     [ObservableProperty] private string _geofenceCooldownMinutes = "5";
+
+    // Device management
+    [ObservableProperty] private string _deviceStatusMessage = string.Empty;
+    public ObservableCollection<DeviceDto> Devices { get; } = [];
+
+    public event Action<string, DateTime>? UninstallCodeGenerated;
 
     public SettingsViewModel(ApiClient api, AuthStateService auth)
     {
@@ -53,6 +61,51 @@ public partial class SettingsViewModel : ObservableObject
         }
         catch (Exception ex) { StatusMessage = $"Load failed: {ex.Message}"; }
         finally { IsBusy = false; }
+
+        await LoadDevicesAsync();
+    }
+
+    [RelayCommand]
+    public async Task LoadDevicesAsync()
+    {
+        DeviceStatusMessage = string.Empty;
+        try
+        {
+            var devices = await _api.GetDevicesAsync();
+            Devices.Clear();
+            if (devices != null)
+                foreach (var d in devices) Devices.Add(d);
+        }
+        catch (Exception ex) { DeviceStatusMessage = $"Could not load devices: {ex.Message}"; }
+    }
+
+    [RelayCommand]
+    private async Task GenerateCodeAsync(DeviceDto? device)
+    {
+        if (device is null) return;
+        DeviceStatusMessage = string.Empty;
+        try
+        {
+            var result = await _api.GenerateUninstallCodeAsync(device.DeviceKey);
+            if (result != null)
+                UninstallCodeGenerated?.Invoke(result.Code, result.ExpiresAt);
+            await LoadDevicesAsync();
+        }
+        catch (Exception ex) { DeviceStatusMessage = $"Generate failed: {ex.Message}"; }
+    }
+
+    [RelayCommand]
+    private async Task DeactivateDeviceAsync(DeviceDto? device)
+    {
+        if (device is null) return;
+        DeviceStatusMessage = string.Empty;
+        try
+        {
+            await _api.DeactivateDeviceAsync(device.DeviceKey);
+            DeviceStatusMessage = $"Device for {device.MachineName} deactivated.";
+            await LoadDevicesAsync();
+        }
+        catch (Exception ex) { DeviceStatusMessage = $"Deactivate failed: {ex.Message}"; }
     }
 
     [RelayCommand]

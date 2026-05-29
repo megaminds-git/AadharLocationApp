@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using AadharLocation.Shared.Constants;
 using AadharLocation.Shared.DTOs;
+using AadharLocation.Shared.DTOs.Activation;
 using AadharLocation.Shared.DTOs.Alerts;
 using AadharLocation.Shared.DTOs.Auth;
 using AadharLocation.Shared.DTOs.Geofences;
@@ -174,6 +175,47 @@ public class ApiClient
     {
         SetAuthHeader();
         var resp = await _http.PostAsJsonAsync(ApiRoutes.Settings.Base, settings);
+        resp.EnsureSuccessStatusCode();
+    }
+
+    // ── Reports ───────────────────────────────────────────────────────────────
+
+    public async Task<byte[]> ExportMachinesCsvAsync(int? machineId, DateTime? from, DateTime? to)
+    {
+        SetAuthHeader();
+        var parts = new List<string>();
+        if (machineId.HasValue) parts.Add($"machineId={machineId.Value}");
+        if (from.HasValue)      parts.Add($"from={from.Value:yyyy-MM-ddTHH:mm:ss}");
+        if (to.HasValue)        parts.Add($"to={to.Value:yyyy-MM-ddTHH:mm:ss}");
+        var url = parts.Count > 0
+            ? ApiRoutes.Reports.Device + "?" + string.Join("&", parts)
+            : ApiRoutes.Reports.Device;
+        var resp = await _http.GetAsync(url);
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadAsByteArrayAsync();
+    }
+
+    // ── Activation ────────────────────────────────────────────────────────────
+
+    public async Task<List<DeviceDto>?> GetDevicesAsync()
+    {
+        SetAuthHeader();
+        return await _http.GetFromJsonAsync<List<DeviceDto>>(ApiRoutes.Activation.Devices, _json);
+    }
+
+    public async Task<GenerateUninstallCodeResponse?> GenerateUninstallCodeAsync(string deviceKey)
+    {
+        SetAuthHeader();
+        var url  = ApiRoutes.Activation.GenerateUninstallCode.Replace("{deviceKey}", Uri.EscapeDataString(deviceKey));
+        var resp = await _http.PostAsync(url, null);
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadFromJsonAsync<GenerateUninstallCodeResponse>(_json);
+    }
+
+    public async Task DeactivateDeviceAsync(string deviceKey)
+    {
+        SetAuthHeader();
+        var resp = await _http.PostAsJsonAsync(ApiRoutes.Activation.Deactivate, new DeactivateRequest(deviceKey));
         resp.EnsureSuccessStatusCode();
     }
 }

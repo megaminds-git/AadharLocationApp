@@ -48,6 +48,7 @@ public static class ApiRoutes
 
     public static class Activation
     {
+        public const string Devices = $"{Base}/activation/devices";
         public const string GenerateUninstallCode = $"{Base}/activation/{{deviceKey}}/generate-uninstall-code";
         public const string VerifyUninstallCode = $"{Base}/activation/verify-uninstall-code";
         public const string Deactivate = $"{Base}/activation/deactivate";

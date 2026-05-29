@@ -12,6 +12,9 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Runtime-editable settings (persisted by SettingsController; reloaded without restart)
+builder.Configuration.AddJsonFile("appsettings.runtime.json", optional: true, reloadOnChange: true);
+
 builder.Host.UseSerilog((ctx, cfg) =>
     cfg.ReadFrom.Configuration(ctx.Configuration)
        .WriteTo.Console()
