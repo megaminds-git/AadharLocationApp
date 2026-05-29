@@ -12,7 +12,8 @@ namespace AadharLocation.Api.Services;
 public class AlertService(
     AppDbContext db,
     IHubContext<AadharLocationHub, ITrackingClient> hub,
-    IOptions<GeofenceSettings> settings)
+    IOptions<GeofenceSettings> settings,
+    EmailService emailService)
 {
     public async Task<Alert?> CreateGeofenceBreachAlertAsync(
         Machine machine, Operator op, double lat, double lon, double distanceMeters)
@@ -44,6 +45,9 @@ public class AlertService(
         await hub.Clients.Group("admins").GeofenceBreachDetected(new GeofenceBreachEvent(
             alert.Id, machine.Id, machine.Name, op.Id, op.Name,
             lat, lon, distanceMeters, alert.CreatedAt));
+
+        _ = emailService.SendGeofenceBreachAlertAsync(
+            machine.Name, op.Name, lat, lon, distanceMeters, alert.CreatedAt);
 
         return alert;
     }
@@ -86,6 +90,8 @@ public class AlertService(
 
         db.Alerts.Add(alert);
         await db.SaveChangesAsync();
+
+        _ = emailService.SendMachineOfflineAlertAsync(machine.Name, lastSeenAt, minutesOffline);
 
         return alert;
     }

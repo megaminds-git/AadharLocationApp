@@ -17,8 +17,8 @@
     <!-- API - Auth, Security, Email -->
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.5" />
     <PackageVersion Include="BCrypt.Net-Next" Version="4.0.3" />
-    <PackageVersion Include="MailKit" Version="4.13.0" />
-    <PackageVersion Include="MimeKit" Version="4.13.0" />
+    <PackageVersion Include="MailKit" Version="4.17.0" />
+    <PackageVersion Include="MimeKit" Version="4.17.0" />
 
     <!-- API - Logging, Validation, Docs -->
     <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />

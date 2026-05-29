@@ -27,10 +27,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 builder.Services.Configure<GeofenceSettings>(builder.Configuration.GetSection("GeofenceSettings"));
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
 
 builder.Services.AddHostedService<DatabaseSeeder>();
 builder.Services.AddHostedService<OfflineDetectionService>();
 builder.Services.AddSingleton<JwtService>();
+builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<AlertService>();
 builder.Services.AddScoped<GeofenceService>();
 builder.Services.AddFluentValidationAutoValidation();

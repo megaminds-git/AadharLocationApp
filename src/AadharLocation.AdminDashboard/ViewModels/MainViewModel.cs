@@ -10,6 +10,7 @@ public partial class MainViewModel : ObservableObject
     private readonly AuthStateService _auth;
     private readonly SignalRClient _signalR;
     private readonly AlertsViewModel _alertsVm;
+    private readonly ApiClient _api;
 
     [ObservableProperty] private string _currentPageTitle = "Dashboard";
     [ObservableProperty] private NavPage _activePage = NavPage.Dashboard;
@@ -22,12 +23,13 @@ public partial class MainViewModel : ObservableObject
     public event Action? LogoutRequested;
 
     public MainViewModel(NavigationService nav, AuthStateService auth,
-        SignalRClient signalR, AlertsViewModel alertsVm)
+        SignalRClient signalR, AlertsViewModel alertsVm, ApiClient api)
     {
         _nav       = nav;
         _auth      = auth;
         _signalR   = signalR;
         _alertsVm  = alertsVm;
+        _api       = api;
 
         alertsVm.PropertyChanged += (_, e) =>
         {
@@ -84,13 +86,8 @@ public partial class MainViewModel : ObservableObject
     {
         try
         {
-            var alertsVm = _alertsVm;
-            var summary  = await Task.Run(async () =>
-            {
-                // Re-load summary via AlertsViewModel or directly
-                return alertsVm.UnacknowledgedCount;
-            });
-            return summary;
+            var summary = await _api.GetAlertSummaryAsync();
+            return summary?.UnacknowledgedCount ?? 0;
         }
         catch { return 0; }
     }
