@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:converters="clr-namespace:AadharLocation.AdminDashboard.Converters"
-        Height="560" Width="480"
+        Height="480" Width="480"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
@@ -43,7 +43,7 @@
         <TextBlock Grid.Row="0" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,20">
             <TextBlock.Style>
                 <Style TargetType="TextBlock">
-                    <Setter Property="Text" Value="Add Operator"/>
+                    <Setter Property="Text" Value="Add Operators"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding IsEditMode}" Value="True">
                             <Setter Property="Text" Value="Edit Operator"/>
@@ -55,41 +55,35 @@
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <TextBox materialDesign:HintAssist.Hint="Full name *"
+                <TextBox materialDesign:HintAssist.Hint="name"
                          Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                          Margin="0,0,0,12"/>
-                <TextBox materialDesign:HintAssist.Hint="Employee ID *"
-                         Text="{Binding EmployeeId, UpdateSourceTrigger=PropertyChanged}"
-                         IsEnabled="{Binding IsEditMode, Converter={StaticResource InverseBool}}"
-                         Margin="0,0,0,12"/>
-                <TextBox materialDesign:HintAssist.Hint="Email address *"
+                <TextBox materialDesign:HintAssist.Hint="email"
                          Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}"
                          Margin="0,0,0,12"/>
-                <TextBox materialDesign:HintAssist.Hint="Phone (optional)"
+                <TextBox materialDesign:HintAssist.Hint="phone"
                          Text="{Binding Phone, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0,0,0,12"/>
+                <TextBox materialDesign:HintAssist.Hint="district"
+                         Text="{Binding District, UpdateSourceTrigger=PropertyChanged}"
                          Margin="0,0,0,12"/>
                 <PasswordBox x:Name="PwdBox"
                              Margin="0,0,0,12">
                     <PasswordBox.Style>
                         <Style TargetType="PasswordBox" BasedOn="{StaticResource MaterialDesignOutlinedPasswordBox}">
-                            <Setter Property="materialDesign:HintAssist.Hint" Value="Tracker password *"/>
+                            <Setter Property="materialDesign:HintAssist.Hint" Value="password"/>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding IsEditMode}" Value="True">
-                                    <Setter Property="materialDesign:HintAssist.Hint" Value="New tracker password (leave blank to keep)"/>
+                                    <Setter Property="materialDesign:HintAssist.Hint" Value="new password (leave blank to keep)"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </PasswordBox.Style>
                 </PasswordBox>
-                <ComboBox materialDesign:HintAssist.Hint="Assign machine (optional)"
-                          ItemsSource="{Binding AvailableMachines}"
-                          SelectedValuePath="Id"
-                          SelectedValue="{Binding AssignedMachineId}"
-                          DisplayMemberPath="Name"
-                          Margin="0,0,0,12"/>
                 <ComboBox materialDesign:HintAssist.Hint="Status"
                           ItemsSource="{Binding Statuses}"
                           SelectedItem="{Binding Status}"
+                          Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVisibility}}"
                           Margin="0,0,0,12"/>
 
                 <TextBlock Text="{Binding ErrorMessage}" Foreground="#F87171"

@@ -6,9 +6,9 @@ public class Operator
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public string EmployeeId { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string? Phone { get; set; }
+    public string? District { get; set; }
     public int? AssignedMachineId { get; set; }
     public Machine? AssignedMachine { get; set; }
     public string? PasswordHash { get; set; }

@@ -6,6 +6,6 @@ public record UpdateOperatorRequest(
     string Name,
     string Email,
     string? Phone,
-    int? AssignedMachineId,
+    string? District,
     OperatorStatus Status,
     string? NewTrackerPassword);

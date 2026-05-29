@@ -29,21 +29,31 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,20">
-            <Run Text="{Binding IsEditMode, StringFormat={}{0} Machine}"/>
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Text" Value="Add Machines"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                            <Setter Property="Text" Value="Edit Machine"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
         </TextBlock>
 
         <StackPanel Grid.Row="1">
-            <TextBox materialDesign:HintAssist.Hint="Machine name *"
+            <TextBox materialDesign:HintAssist.Hint="Machine name"
                      Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                      Margin="0,0,0,12"/>
-            <TextBox materialDesign:HintAssist.Hint="Serial number *"
+            <TextBox materialDesign:HintAssist.Hint="Machine code"
                      Text="{Binding SerialNumber, UpdateSourceTrigger=PropertyChanged}"
                      IsEnabled="{Binding IsEditMode, Converter={StaticResource InverseBool}}"
                      Margin="0,0,0,12"/>
-            <ComboBox materialDesign:HintAssist.Hint="Machine type *"
-                      ItemsSource="{Binding MachineTypes}"
-                      Text="{Binding Type}"
-                      IsEditable="True"
+            <ComboBox materialDesign:HintAssist.Hint="Operator"
+                      ItemsSource="{Binding AvailableOperators}"
+                      SelectedValuePath="Id"
+                      SelectedValue="{Binding AssignedOperatorId}"
+                      DisplayMemberPath="Name"
                       Margin="0,0,0,12"/>
             <ComboBox materialDesign:HintAssist.Hint="Status"
                       ItemsSource="{Binding Statuses}"

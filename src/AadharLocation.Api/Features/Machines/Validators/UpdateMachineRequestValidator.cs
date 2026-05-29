@@ -8,6 +8,5 @@ public class UpdateMachineRequestValidator : AbstractValidator<UpdateMachineRequ
     public UpdateMachineRequestValidator()
     {
         RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.Type).NotEmpty().MaximumLength(100);
     }
 }

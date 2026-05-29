@@ -62,17 +62,29 @@ public class MachinesController(AppDbContext db) : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateMachineRequest request)
     {
         if (await db.Machines.AnyAsync(m => m.SerialNumber == request.SerialNumber))
-            return Conflict(new { message = $"Serial number '{request.SerialNumber}' is already in use." });
+            return Conflict(new { message = $"Machine code '{request.SerialNumber}' is already in use." });
+
+        if (request.AssignedOperatorId.HasValue &&
+            await db.Machines.AnyAsync(m => m.AssignedOperatorId == request.AssignedOperatorId))
+            return Conflict(new { message = "This operator is already assigned to another machine." });
 
         var machine = new Machine
         {
             Name = request.Name,
             SerialNumber = request.SerialNumber,
-            Type = request.Type,
+            Type = string.Empty,
+            AssignedOperatorId = request.AssignedOperatorId,
         };
 
         db.Machines.Add(machine);
         await db.SaveChangesAsync();
+
+        if (request.AssignedOperatorId.HasValue)
+        {
+            var op = await db.Operators.FindAsync(request.AssignedOperatorId.Value);
+            if (op != null) op.AssignedMachineId = machine.Id;
+            await db.SaveChangesAsync();
+        }
 
         return CreatedAtAction(nameof(GetById), new { id = machine.Id }, ToDto(machine));
     }
@@ -83,8 +95,27 @@ public class MachinesController(AppDbContext db) : ControllerBase
         var machine = await db.Machines.FindAsync(id);
         if (machine is null) return NotFound();
 
+        if (request.AssignedOperatorId.HasValue &&
+            await db.Machines.AnyAsync(m => m.AssignedOperatorId == request.AssignedOperatorId && m.Id != id))
+            return Conflict(new { message = "This operator is already assigned to another machine." });
+
+        // Sync Operator.AssignedMachineId on both sides
+        if (machine.AssignedOperatorId != request.AssignedOperatorId)
+        {
+            if (machine.AssignedOperatorId.HasValue)
+            {
+                var oldOp = await db.Operators.FindAsync(machine.AssignedOperatorId.Value);
+                if (oldOp != null) oldOp.AssignedMachineId = null;
+            }
+            if (request.AssignedOperatorId.HasValue)
+            {
+                var newOp = await db.Operators.FindAsync(request.AssignedOperatorId.Value);
+                if (newOp != null) newOp.AssignedMachineId = id;
+            }
+        }
+
         machine.Name = request.Name;
-        machine.Type = request.Type;
+        machine.AssignedOperatorId = request.AssignedOperatorId;
         machine.Status = request.Status;
 
         await db.SaveChangesAsync();

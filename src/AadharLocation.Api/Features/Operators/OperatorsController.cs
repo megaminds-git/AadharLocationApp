@@ -29,8 +29,8 @@ public class OperatorsController(AppDbContext db) : ControllerBase
             var s = search.ToLower();
             query = query.Where(o =>
                 o.Name.ToLower().Contains(s) ||
-                o.EmployeeId.ToLower().Contains(s) ||
-                o.Email.ToLower().Contains(s));
+                o.Email.ToLower().Contains(s) ||
+                (o.District != null && o.District.ToLower().Contains(s)));
         }
 
         var total = await query.CountAsync();
@@ -39,7 +39,7 @@ public class OperatorsController(AppDbContext db) : ControllerBase
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(o => new OperatorDto(
-                o.Id, o.Name, o.EmployeeId, o.Email, o.Phone,
+                o.Id, o.Name, o.Email, o.Phone, o.District,
                 o.AssignedMachineId, o.AssignedMachine != null ? o.AssignedMachine.Name : null,
                 o.Status, o.CreatedAt))
             .ToListAsync();
@@ -58,7 +58,7 @@ public class OperatorsController(AppDbContext db) : ControllerBase
         if (op is null) return NotFound();
 
         return Ok(new OperatorDto(
-            op.Id, op.Name, op.EmployeeId, op.Email, op.Phone,
+            op.Id, op.Name, op.Email, op.Phone, op.District,
             op.AssignedMachineId, op.AssignedMachine?.Name,
             op.Status, op.CreatedAt));
     }
@@ -66,23 +66,15 @@ public class OperatorsController(AppDbContext db) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateOperatorRequest request)
     {
-        if (await db.Operators.AnyAsync(o => o.EmployeeId == request.EmployeeId))
-            return Conflict(new { message = $"Employee ID '{request.EmployeeId}' is already in use." });
-
         if (await db.Operators.AnyAsync(o => o.Email == request.Email.ToLower()))
             return Conflict(new { message = $"Email '{request.Email}' is already in use." });
-
-        if (request.AssignedMachineId.HasValue &&
-            await db.Operators.AnyAsync(o => o.AssignedMachineId == request.AssignedMachineId))
-            return Conflict(new { message = "This machine is already assigned to another operator." });
 
         var op = new Operator
         {
             Name = request.Name,
-            EmployeeId = request.EmployeeId,
             Email = request.Email.ToLower(),
             Phone = request.Phone,
-            AssignedMachineId = request.AssignedMachineId,
+            District = request.District,
             PasswordHash = request.TrackerPassword is not null
                 ? BCrypt.Net.BCrypt.HashPassword(request.TrackerPassword)
                 : null,
@@ -91,16 +83,9 @@ public class OperatorsController(AppDbContext db) : ControllerBase
         db.Operators.Add(op);
         await db.SaveChangesAsync();
 
-        if (request.AssignedMachineId.HasValue)
-        {
-            var machine = await db.Machines.FindAsync(request.AssignedMachineId.Value);
-            if (machine != null) machine.AssignedOperatorId = op.Id;
-            await db.SaveChangesAsync();
-        }
-
         return CreatedAtAction(nameof(GetById), new { id = op.Id },
-            new OperatorDto(op.Id, op.Name, op.EmployeeId, op.Email, op.Phone,
-                op.AssignedMachineId, null, op.Status, op.CreatedAt));
+            new OperatorDto(op.Id, op.Name, op.Email, op.Phone, op.District,
+                null, null, op.Status, op.CreatedAt));
     }
 
     [HttpPut("{id:int}")]
@@ -112,29 +97,10 @@ public class OperatorsController(AppDbContext db) : ControllerBase
         if (await db.Operators.AnyAsync(o => o.Email == request.Email.ToLower() && o.Id != id))
             return Conflict(new { message = $"Email '{request.Email}' is already in use." });
 
-        if (request.AssignedMachineId.HasValue &&
-            await db.Operators.AnyAsync(o => o.AssignedMachineId == request.AssignedMachineId && o.Id != id))
-            return Conflict(new { message = "This machine is already assigned to another operator." });
-
-        // Sync Machine.AssignedOperatorId: clear old machine, set new machine
-        if (op.AssignedMachineId != request.AssignedMachineId)
-        {
-            if (op.AssignedMachineId.HasValue)
-            {
-                var oldMachine = await db.Machines.FindAsync(op.AssignedMachineId.Value);
-                if (oldMachine != null) oldMachine.AssignedOperatorId = null;
-            }
-            if (request.AssignedMachineId.HasValue)
-            {
-                var newMachine = await db.Machines.FindAsync(request.AssignedMachineId.Value);
-                if (newMachine != null) newMachine.AssignedOperatorId = id;
-            }
-        }
-
         op.Name = request.Name;
         op.Email = request.Email.ToLower();
         op.Phone = request.Phone;
-        op.AssignedMachineId = request.AssignedMachineId;
+        op.District = request.District;
         op.Status = request.Status;
 
         if (request.NewTrackerPassword is not null)

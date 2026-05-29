@@ -5,9 +5,9 @@ namespace AadharLocation.Shared.DTOs.Operators;
 public record OperatorDto(
     int Id,
     string Name,
-    string EmployeeId,
     string Email,
     string? Phone,
+    string? District,
     int? AssignedMachineId,
     string? AssignedMachineName,
     OperatorStatus Status,

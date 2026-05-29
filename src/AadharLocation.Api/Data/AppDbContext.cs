@@ -25,7 +25,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         modelBuilder.Entity<Operator>(e =>
         {
-            e.HasIndex(o => o.EmployeeId).IsUnique();
             e.HasOne(o => o.AssignedMachine)
              .WithMany()
              .HasForeignKey(o => o.AssignedMachineId)
