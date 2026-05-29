@@ -15,6 +15,9 @@ public class Machine
     public DateTime? LastSeenAt { get; set; }
     public MachineStatus Status { get; set; } = MachineStatus.Offline;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
+    public string? MachineAuthCode { get; set; }
+    public bool IsDeleted { get; set; } = false;
 
     public ICollection<Geofence> Geofences { get; set; } = [];
     public ICollection<LocationLog> LocationLogs { get; set; } = [];

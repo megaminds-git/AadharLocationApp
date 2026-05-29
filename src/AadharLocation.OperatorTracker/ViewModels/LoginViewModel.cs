@@ -20,6 +20,9 @@ public partial class LoginViewModel : ObservableObject
     [ObservableProperty]
     private bool _isBusy;
 
+    [ObservableProperty]
+    private bool _isPasswordVisible;
+
     public event EventHandler? LoginSucceeded;
 
     public LoginViewModel(IActivationService activation)

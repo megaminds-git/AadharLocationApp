@@ -74,6 +74,7 @@ public class MachinesController(AppDbContext db) : ControllerBase
             SerialNumber = request.SerialNumber,
             Type = string.Empty,
             AssignedOperatorId = request.AssignedOperatorId,
+            MachineAuthCode = Guid.NewGuid().ToString("N")[..8].ToUpper(),
         };
 
         db.Machines.Add(machine);
@@ -117,6 +118,7 @@ public class MachinesController(AppDbContext db) : ControllerBase
         machine.Name = request.Name;
         machine.AssignedOperatorId = request.AssignedOperatorId;
         machine.Status = request.Status;
+        machine.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync();
         return NoContent();
@@ -128,7 +130,8 @@ public class MachinesController(AppDbContext db) : ControllerBase
         var machine = await db.Machines.FindAsync(id);
         if (machine is null) return NotFound();
 
-        db.Machines.Remove(machine);
+        machine.IsDeleted = true;
+        machine.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
         return NoContent();
     }
@@ -137,5 +140,5 @@ public class MachinesController(AppDbContext db) : ControllerBase
         m.Id, m.Name, m.SerialNumber, m.Type,
         m.AssignedOperatorId, m.AssignedOperator?.Name,
         m.CurrentLatitude, m.CurrentLongitude, m.LastSeenAt,
-        m.Status, m.CreatedAt);
+        m.Status, m.CreatedAt, m.UpdatedAt, m.MachineAuthCode, m.IsDeleted);
 }

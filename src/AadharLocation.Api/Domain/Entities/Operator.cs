@@ -14,6 +14,9 @@ public class Operator
     public string? PasswordHash { get; set; }
     public OperatorStatus Status { get; set; } = OperatorStatus.Active;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
+    public DateTime? LastLoginAt { get; set; }
+    public bool IsDeleted { get; set; } = false;
 
     public ICollection<LocationLog> LocationLogs { get; set; } = [];
     public ICollection<Alert> Alerts { get; set; } = [];

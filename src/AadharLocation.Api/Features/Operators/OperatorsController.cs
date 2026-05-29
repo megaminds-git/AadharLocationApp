@@ -41,7 +41,7 @@ public class OperatorsController(AppDbContext db) : ControllerBase
             .Select(o => new OperatorDto(
                 o.Id, o.Name, o.Email, o.Phone, o.District,
                 o.AssignedMachineId, o.AssignedMachine != null ? o.AssignedMachine.Name : null,
-                o.Status, o.CreatedAt))
+                o.Status, o.CreatedAt, o.UpdatedAt, o.LastLoginAt, o.IsDeleted))
             .ToListAsync();
 
         return Ok(new PagedResult<OperatorDto>(items, total, page, pageSize));
@@ -60,7 +60,7 @@ public class OperatorsController(AppDbContext db) : ControllerBase
         return Ok(new OperatorDto(
             op.Id, op.Name, op.Email, op.Phone, op.District,
             op.AssignedMachineId, op.AssignedMachine?.Name,
-            op.Status, op.CreatedAt));
+            op.Status, op.CreatedAt, op.UpdatedAt, op.LastLoginAt, op.IsDeleted));
     }
 
     [HttpPost]
@@ -85,7 +85,7 @@ public class OperatorsController(AppDbContext db) : ControllerBase
 
         return CreatedAtAction(nameof(GetById), new { id = op.Id },
             new OperatorDto(op.Id, op.Name, op.Email, op.Phone, op.District,
-                null, null, op.Status, op.CreatedAt));
+                null, null, op.Status, op.CreatedAt, null, null, false));
     }
 
     [HttpPut("{id:int}")]
@@ -102,6 +102,7 @@ public class OperatorsController(AppDbContext db) : ControllerBase
         op.Phone = request.Phone;
         op.District = request.District;
         op.Status = request.Status;
+        op.UpdatedAt = DateTime.UtcNow;
 
         if (request.NewTrackerPassword is not null)
             op.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewTrackerPassword);
@@ -116,7 +117,8 @@ public class OperatorsController(AppDbContext db) : ControllerBase
         var op = await db.Operators.FindAsync(id);
         if (op is null) return NotFound();
 
-        db.Operators.Remove(op);
+        op.IsDeleted = true;
+        op.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
         return NoContent();
     }

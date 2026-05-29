@@ -23,4 +23,10 @@ public partial class AddOperatorDialog : Window
         _vm.TrackerPassword = PwdBox.Password;
         _vm.SaveCommand.Execute(null);
     }
+
+    private void PwdBox_PasswordChanged(object sender, RoutedEventArgs e)
+    {
+        if (_vm.PasswordHasError && PwdBox.Password.Length > 0)
+            _vm.PasswordHasError = false;
+    }
 }

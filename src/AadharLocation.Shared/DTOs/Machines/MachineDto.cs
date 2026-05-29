@@ -13,4 +13,7 @@ public record MachineDto(
     double? CurrentLongitude,
     DateTime? LastSeenAt,
     MachineStatus Status,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    DateTime? UpdatedAt,
+    string? MachineAuthCode,
+    bool IsDeleted);

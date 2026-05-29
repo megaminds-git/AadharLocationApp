@@ -55,6 +55,9 @@ public class AuthController(AppDbContext db, JwtService jwt) : ControllerBase
             await db.SaveChangesAsync();
         }
 
+        op.LastLoginAt = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+
         var token = jwt.GenerateTrackerToken(op, activation.DeviceKey);
         return Ok(new TrackerLoginResponse(token, activation.DeviceKey, op.Id, activation.MachineId));
     }

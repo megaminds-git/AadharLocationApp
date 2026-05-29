@@ -11,4 +11,7 @@ public record OperatorDto(
     int? AssignedMachineId,
     string? AssignedMachineName,
     OperatorStatus Status,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    DateTime? UpdatedAt,
+    DateTime? LastLoginAt,
+    bool IsDeleted);

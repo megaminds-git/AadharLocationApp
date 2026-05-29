@@ -3,92 +3,124 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
         Title="AadharLocation Tracker — Sign In"
-        Width="400" Height="480"
+        Width="400" Height="500"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
-        Background="{DynamicResource MaterialDesignPaper}">
+        Background="White">
 
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <md:BundledTheme BaseTheme="Dark" PrimaryColor="Teal" SecondaryColor="Teal" />
+                <md:BundledTheme BaseTheme="Light" PrimaryColor="Teal" SecondaryColor="Teal" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
 
-    <Grid Margin="40">
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="110"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Logo / Title -->
-        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,32">
-            <md:PackIcon Kind="MapMarkerRadius"
-                         Width="48" Height="48"
-                         HorizontalAlignment="Center"
-                         Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-            <TextBlock Text="AadharLocation"
-                       Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                       HorizontalAlignment="Center"
-                       Margin="0,8,0,0"/>
-            <TextBlock Text="Operator Tracker"
-                       Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                       HorizontalAlignment="Center"
-                       Opacity="0.7"/>
-        </StackPanel>
+        <!-- Teal header banner -->
+        <Border Grid.Row="0" Background="{DynamicResource PrimaryHueMidBrush}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <md:PackIcon Kind="MapMarkerRadius"
+                             Width="40" Height="40"
+                             HorizontalAlignment="Center"
+                             Foreground="White"/>
+                <TextBlock Text="AadharLocation"
+                           FontSize="20" FontWeight="Bold"
+                           Foreground="White"
+                           HorizontalAlignment="Center"
+                           Margin="0,6,0,0"/>
+                <TextBlock Text="Operator Tracker"
+                           FontSize="12"
+                           Foreground="#CCffffff"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
 
-        <!-- Email -->
-        <TextBox Grid.Row="1"
-                 Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}"
-                 md:HintAssist.Hint="Email address"
-                 md:TextFieldAssist.HasLeadingIcon="True"
-                 md:TextFieldAssist.LeadingIcon="Email"
-                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                 Margin="0,0,0,16"
-                 IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBooleanConverter}}"/>
+        <!-- Form card -->
+        <Border Grid.Row="1" Background="White" Padding="36,28,36,28">
+            <StackPanel>
+                <TextBlock Text="Welcome back"
+                           FontSize="16" FontWeight="SemiBold"
+                           Foreground="#1A1A2E"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,4"/>
+                <TextBlock Text="Sign in to continue"
+                           FontSize="12"
+                           Foreground="#888"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,24"/>
 
-        <!-- Password -->
-        <PasswordBox Grid.Row="2"
-                     x:Name="PasswordBox"
-                     md:HintAssist.Hint="Password"
-                     md:TextFieldAssist.HasLeadingIcon="True"
-                     md:TextFieldAssist.LeadingIcon="Lock"
-                     Style="{StaticResource MaterialDesignOutlinedPasswordBox}"
-                     Margin="0,0,0,8"
-                     IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBooleanConverter}}"
-                     PasswordChanged="PasswordBox_PasswordChanged"/>
+                <!-- Email -->
+                <TextBox Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}"
+                         md:HintAssist.Hint="Email address"
+                         md:TextFieldAssist.HasLeadingIcon="True"
+                         md:TextFieldAssist.LeadingIcon="Email"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         Margin="0,0,0,16"
+                         IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBooleanConverter}}"/>
 
-        <!-- Error message -->
-        <TextBlock Grid.Row="3"
-                   Text="{Binding ErrorMessage}"
-                   Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"
-                   Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                   TextWrapping="Wrap"
-                   Margin="0,0,0,16"
-                   Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}"/>
+                <!-- Password -->
+                <Grid Margin="0,0,0,8">
+                    <PasswordBox x:Name="PasswordBox"
+                                 md:HintAssist.Hint="Password"
+                                 md:TextFieldAssist.HasLeadingIcon="True"
+                                 md:TextFieldAssist.LeadingIcon="Lock"
+                                 Style="{StaticResource MaterialDesignOutlinedPasswordBox}"
+                                 IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBooleanConverter}}"
+                                 PasswordChanged="PasswordBox_PasswordChanged"
+                                 Visibility="{Binding IsPasswordVisible, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                    <TextBox x:Name="PasswordText"
+                             Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
+                             md:HintAssist.Hint="Password"
+                             md:TextFieldAssist.HasLeadingIcon="True"
+                             md:TextFieldAssist.LeadingIcon="Lock"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                             IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBooleanConverter}}"
+                             Visibility="{Binding IsPasswordVisible, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    <Button x:Name="TogglePasswordButton"
+                            Style="{StaticResource MaterialDesignIconButton}"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Margin="0,4,4,0"
+                            Width="32" Height="32"
+                            Padding="0"
+                            Click="TogglePasswordButton_Click"
+                            Foreground="#888"
+                            ToolTip="Show/hide password">
+                        <md:PackIcon x:Name="EyeIcon" Kind="Eye" Width="18" Height="18"/>
+                    </Button>
+                </Grid>
 
-        <!-- Login button -->
-        <Button Grid.Row="4"
-                Command="{Binding LoginCommand}"
-                Style="{StaticResource MaterialDesignRaisedButton}"
-                HorizontalAlignment="Stretch"
-                Height="44"
-                Margin="0,0,0,0">
-            <Grid>
-                <TextBlock Text="SIGN IN"
-                           Visibility="{Binding IsBusy, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
-                <ProgressBar IsIndeterminate="True"
-                             Style="{StaticResource MaterialDesignCircularProgressBar}"
-                             Width="20" Height="20"
-                             Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-            </Grid>
-        </Button>
+                <!-- Error message -->
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"
+                           Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,16"
+                           Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}"/>
+
+                <!-- Login button -->
+                <Button Command="{Binding LoginCommand}"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        HorizontalAlignment="Stretch"
+                        Height="44"
+                        md:ButtonAssist.CornerRadius="6">
+                    <Grid>
+                        <TextBlock Text="SIGN IN"
+                                   Visibility="{Binding IsBusy, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                        <ProgressBar IsIndeterminate="True"
+                                     Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                     Width="20" Height="20"
+                                     Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    </Grid>
+                </Button>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

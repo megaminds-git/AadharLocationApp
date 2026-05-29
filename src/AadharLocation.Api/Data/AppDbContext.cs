@@ -25,6 +25,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         modelBuilder.Entity<Operator>(e =>
         {
+            e.HasQueryFilter(o => !o.IsDeleted);
             e.HasOne(o => o.AssignedMachine)
              .WithMany()
              .HasForeignKey(o => o.AssignedMachineId)
@@ -34,6 +35,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         modelBuilder.Entity<Machine>(e =>
         {
+            e.HasQueryFilter(m => !m.IsDeleted);
             e.HasIndex(m => m.SerialNumber).IsUnique();
             e.HasOne(m => m.AssignedOperator)
              .WithMany()
