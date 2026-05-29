@@ -11,6 +11,11 @@
                 <ResourceDictionary Source="/Styles/Buttons.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}"/>
+            <!-- CellTxt must live here (not in DataGrid.Resources) so DataGridColumn.ElementStyle
+                 can resolve it — columns are not in the visual tree, breaking nested StaticResource lookup. -->
+            <Style x:Key="CellTxt" TargetType="TextBlock">
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -35,7 +40,7 @@
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="WeatherNight" Width="18" Height="18"
                                              VerticalAlignment="Center" Margin="0,0,6,0" Opacity="0.7"/>
-                    <ToggleButton IsChecked="{Binding IsDarkTheme}"
+                    <ToggleButton IsChecked="{Binding IsDarkTheme, Mode=OneWay}"
                                   Command="{Binding ToggleThemeCommand}"
                                   Style="{StaticResource MaterialDesignSwitchToggleButton}"/>
                     <TextBlock Text="Dark theme" Margin="8,0,0,0" VerticalAlignment="Center" Opacity="0.7"/>
@@ -133,11 +138,6 @@
                                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                             </Style>
                         </DataGrid.CellStyle>
-                        <DataGrid.Resources>
-                            <Style x:Key="CellTxt" TargetType="TextBlock">
-                                <Setter Property="VerticalAlignment" Value="Center"/>
-                            </Style>
-                        </DataGrid.Resources>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Machine"  Binding="{Binding MachineName}"  Width="*"   ElementStyle="{StaticResource CellTxt}"/>
                             <DataGridTextColumn Header="Operator" Binding="{Binding OperatorName}" Width="*"   ElementStyle="{StaticResource CellTxt}"/>

@@ -2,9 +2,9 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:converters="clr-namespace:AadharLocation.AdminDashboard.Converters"
-        Title="Geofence Editor"
-        Height="420" Width="440"
+        xmlns:mapsui="clr-namespace:Mapsui.UI.Wpf;assembly=Mapsui.UI.Wpf"
+        Title="Set Geofence"
+        Height="600" Width="940"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
@@ -16,85 +16,113 @@
                 <ResourceDictionary Source="/Converters/ConverterResources.xaml"/>
                 <ResourceDictionary Source="/Styles/Buttons.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}"/>
+            <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
+                <Setter Property="materialDesign:HintAssist.IsFloating" Value="True"/>
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
 
-    <Grid Margin="24">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="300"/>
+        </Grid.ColumnDefinitions>
 
-        <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <StackPanel Orientation="Horizontal">
-                <materialDesign:PackIcon Kind="MapMarkerRadius" Width="22" Height="22"
-                                         Foreground="#2DD4BF" VerticalAlignment="Center"/>
-                <TextBlock Text="Set Geofence" FontSize="18" FontWeight="SemiBold"
-                           Margin="8,0,0,0" VerticalAlignment="Center"/>
-            </StackPanel>
-            <TextBlock Text="{Binding MachineName}" Opacity="0.6" FontSize="13" Margin="0,4,0,0"/>
-        </StackPanel>
+        <!-- ── Map ── -->
+        <Grid Grid.Column="0">
+            <mapsui:MapControl x:Name="MapControl"/>
 
-        <!-- Form -->
-        <StackPanel Grid.Row="1">
-            <TextBlock Text="Center coordinates" Opacity="0.6" FontSize="12" Margin="0,0,0,8"/>
-            <Grid Margin="0,0,0,12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="12"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0"
-                         materialDesign:HintAssist.Hint="Latitude"
-                         Text="{Binding CenterLatitude, UpdateSourceTrigger=PropertyChanged, StringFormat=F6}"/>
-                <TextBox Grid.Column="2"
-                         materialDesign:HintAssist.Hint="Longitude"
-                         Text="{Binding CenterLongitude, UpdateSourceTrigger=PropertyChanged, StringFormat=F6}"/>
-            </Grid>
+            <!-- Hint -->
+            <Border VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,20"
+                    Background="#CC000000" CornerRadius="20" Padding="16,7"
+                    IsHitTestVisible="False">
+                <TextBlock Text="Click on the map to place the geofence center"
+                           Foreground="White" FontSize="12"/>
+            </Border>
+        </Grid>
 
-            <TextBlock Margin="0,0,0,8" Opacity="0.6" FontSize="12">
-                <Run Text="Radius: "/><Run Text="{Binding RadiusMeters, StringFormat=F0}"/><Run Text=" m"/>
-            </TextBlock>
-            <Slider Minimum="50" Maximum="10000" Value="{Binding RadiusMeters}"
-                    Style="{StaticResource MaterialDesignSlider}"
-                    TickFrequency="50"
-                    Margin="0,0,0,16"/>
+        <!-- ── Side panel ── -->
+        <Border Grid.Column="1" Background="{DynamicResource MaterialDesignPaper}">
+            <Grid Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>  <!-- header -->
+                    <RowDefinition Height="16"/>
+                    <RowDefinition Height="Auto"/>  <!-- separator -->
+                    <RowDefinition Height="20"/>
+                    <RowDefinition Height="Auto"/>  <!-- radius input -->
+                    <RowDefinition Height="16"/>
+                    <RowDefinition Height="Auto"/>  <!-- lat/lng -->
+                    <RowDefinition Height="16"/>
+                    <RowDefinition Height="Auto"/>  <!-- existing-geofence warning -->
+                    <RowDefinition Height="Auto"/>  <!-- error -->
+                    <RowDefinition Height="*"/>     <!-- spacer -->
+                    <RowDefinition Height="Auto"/>  <!-- buttons -->
+                </Grid.RowDefinitions>
 
-            <!-- Existing geofence info -->
-            <Border Padding="12,8" CornerRadius="6" Background="{DynamicResource MaterialDesignCardBackground}"
-                    Margin="0,0,0,12"
-                    Visibility="{Binding ExistingGeofence, Converter={StaticResource BoolToVisibility}}">
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="Information" Width="16" Height="16"
-                                             Foreground="#FBBF24" VerticalAlignment="Center"/>
-                    <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" FontSize="12">
-                        Existing geofence (<Run Text="{Binding ExistingGeofence.RadiusMeters, StringFormat=F0}"/>m)
-                        will be replaced.
+                <!-- Header -->
+                <StackPanel Grid.Row="0">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="MapMarkerRadius" Width="22" Height="22"
+                                                 Foreground="#2DD4BF" VerticalAlignment="Center"/>
+                        <TextBlock Text="Set Geofence" FontSize="18" FontWeight="SemiBold"
+                                   Margin="8,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding MachineName}" Opacity="0.6" FontSize="13" Margin="0,6,0,0"/>
+                </StackPanel>
+
+                <Separator Grid.Row="2"/>
+
+                <!-- Radius input -->
+                <TextBox Grid.Row="4"
+                         materialDesign:HintAssist.Hint="Geofence radius (meters)"
+                         Text="{Binding RadiusMeters, UpdateSourceTrigger=LostFocus, StringFormat=F0}"/>
+
+                <!-- Lat / Lng readout -->
+                <StackPanel Grid.Row="6">
+                    <TextBlock FontSize="12" Opacity="0.6">
+                        <Run Text="Lat: "/><Run Text="{Binding CenterLatitude,  StringFormat=F6}"/>
+                    </TextBlock>
+                    <TextBlock FontSize="12" Opacity="0.6" Margin="0,4,0,0">
+                        <Run Text="Lng: "/><Run Text="{Binding CenterLongitude, StringFormat=F6}"/>
                     </TextBlock>
                 </StackPanel>
-            </Border>
 
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="#F87171"
-                       FontSize="12" TextWrapping="Wrap"
-                       Visibility="{Binding ErrorMessage, Converter={StaticResource BoolToVisibility}}"/>
-        </StackPanel>
+                <!-- Existing-geofence info -->
+                <Border Grid.Row="8" Padding="12,8" CornerRadius="6" Margin="0,0,0,8"
+                        Background="{DynamicResource MaterialDesignCardBackground}"
+                        Visibility="{Binding ExistingGeofence, Converter={StaticResource NullToVisibility}}">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Information" Width="16" Height="16"
+                                                 Foreground="#FBBF24" VerticalAlignment="Center"/>
+                        <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" FontSize="12" TextWrapping="Wrap">
+                            Existing (<Run Text="{Binding ExistingGeofence.RadiusMeters, StringFormat=F0}"/>m)
+                            will be replaced.
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
 
-        <!-- Footer -->
-        <Grid Grid.Row="2" Margin="0,16,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="8"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <Button Grid.Column="1" Content="Cancel" Style="{StaticResource GhostButtonStyle}"
-                    IsCancel="True"/>
-            <Button Grid.Column="3" Content="Save Geofence" Style="{StaticResource PrimaryButtonStyle}"
-                    Command="{Binding SaveCommand}"
-                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"/>
-        </Grid>
+                <!-- Error message -->
+                <TextBlock Grid.Row="9"
+                           Text="{Binding ErrorMessage}" Foreground="#F87171"
+                           FontSize="12" TextWrapping="Wrap"
+                           Visibility="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+
+                <!-- Buttons -->
+                <Grid Grid.Row="11">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Content="Cancel"
+                            Style="{StaticResource GhostButtonStyle}"
+                            IsCancel="True"/>
+                    <Button Grid.Column="2" Content="Save geofence"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Command="{Binding SaveCommand}"
+                            IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"/>
+                </Grid>
+            </Grid>
+        </Border>
     </Grid>
 </Window>

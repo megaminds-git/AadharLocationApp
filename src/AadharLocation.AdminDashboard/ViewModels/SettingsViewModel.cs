@@ -3,7 +3,6 @@ using AadharLocation.AdminDashboard.Infrastructure;
 using AadharLocation.Shared.DTOs.Activation;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MaterialDesignThemes.Wpf;
 
 namespace AadharLocation.AdminDashboard.ViewModels;
 
@@ -137,10 +136,6 @@ public partial class SettingsViewModel : ObservableObject
     {
         IsDarkTheme = !IsDarkTheme;
         _auth.SetTheme(IsDarkTheme);
-
-        var paletteHelper = new PaletteHelper();
-        var theme = paletteHelper.GetTheme();
-        theme.SetBaseTheme(IsDarkTheme ? BaseTheme.Dark : BaseTheme.Light);
-        paletteHelper.SetTheme(theme);
+        App.SwitchTheme(IsDarkTheme);
     }
 }
