@@ -12,7 +12,10 @@ public partial class AddOperatorDialog : Window
         InitializeComponent();
         _vm = vm;
         DataContext = vm;
-        vm.SaveSucceeded += () => { DialogResult = true; Close(); };
+
+        void onSaveSucceeded() { DialogResult = true; }
+        vm.SaveSucceeded += onSaveSucceeded;
+        Closed += (_, _) => vm.SaveSucceeded -= onSaveSucceeded;
     }
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)

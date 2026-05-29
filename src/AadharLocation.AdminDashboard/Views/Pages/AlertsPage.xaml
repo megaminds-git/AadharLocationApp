@@ -44,9 +44,6 @@
                 <Button Content="Acknowledge All" Margin="0,0,8,0"
                         Command="{Binding AcknowledgeAllCommand}"
                         Style="{StaticResource GhostButtonStyle}"/>
-                <Button Content="Refresh"
-                        Command="{Binding LoadCommand}"
-                        Style="{StaticResource MaterialDesignOutlinedButton}"/>
             </StackPanel>
         </Grid>
 

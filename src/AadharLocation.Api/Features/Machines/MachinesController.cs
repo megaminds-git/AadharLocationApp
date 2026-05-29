@@ -69,7 +69,6 @@ public class MachinesController(AppDbContext db) : ControllerBase
             Name = request.Name,
             SerialNumber = request.SerialNumber,
             Type = request.Type,
-            AssignedOperatorId = request.AssignedOperatorId,
         };
 
         db.Machines.Add(machine);
@@ -86,7 +85,6 @@ public class MachinesController(AppDbContext db) : ControllerBase
 
         machine.Name = request.Name;
         machine.Type = request.Type;
-        machine.AssignedOperatorId = request.AssignedOperatorId;
         machine.Status = request.Status;
 
         await db.SaveChangesAsync();

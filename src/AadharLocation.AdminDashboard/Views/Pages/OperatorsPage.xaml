@@ -27,7 +27,8 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Text="Operators" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <TextBlock Text="Operators" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"
+                       Foreground="{DynamicResource PrimaryTextBrush}"/>
             <Button Grid.Column="1" Content="+ Add Operator"
                     Command="{Binding AddOperatorCommand}"
                     Style="{StaticResource PrimaryButtonStyle}"/>
@@ -42,8 +43,9 @@
             <TextBox materialDesign:HintAssist.Hint="Search operators..."
                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                     materialDesign:TextFieldAssist.LeadingIcon="Magnify">
-            </TextBox>
+                     Foreground="{DynamicResource PrimaryTextBrush}"
+                     materialDesign:HintAssist.Foreground="{DynamicResource SecondaryTextBrush}"
+                     materialDesign:TextFieldAssist.LeadingIcon="Magnify"/>
             <Button Grid.Column="1" Content="Search" Margin="8,0,0,0"
                     Command="{Binding SearchCommand}"
                     Style="{StaticResource MaterialDesignOutlinedButton}"/>
@@ -59,17 +61,30 @@
                       CanUserDeleteRows="False"
                       IsReadOnly="True"
                       Style="{StaticResource MaterialDesignDataGrid}"
-                      materialDesign:DataGridAssist.CellPadding="12 8 12 8">
+                      RowHeight="44"
+                      materialDesign:DataGridAssist.CellPadding="12 0 12 0"
+                      materialDesign:DataGridAssist.ColumnHeaderPadding="12 14 12 14">
+                <DataGrid.CellStyle>
+                    <Style TargetType="DataGridCell" BasedOn="{StaticResource MaterialDesignDataGridCell}">
+                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    </Style>
+                </DataGrid.CellStyle>
+                <DataGrid.Resources>
+                    <Style x:Key="CellText" TargetType="TextBlock">
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                    </Style>
+                </DataGrid.Resources>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Name"        Binding="{Binding Name}"       Width="*"/>
-                    <DataGridTextColumn Header="Employee ID" Binding="{Binding EmployeeId}" Width="120"/>
-                    <DataGridTextColumn Header="Email"       Binding="{Binding Email}"      Width="*"/>
-                    <DataGridTextColumn Header="Phone"       Binding="{Binding Phone}"      Width="120"/>
-                    <DataGridTextColumn Header="Machine"     Binding="{Binding AssignedMachineName}" Width="130"/>
+                    <DataGridTextColumn Header="Name"        Binding="{Binding Name}"       Width="*"   ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="Employee ID" Binding="{Binding EmployeeId}" Width="120" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="Email"       Binding="{Binding Email}"      Width="*"   ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="Phone"       Binding="{Binding Phone}"      Width="120" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="Machine"     Binding="{Binding AssignedMachineName}" Width="130" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTemplateColumn Header="Status"  Width="100">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                            HorizontalAlignment="Left">
                                     <Ellipse Width="8" Height="8"
                                              Fill="{Binding Status, Converter={StaticResource StatusColor}}"
                                              VerticalAlignment="Center" Margin="0,0,6,0"/>
@@ -78,23 +93,29 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Actions" Width="120">
+                    <DataGridTemplateColumn Width="120">
+                        <DataGridTemplateColumn.Header>
+                            <TextBlock Text="Actions" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        </DataGridTemplateColumn.Header>
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                            HorizontalAlignment="Left">
                                     <Button Style="{StaticResource MaterialDesignIconButton}"
+                                            Width="32" Height="32" Padding="4"
                                             ToolTip="Edit"
                                             Command="{Binding DataContext.EditOperatorCommand,
                                                 RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             CommandParameter="{Binding}">
-                                        <materialDesign:PackIcon Kind="Pencil" Width="16" Height="16"/>
+                                        <materialDesign:PackIcon Kind="Pencil" Width="18" Height="18"/>
                                     </Button>
                                     <Button Style="{StaticResource MaterialDesignIconButton}"
+                                            Width="32" Height="32" Padding="4"
                                             ToolTip="Delete" Foreground="#F87171"
                                             Command="{Binding DataContext.DeleteOperatorCommand,
                                                 RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             CommandParameter="{Binding}">
-                                        <materialDesign:PackIcon Kind="Delete" Width="16" Height="16"/>
+                                        <materialDesign:PackIcon Kind="Delete" Width="18" Height="18"/>
                                     </Button>
                                 </StackPanel>
                             </DataTemplate>
@@ -112,7 +133,7 @@
             </Grid.ColumnDefinitions>
             <TextBlock Text="{Binding ErrorMessage}" Foreground="#F87171"
                        VerticalAlignment="Center"
-                       Visibility="{Binding ErrorMessage, Converter={StaticResource BoolToVisibility}}"/>
+                       Visibility="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal">
                 <Button Content="←" Command="{Binding PrevPageCommand}"
                         Style="{StaticResource MaterialDesignIconButton}"/>

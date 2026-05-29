@@ -272,21 +272,13 @@
                                                      Width="18" Height="18"/>
                         </Button>
 
-                        <!-- Notification bell -->
+                        <!-- Refresh -->
                         <Button Style="{StaticResource MaterialDesignIconButton}"
-                                ToolTip="Alerts"
+                                ToolTip="Refresh"
                                 Width="36" Height="36" Margin="4,0,0,0"
-                                Command="{Binding NavigateCommand}"
-                                CommandParameter="{x:Static infra:NavPage.Alerts}"
+                                Click="Refresh_Click"
                                 Foreground="{DynamicResource SecondaryTextBrush}">
-                            <Grid>
-                                <materialDesign:PackIcon Kind="Bell" Width="18" Height="18"/>
-                                <Border HorizontalAlignment="Right" VerticalAlignment="Top"
-                                        Background="#F87171" CornerRadius="5" Width="10" Height="10"
-                                        Margin="0,-2,-2,0"
-                                        Visibility="{Binding AlertBadgeCount,
-                                            Converter={StaticResource BoolToVisibility}}"/>
-                            </Grid>
+                            <materialDesign:PackIcon Kind="Refresh" Width="18" Height="18"/>
                         </Button>
 
                     </StackPanel>

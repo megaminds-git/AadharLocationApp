@@ -33,10 +33,6 @@
                     <TextBlock Text="Real-time fleet overview" FontSize="13"
                                Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2,0,0"/>
                 </StackPanel>
-                <Button Grid.Column="1" Content="Refresh" Padding="14,7"
-                        Command="{Binding LoadCommand}"
-                        Style="{StaticResource MaterialDesignOutlinedButton}"
-                        VerticalAlignment="Center"/>
             </Grid>
 
             <!-- ── KPI cards ── -->

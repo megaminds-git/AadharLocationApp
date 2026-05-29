@@ -12,8 +12,7 @@ public class CreateOperatorRequestValidator : AbstractValidator<CreateOperatorRe
         RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(200);
         RuleFor(x => x.Phone).MaximumLength(20).When(x => x.Phone is not null);
         RuleFor(x => x.TrackerPassword)
-            .MinimumLength(6)
-            .When(x => x.TrackerPassword is not null)
-            .WithMessage("Tracker password must be at least 6 characters.");
+            .NotEmpty().WithMessage("Tracker password is required.")
+            .MinimumLength(6).WithMessage("Tracker password must be at least 6 characters.");
     }
 }

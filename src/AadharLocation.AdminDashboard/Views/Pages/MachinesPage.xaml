@@ -26,14 +26,12 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Text="Machines" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <TextBlock Text="Machines" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"
+                       Foreground="{DynamicResource PrimaryTextBrush}"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal">
                 <Button Content="+ Add Machine" Margin="0,0,8,0"
                         Command="{Binding AddMachineCommand}"
                         Style="{StaticResource PrimaryButtonStyle}"/>
-                <Button Content="Refresh"
-                        Command="{Binding LoadCommand}"
-                        Style="{StaticResource MaterialDesignOutlinedButton}"/>
             </StackPanel>
         </Grid>
 
@@ -47,16 +45,29 @@
                       CanUserDeleteRows="False"
                       IsReadOnly="True"
                       Style="{StaticResource MaterialDesignDataGrid}"
-                      materialDesign:DataGridAssist.CellPadding="12 8 12 8">
+                      RowHeight="44"
+                      materialDesign:DataGridAssist.CellPadding="12 0 12 0"
+                      materialDesign:DataGridAssist.ColumnHeaderPadding="12 14 12 14">
+                <DataGrid.CellStyle>
+                    <Style TargetType="DataGridCell" BasedOn="{StaticResource MaterialDesignDataGridCell}">
+                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    </Style>
+                </DataGrid.CellStyle>
+                <DataGrid.Resources>
+                    <Style x:Key="CellText" TargetType="TextBlock">
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                    </Style>
+                </DataGrid.Resources>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Name"          Binding="{Binding Name}"          Width="*"/>
-                    <DataGridTextColumn Header="Serial Number" Binding="{Binding SerialNumber}"  Width="140"/>
-                    <DataGridTextColumn Header="Type"          Binding="{Binding Type}"          Width="100"/>
-                    <DataGridTextColumn Header="Operator"      Binding="{Binding AssignedOperatorName}" Width="*"/>
+                    <DataGridTextColumn Header="Name"          Binding="{Binding Name}"          Width="*"   ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="Serial Number" Binding="{Binding SerialNumber}"  Width="140" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="Type"          Binding="{Binding Type}"          Width="100" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTextColumn Header="Operator"      Binding="{Binding AssignedOperatorName}" Width="*" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTemplateColumn Header="Status" Width="100">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                            HorizontalAlignment="Left">
                                     <Ellipse Width="8" Height="8"
                                              Fill="{Binding Status, Converter={StaticResource StatusColor}}"
                                              VerticalAlignment="Center" Margin="0,0,6,0"/>
@@ -67,32 +78,39 @@
                     </DataGridTemplateColumn>
                     <DataGridTextColumn Header="Last Seen"
                                         Binding="{Binding LastSeenAt, Converter={StaticResource DateTimeConverter}}"
-                                        Width="150"/>
-                    <DataGridTemplateColumn Header="Actions" Width="130">
+                                        Width="150" ElementStyle="{StaticResource CellText}"/>
+                    <DataGridTemplateColumn Width="130">
+                        <DataGridTemplateColumn.Header>
+                            <TextBlock Text="Actions" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        </DataGridTemplateColumn.Header>
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                            HorizontalAlignment="Left">
                                     <Button Style="{StaticResource MaterialDesignIconButton}"
+                                            Width="32" Height="32" Padding="4"
                                             ToolTip="Edit"
                                             Command="{Binding DataContext.EditMachineCommand,
                                                 RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             CommandParameter="{Binding}">
-                                        <materialDesign:PackIcon Kind="Pencil" Width="16" Height="16"/>
+                                        <materialDesign:PackIcon Kind="Pencil" Width="18" Height="18"/>
                                     </Button>
                                     <Button Style="{StaticResource MaterialDesignIconButton}"
+                                            Width="32" Height="32" Padding="4"
                                             ToolTip="Set Geofence"
                                             Command="{Binding DataContext.SetGeofenceCommand,
                                                 RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             CommandParameter="{Binding}">
-                                        <materialDesign:PackIcon Kind="MapMarkerRadius" Width="16" Height="16"
+                                        <materialDesign:PackIcon Kind="MapMarkerRadius" Width="18" Height="18"
                                                                   Foreground="#2DD4BF"/>
                                     </Button>
                                     <Button Style="{StaticResource MaterialDesignIconButton}"
+                                            Width="32" Height="32" Padding="4"
                                             ToolTip="Delete" Foreground="#F87171"
                                             Command="{Binding DataContext.DeleteMachineCommand,
                                                 RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             CommandParameter="{Binding}">
-                                        <materialDesign:PackIcon Kind="Delete" Width="16" Height="16"/>
+                                        <materialDesign:PackIcon Kind="Delete" Width="18" Height="18"/>
                                     </Button>
                                 </StackPanel>
                             </DataTemplate>
@@ -110,7 +128,7 @@
             </Grid.ColumnDefinitions>
             <TextBlock Text="{Binding ErrorMessage}" Foreground="#F87171"
                        VerticalAlignment="Center"
-                       Visibility="{Binding ErrorMessage, Converter={StaticResource BoolToVisibility}}"/>
+                       Visibility="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal">
                 <Button Content="←" Command="{Binding PrevPageCommand}"
                         Style="{StaticResource MaterialDesignIconButton}"/>

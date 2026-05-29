@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Controls;
 using AadharLocation.AdminDashboard.ViewModels;
 using AadharLocation.AdminDashboard.Views.Dialogs;
@@ -29,7 +30,7 @@ public partial class MachinesPage : UserControl
     private async void OnAddRequested()
     {
         await _addVm.InitForAddAsync();
-        var dialog = new AddMachineDialog(_addVm);
+        var dialog = new AddMachineDialog(_addVm) { Owner = Window.GetWindow(this) };
         if (dialog.ShowDialog() == true) await _vm.LoadAsync();
     }
 
@@ -37,7 +38,7 @@ public partial class MachinesPage : UserControl
     {
         if (m == null) return;
         await _addVm.InitForEditAsync(m);
-        var dialog = new AddMachineDialog(_addVm);
+        var dialog = new AddMachineDialog(_addVm) { Owner = Window.GetWindow(this) };
         if (dialog.ShowDialog() == true) await _vm.LoadAsync();
     }
 
@@ -46,7 +47,7 @@ public partial class MachinesPage : UserControl
         double defLat = m.CurrentLatitude  ?? 28.6139;
         double defLon = m.CurrentLongitude ?? 77.2090;
         await _geoVm.InitAsync(m.Id, m.Name, defLat, defLon);
-        var dialog = new GeofenceEditorDialog(_geoVm);
+        var dialog = new GeofenceEditorDialog(_geoVm) { Owner = Window.GetWindow(this) };
         dialog.ShowDialog();
     }
 }

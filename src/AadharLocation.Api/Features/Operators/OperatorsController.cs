@@ -72,6 +72,10 @@ public class OperatorsController(AppDbContext db) : ControllerBase
         if (await db.Operators.AnyAsync(o => o.Email == request.Email.ToLower()))
             return Conflict(new { message = $"Email '{request.Email}' is already in use." });
 
+        if (request.AssignedMachineId.HasValue &&
+            await db.Operators.AnyAsync(o => o.AssignedMachineId == request.AssignedMachineId))
+            return Conflict(new { message = "This machine is already assigned to another operator." });
+
         var op = new Operator
         {
             Name = request.Name,
@@ -87,6 +91,13 @@ public class OperatorsController(AppDbContext db) : ControllerBase
         db.Operators.Add(op);
         await db.SaveChangesAsync();
 
+        if (request.AssignedMachineId.HasValue)
+        {
+            var machine = await db.Machines.FindAsync(request.AssignedMachineId.Value);
+            if (machine != null) machine.AssignedOperatorId = op.Id;
+            await db.SaveChangesAsync();
+        }
+
         return CreatedAtAction(nameof(GetById), new { id = op.Id },
             new OperatorDto(op.Id, op.Name, op.EmployeeId, op.Email, op.Phone,
                 op.AssignedMachineId, null, op.Status, op.CreatedAt));
@@ -100,6 +111,25 @@ public class OperatorsController(AppDbContext db) : ControllerBase
 
         if (await db.Operators.AnyAsync(o => o.Email == request.Email.ToLower() && o.Id != id))
             return Conflict(new { message = $"Email '{request.Email}' is already in use." });
+
+        if (request.AssignedMachineId.HasValue &&
+            await db.Operators.AnyAsync(o => o.AssignedMachineId == request.AssignedMachineId && o.Id != id))
+            return Conflict(new { message = "This machine is already assigned to another operator." });
+
+        // Sync Machine.AssignedOperatorId: clear old machine, set new machine
+        if (op.AssignedMachineId != request.AssignedMachineId)
+        {
+            if (op.AssignedMachineId.HasValue)
+            {
+                var oldMachine = await db.Machines.FindAsync(op.AssignedMachineId.Value);
+                if (oldMachine != null) oldMachine.AssignedOperatorId = null;
+            }
+            if (request.AssignedMachineId.HasValue)
+            {
+                var newMachine = await db.Machines.FindAsync(request.AssignedMachineId.Value);
+                if (newMachine != null) newMachine.AssignedOperatorId = id;
+            }
+        }
 
         op.Name = request.Name;
         op.Email = request.Email.ToLower();

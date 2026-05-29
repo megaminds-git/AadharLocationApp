@@ -67,6 +67,19 @@ public partial class MainWindow : Window
         Close();
     }
 
+    private async void Refresh_Click(object sender, RoutedEventArgs e)
+    {
+        switch (PageContent.Content)
+        {
+            case DashboardPage p:  await p.ActivateAsync(); break;
+            case OperatorsPage p:  await p.ActivateAsync(); break;
+            case MachinesPage p:   await p.ActivateAsync(); break;
+            case FleetMapPage p:   await p.ActivateAsync(); break;
+            case AlertsPage p:     await p.ActivateAsync(); break;
+            case SettingsPage p:   await p.ActivateAsync(); break;
+        }
+    }
+
     private void ThemeToggle_Click(object sender, RoutedEventArgs e)
     {
         App.SwitchTheme(!App.IsDarkTheme);

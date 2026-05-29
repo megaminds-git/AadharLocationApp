@@ -6,6 +6,7 @@
         Height="560" Width="480"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
+        ShowInTaskbar="False"
         FontFamily="{materialDesign:MaterialDesignFont}">
 
     <Window.Style>
@@ -68,8 +69,18 @@
                          Text="{Binding Phone, UpdateSourceTrigger=PropertyChanged}"
                          Margin="0,0,0,12"/>
                 <PasswordBox x:Name="PwdBox"
-                             materialDesign:HintAssist.Hint="Tracker password (leave blank to keep)"
-                             Margin="0,0,0,12"/>
+                             Margin="0,0,0,12">
+                    <PasswordBox.Style>
+                        <Style TargetType="PasswordBox" BasedOn="{StaticResource MaterialDesignOutlinedPasswordBox}">
+                            <Setter Property="materialDesign:HintAssist.Hint" Value="Tracker password *"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                    <Setter Property="materialDesign:HintAssist.Hint" Value="New tracker password (leave blank to keep)"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </PasswordBox.Style>
+                </PasswordBox>
                 <ComboBox materialDesign:HintAssist.Hint="Assign machine (optional)"
                           ItemsSource="{Binding AvailableMachines}"
                           SelectedValuePath="Id"

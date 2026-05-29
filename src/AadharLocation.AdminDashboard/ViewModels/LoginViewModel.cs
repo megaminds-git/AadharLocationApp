@@ -30,11 +30,22 @@ public partial class LoginViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanLogin))]
     private async Task LoginAsync(string? password)
     {
+        if (string.IsNullOrWhiteSpace(Email))
+        {
+            ErrorMessage = "Email address is required.";
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            ErrorMessage = "Password is required.";
+            return;
+        }
+
         ErrorMessage = string.Empty;
         IsBusy = true;
         try
         {
-            var response = await _api.LoginAsync(Email, password ?? string.Empty);
+            var response = await _api.LoginAsync(Email, password);
             if (response != null)
             {
                 _auth.SetSession(response.Token, response.Name, response.Email);
@@ -53,5 +64,7 @@ public partial class LoginViewModel : ObservableObject
         }
     }
 
-    private bool CanLogin(string? _) => !IsBusy && !string.IsNullOrWhiteSpace(Email);
+    partial void OnEmailChanged(string value) => ErrorMessage = string.Empty;
+
+    private bool CanLogin(string? _) => !IsBusy;
 }

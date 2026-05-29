@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Controls;
 using AadharLocation.AdminDashboard.ViewModels;
 using AadharLocation.AdminDashboard.Views.Dialogs;
@@ -26,7 +27,7 @@ public partial class OperatorsPage : UserControl
     private async void OnAddRequested()
     {
         await _addVm.InitForAddAsync();
-        var dialog = new AddOperatorDialog(_addVm);
+        var dialog = new AddOperatorDialog(_addVm) { Owner = Window.GetWindow(this) };
         if (dialog.ShowDialog() == true)
             await _vm.LoadAsync();
     }
@@ -35,7 +36,7 @@ public partial class OperatorsPage : UserControl
     {
         if (op == null) return;
         await _addVm.InitForEditAsync(op);
-        var dialog = new AddOperatorDialog(_addVm);
+        var dialog = new AddOperatorDialog(_addVm) { Owner = Window.GetWindow(this) };
         if (dialog.ShowDialog() == true)
             await _vm.LoadAsync();
     }

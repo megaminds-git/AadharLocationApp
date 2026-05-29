@@ -9,6 +9,9 @@ public partial class AddMachineDialog : Window
     {
         InitializeComponent();
         DataContext = vm;
-        vm.SaveSucceeded += () => { DialogResult = true; Close(); };
+
+        void onSaveSucceeded() { DialogResult = true; }
+        vm.SaveSucceeded += onSaveSucceeded;
+        Closed += (_, _) => vm.SaveSucceeded -= onSaveSucceeded;
     }
 }

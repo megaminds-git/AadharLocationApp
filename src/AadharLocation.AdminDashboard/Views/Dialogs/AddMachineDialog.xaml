@@ -4,9 +4,10 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:converters="clr-namespace:AadharLocation.AdminDashboard.Converters"
         Title="Machine"
-        Height="480" Width="460"
+        Height="400" Width="460"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
+        ShowInTaskbar="False"
         FontFamily="{materialDesign:MaterialDesignFont}">
 
     <Window.Resources>
@@ -44,12 +45,6 @@
                       Text="{Binding Type}"
                       IsEditable="True"
                       Margin="0,0,0,12"/>
-            <ComboBox materialDesign:HintAssist.Hint="Assign operator (optional)"
-                      ItemsSource="{Binding AvailableOperators}"
-                      SelectedValuePath="Id"
-                      SelectedValue="{Binding AssignedOperatorId}"
-                      DisplayMemberPath="Name"
-                      Margin="0,0,0,12"/>
             <ComboBox materialDesign:HintAssist.Hint="Status"
                       ItemsSource="{Binding Statuses}"
                       SelectedItem="{Binding Status}"
@@ -58,7 +53,7 @@
 
             <TextBlock Text="{Binding ErrorMessage}" Foreground="#F87171"
                        FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0"
-                       Visibility="{Binding ErrorMessage, Converter={StaticResource BoolToVisibility}}"/>
+                       Visibility="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
         </StackPanel>
 
         <Grid Grid.Row="2" Margin="0,16,0,0">

@@ -60,7 +60,11 @@ public partial class AddOperatorViewModel : ObservableObject
         try
         {
             var result = await _api.GetMachinesAsync(pageSize: 100);
-            AvailableMachines = result?.Items.ToList() ?? [];
+            var all = result?.Items.ToList() ?? [];
+            // Only show unassigned machines, plus the one already assigned to this operator (edit mode)
+            AvailableMachines = all
+                .Where(m => m.AssignedOperatorId == null || m.AssignedOperatorId == _editingId)
+                .ToList();
             OnPropertyChanged(nameof(AvailableMachines));
         }
         catch { /* ignore */ }
@@ -81,9 +85,13 @@ public partial class AddOperatorViewModel : ObservableObject
             }
             else
             {
+                if (string.IsNullOrWhiteSpace(TrackerPassword))
+                {
+                    ErrorMessage = "Tracker password is required.";
+                    return;
+                }
                 await _api.CreateOperatorAsync(new CreateOperatorRequest(
-                    Name, EmployeeId, Email, Phone, AssignedMachineId,
-                    string.IsNullOrWhiteSpace(TrackerPassword) ? null : TrackerPassword));
+                    Name, EmployeeId, Email, Phone, AssignedMachineId, TrackerPassword));
             }
             SaveSucceeded?.Invoke();
         }
