@@ -20,6 +20,9 @@
     <PackageVersion Include="MailKit" Version="4.17.0" />
     <PackageVersion Include="MimeKit" Version="4.17.0" />
 
+    <!-- API - Environment config -->
+    <PackageVersion Include="DotNetEnv" Version="3.1.1" />
+
     <!-- API - Logging, Validation, Docs -->
     <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />

@@ -10,6 +10,10 @@ using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Serilog;
 
+// Load .env file into environment variables before anything else reads config.
+// Safe to call when .env doesn't exist (optional: true is the default).
+DotNetEnv.Env.Load(Path.Combine(AppContext.BaseDirectory, ".env"));
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Railway (and other cloud hosts) inject PORT — honour it
