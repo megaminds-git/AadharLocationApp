@@ -127,29 +127,23 @@ public class ReportsController(AppDbContext db) : ControllerBase
                 a.Latitude,
                 a.Longitude,
                 a.CreatedAt,
-                a.IsAcknowledged,
-                a.AcknowledgedAt,
             })
             .ToListAsync();
 
         var sb = new StringBuilder();
-        sb.AppendLine("Alert Type,Machine Name,Operator Name,Message,Latitude,Longitude,Created At (UTC),Status,Acknowledged At (UTC)");
+        sb.AppendLine("Alert Type,Machine Name,Operator Name,Message,Latitude,Longitude,Created At (UTC)");
 
         foreach (var a in alerts)
         {
             var machineName  = a.MachineName.Replace("\"",  "\"\"");
             var operatorName = a.OperatorName.Replace("\"", "\"\"");
             var message      = a.Message.Replace("\"",      "\"\"");
-            var status       = a.IsAcknowledged ? "Acknowledged" : "Pending";
-            var ackedAt      = a.AcknowledgedAt.HasValue
-                ? a.AcknowledgedAt.Value.ToString("yyyy-MM-dd HH:mm:ss")
-                : string.Empty;
 
             sb.AppendLine(
                 $"\"{a.AlertType}\",\"{machineName}\",\"{operatorName}\",\"{message}\"," +
                 $"{(a.Latitude.HasValue  ? a.Latitude.Value.ToString()  : string.Empty)}," +
                 $"{(a.Longitude.HasValue ? a.Longitude.Value.ToString() : string.Empty)}," +
-                $"\"{a.CreatedAt:yyyy-MM-dd HH:mm:ss}\",\"{status}\",\"{ackedAt}\"");
+                $"\"{a.CreatedAt:yyyy-MM-dd HH:mm:ss}\"");
         }
 
         var fileName = $"alert_report_{DateTime.UtcNow:yyyyMMddHHmmss}.csv";

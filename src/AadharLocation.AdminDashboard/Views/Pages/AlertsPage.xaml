@@ -84,7 +84,7 @@
                     <DataGridTextColumn Header="Time"
                                         Binding="{Binding CreatedAt, Converter={StaticResource DateTimeConverter}}"
                                         Width="150"/>
-                    <DataGridTemplateColumn Header="Status" Width="120">
+                    <DataGridTemplateColumn Header="Status" Width="120" Visibility="Collapsed">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding IsAcknowledged, Converter={StaticResource BoolToAck}}"

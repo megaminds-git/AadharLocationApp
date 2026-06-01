@@ -203,6 +203,7 @@
                 </RadioButton>
 
                 <RadioButton Style="{StaticResource NavItemStyle}"
+                             Visibility="Collapsed"
                              Command="{Binding NavigateCommand}"
                              CommandParameter="{x:Static infra:NavPage.Alerts}">
                     <Grid>
@@ -232,6 +233,7 @@
                 </RadioButton>
 
                 <RadioButton Style="{StaticResource NavItemStyle}"
+                             Visibility="Collapsed"
                              Command="{Binding NavigateCommand}"
                              CommandParameter="{x:Static infra:NavPage.Settings}">
                     <StackPanel Orientation="Horizontal">
