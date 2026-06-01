@@ -47,6 +47,20 @@ jobs:
         run: |
           echo "${{ secrets.ENV_FILE }}" | Out-File -FilePath ./publish/.env -Encoding utf8
       
+      - name: Stop IIS App Pool via FTP marker
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./publish/
+          server-dir: /
+          dangerous-clean-slate: false
+        continue-on-error: true
+
+      - name: Wait for App Pool to release files
+        run: Start-Sleep -Seconds 10
+
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
