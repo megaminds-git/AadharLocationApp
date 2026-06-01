@@ -43,6 +43,10 @@ jobs:
             --configuration Release `
             --no-build
 
+      - name: Create .env file
+        run: |
+          echo "${{ secrets.ENV_FILE }}" | Out-File -FilePath ./publish/.env -Encoding utf8
+      
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
