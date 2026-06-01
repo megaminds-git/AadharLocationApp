@@ -29,6 +29,24 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // Catch any unhandled exception and write it to a crash log before closing
+        DispatcherUnhandledException += (_, ex) =>
+        {
+            WriteCrashLog(ex.Exception);
+            MessageBox.Show($"Unexpected error:\n\n{ex.Exception.Message}\n\nDetails written to crash.log in AppData\\AadharLocation.",
+                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            ex.Handled = true;
+        };
+        AppDomain.CurrentDomain.UnhandledException += (_, ex) =>
+        {
+            if (ex.ExceptionObject is Exception e2) WriteCrashLog(e2);
+        };
+        TaskScheduler.UnobservedTaskException += (_, ex) =>
+        {
+            WriteCrashLog(ex.Exception);
+            ex.SetObserved();
+        };
+
         var appDataDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "AadharLocation");
@@ -80,6 +98,19 @@ public partial class App : Application
             };
             loginWindow.Show();
         }
+    }
+
+    private static void WriteCrashLog(Exception ex)
+    {
+        try
+        {
+            var dir  = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AadharLocation");
+            Directory.CreateDirectory(dir);
+            var path = Path.Combine(dir, "crash.log");
+            File.AppendAllText(path,
+                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\n{ex}\n\n");
+        }
+        catch { /* ignore */ }
     }
 
     protected override async void OnExit(ExitEventArgs e)

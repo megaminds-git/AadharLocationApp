@@ -29,78 +29,66 @@ PrivilegesRequired=admin
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
-[Types]
+[Components]
 Name: "admin";    Description: "Admin Dashboard"
 Name: "operator"; Description: "Operator Tracker"
 
-[Components]
-Name: "admin";    Description: "Admin Dashboard - Manage operators, geofences and view live location"  ; Types: admin
-Name: "operator"; Description: "Operator Tracker - Track and report your location to admin"            ; Types: operator
-
 [Files]
-; Admin Dashboard
-Source: {#AdminExe};       DestDir: "{app}"; DestName: "AadharLocation.AdminDashboard.exe"; Components: admin; Flags: ignoreversion
-Source: {#AdminSettings};  DestDir: "{app}"; DestName: "appsettings.json";                 Components: admin; Flags: ignoreversion onlyifdoesntexist
-
-; Operator Tracker
+Source: {#AdminExe};         DestDir: "{app}"; DestName: "AadharLocation.AdminDashboard.exe";  Components: admin;    Flags: ignoreversion
+Source: {#AdminSettings};    DestDir: "{app}"; DestName: "appsettings.json";                   Components: admin;    Flags: ignoreversion
 Source: {#OperatorExe};      DestDir: "{app}"; DestName: "AadharLocation.OperatorTracker.exe"; Components: operator; Flags: ignoreversion
-Source: {#OperatorSettings}; DestDir: "{app}"; DestName: "appsettings.json";                   Components: operator; Flags: ignoreversion onlyifdoesntexist
+Source: {#OperatorSettings}; DestDir: "{app}"; DestName: "appsettings.json";                   Components: operator; Flags: ignoreversion
 
 [Icons]
-; Admin shortcut
-Name: "{group}\Aadhar Location - Admin Dashboard";   Filename: "{app}\AadharLocation.AdminDashboard.exe";   Components: admin
-Name: "{commondesktop}\Aadhar Location (Admin)";     Filename: "{app}\AadharLocation.AdminDashboard.exe";   Components: admin; Tasks: desktopicon
-
-; Operator shortcut
-Name: "{group}\Aadhar Location - Operator Tracker";  Filename: "{app}\AadharLocation.OperatorTracker.exe"; Components: operator
-Name: "{commondesktop}\Aadhar Location (Operator)";  Filename: "{app}\AadharLocation.OperatorTracker.exe"; Components: operator; Tasks: desktopicon
+Name: "{group}\Aadhar Location - Admin Dashboard";  Filename: "{app}\AadharLocation.AdminDashboard.exe";  Components: admin
+Name: "{commondesktop}\Aadhar Location (Admin)";    Filename: "{app}\AadharLocation.AdminDashboard.exe";  Components: admin;    Tasks: desktopicon
+Name: "{group}\Aadhar Location - Operator Tracker"; Filename: "{app}\AadharLocation.OperatorTracker.exe"; Components: operator
+Name: "{commondesktop}\Aadhar Location (Operator)"; Filename: "{app}\AadharLocation.OperatorTracker.exe"; Components: operator; Tasks: desktopicon
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional icons:"
 
 [Run]
-; Launch after install - admin
-Filename: "{app}\AadharLocation.AdminDashboard.exe";   Description: "Launch Admin Dashboard";   Flags: nowait postinstall skipifsilent; Components: admin
-; Launch after install - operator
-Filename: "{app}\AadharLocation.OperatorTracker.exe";  Description: "Launch Operator Tracker";  Flags: nowait postinstall skipifsilent; Components: operator
+Filename: "{app}\AadharLocation.AdminDashboard.exe";   Description: "Launch Admin Dashboard";  Flags: nowait postinstall skipifsilent; Components: admin
+Filename: "{app}\AadharLocation.OperatorTracker.exe";  Description: "Launch Operator Tracker"; Flags: nowait postinstall skipifsilent; Components: operator
 
 [Code]
-{ ---- Custom wizard page: pick Admin or Operator before the component page ---- }
 
 var
-  RolePage: TWizardPage;
-  AdminRadio: TRadioButton;
+  RolePage:     TWizardPage;
+  AdminRadio:   TRadioButton;
   OperatorRadio: TRadioButton;
 
 procedure InitializeWizard;
 var
-  LabelTitle, LabelSub: TLabel;
+  LblTitle, LblSub: TLabel;
 begin
-  RolePage := CreateCustomPage(wpWelcome, 'Select Installation Type',
-    'Choose which application you want to install.');
+  RolePage := CreateCustomPage(wpWelcome,
+    'Select Installation Type',
+    'Choose which application you want to install on this computer.');
 
-  LabelTitle := TLabel.Create(RolePage);
-  LabelTitle.Parent := RolePage.Surface;
-  LabelTitle.Left   := 0;
-  LabelTitle.Top    := 8;
-  LabelTitle.Width  := RolePage.SurfaceWidth;
-  LabelTitle.Caption := 'Who will be using this computer?';
-  LabelTitle.Font.Style := [fsBold];
+  LblTitle := TLabel.Create(RolePage);
+  LblTitle.Parent  := RolePage.Surface;
+  LblTitle.Left    := 0;
+  LblTitle.Top     := 8;
+  LblTitle.Width   := RolePage.SurfaceWidth;
+  LblTitle.Caption := 'Who will be using this computer?';
+  LblTitle.Font.Style := [fsBold];
 
-  LabelSub := TLabel.Create(RolePage);
-  LabelSub.Parent := RolePage.Surface;
-  LabelSub.Left   := 0;
-  LabelSub.Top    := 28;
-  LabelSub.Width  := RolePage.SurfaceWidth;
-  LabelSub.Caption := 'Select the appropriate role to install only the required application.';
+  LblSub := TLabel.Create(RolePage);
+  LblSub.Parent  := RolePage.Surface;
+  LblSub.Left    := 0;
+  LblSub.Top     := 28;
+  LblSub.Width   := RolePage.SurfaceWidth;
+  LblSub.Caption := 'Only the selected application will be installed.';
 
   AdminRadio := TRadioButton.Create(RolePage);
   AdminRadio.Parent  := RolePage.Surface;
   AdminRadio.Left    := 8;
-  AdminRadio.Top     := 70;
+  AdminRadio.Top     := 68;
   AdminRadio.Width   := RolePage.SurfaceWidth - 8;
-  AdminRadio.Height  := 20;
-  AdminRadio.Caption := 'Admin  —  Install the Admin Dashboard (manage operators, view map, alerts)';
+  AdminRadio.Height  := 24;
+  AdminRadio.Caption := 'Admin  —  Manage operators, view live map, receive alerts';
   AdminRadio.Checked := True;
 
   OperatorRadio := TRadioButton.Create(RolePage);
@@ -108,32 +96,29 @@ begin
   OperatorRadio.Left    := 8;
   OperatorRadio.Top     := 100;
   OperatorRadio.Width   := RolePage.SurfaceWidth - 8;
-  OperatorRadio.Height  := 20;
-  OperatorRadio.Caption := 'Operator  —  Install the Operator Tracker (send location to admin)';
+  OperatorRadio.Height  := 24;
+  OperatorRadio.Caption := 'Operator  —  Send my location to the admin server';
 end;
 
-{ Apply the radio selection to the components list automatically }
-procedure CurPageChanged(CurPageID: Integer);
+function ShouldSkipPage(PageID: Integer): Boolean;
 begin
-  if CurPageID = wpSelectComponents then
-  begin
-    if AdminRadio.Checked then
-      WizardSelectComponents('admin')
-    else
-      WizardSelectComponents('operator');
-  end;
+  Result := PageID = wpSelectComponents;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
   Result := True;
-  { Ensure at least one radio is checked (always true, just safety) }
   if CurPageID = RolePage.ID then
   begin
     if (not AdminRadio.Checked) and (not OperatorRadio.Checked) then
     begin
       MsgBox('Please select a role before continuing.', mbError, MB_OK);
       Result := False;
+      Exit;
     end;
+    if AdminRadio.Checked then
+      WizardSelectComponents('admin')
+    else
+      WizardSelectComponents('operator');
   end;
 end;

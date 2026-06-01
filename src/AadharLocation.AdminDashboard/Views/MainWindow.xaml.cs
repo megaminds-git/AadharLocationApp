@@ -64,7 +64,7 @@ public partial class MainWindow : Window
         };
         loginWindow.Show();
         _loggingOut = true;
-        Close();
+        Hide();
     }
 
     private async void Refresh_Click(object sender, RoutedEventArgs e)

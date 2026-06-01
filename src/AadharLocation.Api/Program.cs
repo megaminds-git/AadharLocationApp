@@ -12,6 +12,11 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Railway (and other cloud hosts) inject PORT — honour it
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 // Runtime-editable settings (persisted by SettingsController; reloaded without restart)
 builder.Configuration.AddJsonFile("appsettings.runtime.json", optional: true, reloadOnChange: true);
 
@@ -90,10 +95,12 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
 app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapGet("/health", () => Results.Ok("healthy"));
 app.MapControllers();
 app.MapHub<AadharLocationHub>("/hubs/tracking");
 

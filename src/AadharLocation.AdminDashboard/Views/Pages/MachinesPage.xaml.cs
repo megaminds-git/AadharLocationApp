@@ -25,7 +25,7 @@ public partial class MachinesPage : UserControl
         vm.AddRequested      += OnAddRequested;
         vm.EditRequested     += OnEditRequested;
         vm.GeofenceRequested += OnGeofenceRequested;
-        vm.ExportReady       += OnExportReady;
+        // vm.ExportReady    += OnExportReady;
     }
 
     public async Task ActivateAsync() => await _vm.LoadAsync();
@@ -54,14 +54,14 @@ public partial class MachinesPage : UserControl
         dialog.ShowDialog();
     }
 
-    private void OnExportReady(byte[] bytes, string suggestedName)
-    {
-        var dlg = new SaveFileDialog
-        {
-            Filter   = "CSV files (*.csv)|*.csv",
-            FileName = suggestedName,
-        };
-        if (dlg.ShowDialog() == true)
-            File.WriteAllBytes(dlg.FileName, bytes);
-    }
+    // private void OnExportReady(byte[] bytes, string suggestedName)
+    // {
+    //     var dlg = new SaveFileDialog
+    //     {
+    //         Filter   = "CSV files (*.csv)|*.csv",
+    //         FileName = suggestedName,
+    //     };
+    //     if (dlg.ShowDialog() == true)
+    //         File.WriteAllBytes(dlg.FileName, bytes);
+    // }
 }
