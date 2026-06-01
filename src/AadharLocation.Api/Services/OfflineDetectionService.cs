@@ -23,7 +23,7 @@ public class OfflineDetectionService(
         }
     }
 
-    private async Task DetectOfflineMachinesAsync(CancellationToken ct)
+    internal async Task DetectOfflineMachinesAsync(CancellationToken ct)
     {
         try
         {

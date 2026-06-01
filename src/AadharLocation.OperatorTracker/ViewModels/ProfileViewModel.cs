@@ -1,6 +1,11 @@
+using AadharLocation.Shared.Constants;
+using AadharLocation.Shared.DTOs.Auth;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AadharLocation.OperatorTracker.Services;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 namespace AadharLocation.OperatorTracker.ViewModels;
 
@@ -10,6 +15,7 @@ public partial class ProfileViewModel : ObservableObject, IDisposable
     private readonly IActivationService _activation;
     private readonly LocationSenderService _sender;
     private readonly IGpsService _gps;
+    private readonly IHttpClientFactory _httpFactory;
 
     public event EventHandler? LogoutRequested;
 
@@ -33,12 +39,14 @@ public partial class ProfileViewModel : ObservableObject, IDisposable
         IProfileService profileService,
         IActivationService activation,
         LocationSenderService sender,
-        IGpsService gps)
+        IGpsService gps,
+        IHttpClientFactory httpFactory)
     {
         _profileService = profileService;
         _activation = activation;
         _sender = sender;
         _gps = gps;
+        _httpFactory = httpFactory;
         _sender.PingSent += OnPingSent;
     }
 
@@ -91,8 +99,23 @@ public partial class ProfileViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void Logout()
     {
+        var credentials = _activation.GetCredentials();
+        if (credentials is not null)
+            _ = SendLogoutEventAsync(credentials.Token, credentials.DeviceKey);
+
         _activation.ClearCredentials();
         LogoutRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    private async Task SendLogoutEventAsync(string token, string deviceKey)
+    {
+        try
+        {
+            var http = _httpFactory.CreateClient("Api");
+            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            await http.PostAsJsonAsync(ApiRoutes.Auth.TrackerLogout, new TrackerLogoutRequest(deviceKey));
+        }
+        catch { /* fire-and-forget; do not block logout on network failure */ }
     }
 
     private bool CanSend() => !IsSending;

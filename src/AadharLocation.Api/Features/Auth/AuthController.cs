@@ -11,7 +11,7 @@ namespace AadharLocation.Api.Features.Auth;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(AppDbContext db, JwtService jwt) : ControllerBase
+public class AuthController(AppDbContext db, JwtService jwt, AlertService alertService) : ControllerBase
 {
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
@@ -97,5 +97,18 @@ public class AuthController(AppDbContext db, JwtService jwt) : ControllerBase
             GeofenceLon: geofence?.CenterLongitude,
             GeofenceRadius: geofence?.RadiusMeters
         ));
+    }
+
+    [HttpPost("tracker-logout")]
+    [Authorize(Policy = "TrackerOnly")]
+    public async Task<IActionResult> TrackerLogout([FromBody] TrackerLogoutRequest request)
+    {
+        var activation = await db.TrackerActivations
+            .FirstOrDefaultAsync(t => t.DeviceKey == request.DeviceKey && t.IsActive);
+
+        if (activation is not null)
+            _ = alertService.CreateLogoutAlertAsync(activation.MachineId, activation.OperatorId);
+
+        return NoContent();
     }
 }

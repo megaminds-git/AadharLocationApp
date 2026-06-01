@@ -30,6 +30,7 @@ public partial class OperatorsViewModel : ObservableObject
 
     public event Action<OperatorDto?>? EditRequested;
     public event Action? AddRequested;
+    public event Action<string>? UninstallCodeGenerated;
 
     public OperatorsViewModel(ApiClient api) => _api = api;
 
@@ -68,6 +69,20 @@ public partial class OperatorsViewModel : ObservableObject
         {
             await _api.DeleteOperatorAsync(target.Id);
             await LoadAsync();
+        }
+        catch (Exception ex) { ErrorMessage = ex.Message; }
+    }
+
+    [RelayCommand]
+    private async Task GenerateUninstallCodeAsync(OperatorDto? op)
+    {
+        var target = op ?? SelectedOperator;
+        if (target is null) return;
+        try
+        {
+            var result = await _api.GenerateOperatorUninstallCodeAsync(target.Id);
+            if (result is not null)
+                UninstallCodeGenerated?.Invoke(result.Code);
         }
         catch (Exception ex) { ErrorMessage = ex.Message; }
     }

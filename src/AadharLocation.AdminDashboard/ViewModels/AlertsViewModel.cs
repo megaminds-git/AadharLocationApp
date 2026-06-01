@@ -34,9 +34,10 @@ public partial class AlertsViewModel : ObservableObject
     {
         _api     = api;
         _signalR = signalR;
-        _signalR.GeofenceBreachDetected += _ => { var t = LoadAsync(); };
-        _signalR.MachineWentOffline     += _ => { var t = LoadAsync(); };
-        _signalR.AlertAcknowledged      += OnAlertAcknowledged;
+        _signalR.GeofenceBreachDetected      += _ => { var t = LoadAsync(); };
+        _signalR.MachineWentOffline          += _ => { var t = LoadAsync(); };
+        _signalR.OperatorEventAlertReceived  += _ => { var t = LoadAsync(); };
+        _signalR.AlertAcknowledged           += OnAlertAcknowledged;
     }
 
     [RelayCommand]

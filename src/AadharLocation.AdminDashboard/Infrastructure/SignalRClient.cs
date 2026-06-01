@@ -14,6 +14,7 @@ public class SignalRClient
     public event Action<MachineOfflineEvent>?    MachineWentOffline;
     public event Action<int, string>?            MachineOnline;
     public event Action<int>?                    AlertAcknowledged;
+    public event Action<OperatorEventAlert>?     OperatorEventAlertReceived;
 
     public bool IsConnected => _connection?.State == HubConnectionState.Connected;
 
@@ -52,6 +53,9 @@ public class SignalRClient
 
         _connection.On<int>("AlertAcknowledged",
             id => AlertAcknowledged?.Invoke(id));
+
+        _connection.On<OperatorEventAlert>("OperatorEventAlertReceived",
+            e => OperatorEventAlertReceived?.Invoke(e));
 
         await _connection.StartAsync();
     }

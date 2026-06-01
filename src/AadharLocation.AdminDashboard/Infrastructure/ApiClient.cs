@@ -77,6 +77,15 @@ public class ApiClient
         resp.EnsureSuccessStatusCode();
     }
 
+    public async Task<GenerateUninstallCodeResponse?> GenerateOperatorUninstallCodeAsync(int operatorId)
+    {
+        SetAuthHeader();
+        var url  = ApiRoutes.Operators.Base + $"/{operatorId}/generate-uninstall-code";
+        var resp = await _http.PostAsync(url, null);
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadFromJsonAsync<GenerateUninstallCodeResponse>(_json);
+    }
+
     // ── Machines ──────────────────────────────────────────────────────────────
 
     public async Task<PagedResult<MachineDto>?> GetMachinesAsync(int page = 1, int pageSize = 50)

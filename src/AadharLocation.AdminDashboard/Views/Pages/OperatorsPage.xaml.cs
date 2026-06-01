@@ -18,8 +18,9 @@ public partial class OperatorsPage : UserControl
         _addVm = addVm;
         DataContext = vm;
 
-        vm.AddRequested  += OnAddRequested;
-        vm.EditRequested += OnEditRequested;
+        vm.AddRequested            += OnAddRequested;
+        vm.EditRequested           += OnEditRequested;
+        vm.UninstallCodeGenerated  += OnUninstallCodeGenerated;
     }
 
     public async Task ActivateAsync() => await _vm.LoadAsync();
@@ -39,5 +40,11 @@ public partial class OperatorsPage : UserControl
         var dialog = new AddOperatorDialog(_addVm) { Owner = Window.GetWindow(this) };
         if (dialog.ShowDialog() == true)
             await _vm.LoadAsync();
+    }
+
+    private void OnUninstallCodeGenerated(string code)
+    {
+        var dialog = new UninstallCodeDialog(code) { Owner = Window.GetWindow(this) };
+        dialog.ShowDialog();
     }
 }

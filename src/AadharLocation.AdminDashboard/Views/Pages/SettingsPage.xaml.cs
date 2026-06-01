@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using AadharLocation.AdminDashboard.ViewModels;
+using AadharLocation.AdminDashboard.Views.Dialogs;
 
 namespace AadharLocation.AdminDashboard.Views.Pages;
 
@@ -18,12 +19,9 @@ public partial class SettingsPage : UserControl
 
     public async Task ActivateAsync() => await _vm.LoadAsync();
 
-    private void OnUninstallCodeGenerated(string code, DateTime expiresAt)
+    private void OnUninstallCodeGenerated(string code)
     {
-        MessageBox.Show(
-            $"Uninstall code: {code}\n\nGive this code to the operator.\nExpires: {expiresAt.ToLocalTime():dd MMM yyyy HH:mm}",
-            "Uninstall Code Generated",
-            MessageBoxButton.OK,
-            MessageBoxImage.Information);
+        var dialog = new UninstallCodeDialog(code) { Owner = Window.GetWindow(this) };
+        dialog.ShowDialog();
     }
 }

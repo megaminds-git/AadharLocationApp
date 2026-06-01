@@ -84,8 +84,8 @@ public partial class AddOperatorViewModel : ObservableObject, INotifyDataErrorIn
 
     public Task InitForEditAsync(OperatorDto op)
     {
-        IsEditMode      = true;
-        _editingId      = op.Id;
+        IsEditMode        = true;
+        _editingId        = op.Id;
         _validationActive = false;
         _fieldErrors.Clear();
         Name            = op.Name;

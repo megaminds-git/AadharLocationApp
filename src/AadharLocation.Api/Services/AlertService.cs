@@ -95,4 +95,54 @@ public class AlertService(
 
         return alert;
     }
+
+    public async Task<Alert> CreateLogoutAlertAsync(int machineId, int operatorId)
+    {
+        var machine = await db.Machines.FindAsync(machineId);
+        var op = await db.Operators.FindAsync(operatorId);
+
+        var alert = new Alert
+        {
+            MachineId = machineId,
+            OperatorId = operatorId,
+            AlertType = AlertType.Logout,
+            Message = $"Operator '{op?.Name ?? operatorId.ToString()}' logged out from machine '{machine?.Name ?? machineId.ToString()}'.",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        db.Alerts.Add(alert);
+        await db.SaveChangesAsync();
+
+        await hub.Clients.Group("admins").OperatorEventAlertReceived(new OperatorEventAlert(
+            alert.Id, machineId, machine?.Name ?? string.Empty,
+            operatorId, op?.Name ?? string.Empty,
+            AlertType.Logout, alert.CreatedAt));
+
+        return alert;
+    }
+
+    public async Task<Alert> CreateUninstallAlertAsync(int machineId, int operatorId)
+    {
+        var machine = await db.Machines.FindAsync(machineId);
+        var op = await db.Operators.FindAsync(operatorId);
+
+        var alert = new Alert
+        {
+            MachineId = machineId,
+            OperatorId = operatorId,
+            AlertType = AlertType.Uninstall,
+            Message = $"Operator '{op?.Name ?? operatorId.ToString()}' uninstalled the tracker from machine '{machine?.Name ?? machineId.ToString()}'.",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        db.Alerts.Add(alert);
+        await db.SaveChangesAsync();
+
+        await hub.Clients.Group("admins").OperatorEventAlertReceived(new OperatorEventAlert(
+            alert.Id, machineId, machine?.Name ?? string.Empty,
+            operatorId, op?.Name ?? string.Empty,
+            AlertType.Uninstall, alert.CreatedAt));
+
+        return alert;
+    }
 }

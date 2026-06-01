@@ -39,6 +39,15 @@
     <PackageVersion Include="Serilog" Version="4.2.0" />
     <PackageVersion Include="Serilog.Extensions.Hosting" Version="9.0.0" />
 
+    <!-- Test packages -->
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageVersion Include="Moq" Version="4.20.72" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.5" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.5" />
+    <PackageVersion Include="FluentAssertions" Version="6.12.2" />
+
     <!-- Admin Dashboard only -->
     <PackageVersion Include="Mapsui" Version="5.1.0" />
     <PackageVersion Include="Mapsui.Wpf" Version="5.1.0" />

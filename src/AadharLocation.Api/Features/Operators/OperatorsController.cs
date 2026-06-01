@@ -1,6 +1,7 @@
 using AadharLocation.Api.Data;
 using AadharLocation.Api.Domain.Entities;
 using AadharLocation.Shared.DTOs;
+using AadharLocation.Shared.DTOs.Activation;
 using AadharLocation.Shared.DTOs.Operators;
 using AadharLocation.Shared.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -109,6 +110,24 @@ public class OperatorsController(AppDbContext db) : ControllerBase
 
         await db.SaveChangesAsync();
         return NoContent();
+    }
+
+    [HttpPost("{id:int}/generate-uninstall-code")]
+    public async Task<IActionResult> GenerateUninstallCode(int id)
+    {
+        var op = await db.Operators.FindAsync(id);
+        if (op is null) return NotFound();
+
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        var code = new string(Enumerable.Range(0, 6)
+            .Select(_ => chars[Random.Shared.Next(chars.Length)])
+            .ToArray());
+
+        op.UninstallCodeHash = BCrypt.Net.BCrypt.HashPassword(code);
+        op.UpdatedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+
+        return Ok(new GenerateUninstallCodeResponse(code));
     }
 
     [HttpDelete("{id:int}")]

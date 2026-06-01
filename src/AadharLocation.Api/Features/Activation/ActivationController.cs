@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using AadharLocation.Api.Data;
+using AadharLocation.Api.Services;
 using AadharLocation.Shared.DTOs.Activation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,7 @@ namespace AadharLocation.Api.Features.Activation;
 [ApiController]
 [Route("api/activation")]
 [Authorize(Roles = "Admin")]
-public class ActivationController(AppDbContext db) : ControllerBase
+public class ActivationController(AppDbContext db, AlertService alertService) : ControllerBase
 {
     private const string CodeChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
@@ -56,7 +57,7 @@ public class ActivationController(AppDbContext db) : ControllerBase
         activation.UninstallCodeExpiry = DateTime.UtcNow.AddHours(24);
 
         await db.SaveChangesAsync();
-        return Ok(new GenerateUninstallCodeResponse(code, activation.UninstallCodeExpiry.Value));
+        return Ok(new GenerateUninstallCodeResponse(code));
     }
 
     [HttpPost("verify-uninstall-code")]
@@ -64,27 +65,24 @@ public class ActivationController(AppDbContext db) : ControllerBase
     public async Task<IActionResult> VerifyUninstallCode([FromBody] VerifyUninstallCodeRequest request)
     {
         var activation = await db.TrackerActivations
+            .Include(t => t.Operator)
             .FirstOrDefaultAsync(t => t.DeviceKey == request.DeviceKey);
         if (activation is null) return NotFound();
 
         if (!activation.IsActive)
             return BadRequest(new { message = "Device is already deactivated." });
 
-        if (activation.UninstallCodeHash is null || activation.UninstallCodeExpiry < DateTime.UtcNow)
-            return BadRequest(new { message = "No valid uninstall code. Please generate a new one." });
+        if (activation.Operator.UninstallCodeHash is null)
+            return BadRequest(new { message = "No uninstall code has been set for this operator. Contact your administrator." });
 
-        var keyBytes  = Encoding.UTF8.GetBytes(request.DeviceKey);
-        var codeBytes = Encoding.UTF8.GetBytes(request.Code.ToUpperInvariant());
-        using var hmac = new HMACSHA256(keyBytes);
-        var expectedHash = Convert.ToBase64String(hmac.ComputeHash(codeBytes));
+        if (!BCrypt.Net.BCrypt.Verify(request.Code, activation.Operator.UninstallCodeHash))
+            return BadRequest(new { message = "Incorrect uninstall code." });
 
-        if (activation.UninstallCodeHash != expectedHash)
-            return BadRequest(new { message = "Incorrect code. Contact your manager." });
-
-        activation.IsActive             = false;
-        activation.UninstallCodeHash    = null;
-        activation.UninstallCodeExpiry  = null;
+        activation.IsActive = false;
+        activation.Operator.UninstallCodeHash = null;
         await db.SaveChangesAsync();
+
+        _ = alertService.CreateUninstallAlertAsync(activation.MachineId, activation.OperatorId);
 
         return Ok(new { message = "Device deactivated successfully." });
     }

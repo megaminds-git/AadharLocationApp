@@ -12,6 +12,7 @@ public class Operator
     public int? AssignedMachineId { get; set; }
     public Machine? AssignedMachine { get; set; }
     public string? PasswordHash { get; set; }
+    public string? UninstallCodeHash { get; set; }
     public OperatorStatus Status { get; set; } = OperatorStatus.Active;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }

@@ -38,7 +38,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _deviceStatusMessage = string.Empty;
     public ObservableCollection<DeviceDto> Devices { get; } = [];
 
-    public event Action<string, DateTime>? UninstallCodeGenerated;
+    public event Action<string>? UninstallCodeGenerated;
 
     public SettingsViewModel(ApiClient api, AuthStateService auth, IConfiguration config)
     {
@@ -102,7 +102,7 @@ public partial class SettingsViewModel : ObservableObject
         {
             var result = await _api.GenerateUninstallCodeAsync(device.DeviceKey);
             if (result != null)
-                UninstallCodeGenerated?.Invoke(result.Code, result.ExpiresAt);
+                UninstallCodeGenerated?.Invoke(result.Code);
             await LoadDevicesAsync();
         }
         catch (Exception ex) { DeviceStatusMessage = $"Generate failed: {ex.Message}"; }

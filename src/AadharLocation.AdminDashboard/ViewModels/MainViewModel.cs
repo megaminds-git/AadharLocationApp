@@ -37,8 +37,9 @@ public partial class MainViewModel : ObservableObject
                 AlertBadgeCount = alertsVm.UnacknowledgedCount;
         };
 
-        _signalR.GeofenceBreachDetected += _ => RefreshAlertBadge();
-        _signalR.MachineWentOffline     += _ => RefreshAlertBadge();
+        _signalR.GeofenceBreachDetected     += _ => RefreshAlertBadge();
+        _signalR.MachineWentOffline         += _ => RefreshAlertBadge();
+        _signalR.OperatorEventAlertReceived += _ => RefreshAlertBadge();
     }
 
     public async Task InitAsync()

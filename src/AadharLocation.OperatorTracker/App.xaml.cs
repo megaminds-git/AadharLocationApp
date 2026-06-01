@@ -1,12 +1,13 @@
+using AadharLocation.OperatorTracker.Infrastructure;
 using AadharLocation.OperatorTracker.Services;
 using AadharLocation.OperatorTracker.ViewModels;
 using AadharLocation.OperatorTracker.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using System.IO;
+using System.Text.Json;
 using System.Windows;
 using Windows.Devices.Geolocation;
 using WinForms = System.Windows.Forms;
@@ -23,6 +24,12 @@ public partial class App
     {
         base.OnStartup(e);
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
+        if (Environment.GetCommandLineArgs().Contains("--verify-uninstall"))
+        {
+            RunUninstallVerification();
+            return;
+        }
 
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Information()
@@ -85,6 +92,42 @@ public partial class App
             ShowLoginWindow();
         else
             ShowProfileWindow();
+    }
+
+    private void RunUninstallVerification()
+    {
+        var credentials = AppConfig.Load();
+        if (credentials is null)
+        {
+            Environment.Exit(0);
+            return;
+        }
+
+        string apiBaseUrl = "http://localhost:5163";
+        try
+        {
+            var settingsPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+            if (File.Exists(settingsPath))
+            {
+                using var doc = JsonDocument.Parse(File.ReadAllText(settingsPath));
+                if (doc.RootElement.TryGetProperty("ApiBaseUrl", out var urlProp))
+                    apiBaseUrl = urlProp.GetString() ?? apiBaseUrl;
+            }
+
+            var serverConfigPath = Path.Combine(AppContext.BaseDirectory, "server_config.json");
+            if (File.Exists(serverConfigPath))
+            {
+                using var doc = JsonDocument.Parse(File.ReadAllText(serverConfigPath));
+                if (doc.RootElement.TryGetProperty("ApiBaseUrl", out var urlProp))
+                    apiBaseUrl = urlProp.GetString() ?? apiBaseUrl;
+            }
+        }
+        catch { /* fall back to default */ }
+
+        var vm = new UninstallVerifierViewModel(credentials.DeviceKey, apiBaseUrl);
+        var window = new UninstallVerifierWindow(vm);
+        var result = window.ShowDialog();
+        Environment.Exit(result == true ? 0 : 1);
     }
 
     private async Task EnsureLocationAccessAsync()

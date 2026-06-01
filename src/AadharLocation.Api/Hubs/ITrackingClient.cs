@@ -9,4 +9,5 @@ public interface ITrackingClient
     Task MachineOffline(MachineOfflineEvent offlineEvent);
     Task MachineOnline(int machineId, string machineName);
     Task AlertAcknowledged(int alertId);
+    Task OperatorEventAlertReceived(OperatorEventAlert evt);
 }

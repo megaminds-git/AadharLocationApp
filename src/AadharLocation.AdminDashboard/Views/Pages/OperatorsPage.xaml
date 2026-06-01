@@ -94,7 +94,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Width="120">
+                    <DataGridTemplateColumn Width="160">
                         <DataGridTemplateColumn.Header>
                             <TextBlock Text="Actions" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                         </DataGridTemplateColumn.Header>
@@ -109,6 +109,15 @@
                                                 RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             CommandParameter="{Binding}">
                                         <materialDesign:PackIcon Kind="Pencil" Width="18" Height="18"/>
+                                    </Button>
+                                    <Button Style="{StaticResource MaterialDesignIconButton}"
+                                            Width="32" Height="32" Padding="4"
+                                            ToolTip="Generate Uninstall Code"
+                                            Foreground="#0D9488"
+                                            Command="{Binding DataContext.GenerateUninstallCodeCommand,
+                                                RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}">
+                                        <materialDesign:PackIcon Kind="Key" Width="18" Height="18"/>
                                     </Button>
                                     <Button Style="{StaticResource MaterialDesignIconButton}"
                                             Width="32" Height="32" Padding="4"

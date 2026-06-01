@@ -1,0 +1,146 @@
+<Window x:Class="AadharLocation.OperatorTracker.Views.UninstallVerifierWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="AadharLocation — Uninstall Verification"
+        Width="400" Height="440"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="White">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <md:BundledTheme BaseTheme="Light" PrimaryColor="Teal" SecondaryColor="Teal" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="110"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Teal header banner -->
+        <Border Grid.Row="0" Background="{DynamicResource PrimaryHueMidBrush}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <md:PackIcon Kind="LockOutline"
+                             Width="40" Height="40"
+                             HorizontalAlignment="Center"
+                             Foreground="White"/>
+                <TextBlock Text="Uninstall Verification"
+                           FontSize="18" FontWeight="Bold"
+                           Foreground="White"
+                           HorizontalAlignment="Center"
+                           Margin="0,6,0,0"/>
+                <TextBlock Text="AadharLocation Operator Tracker"
+                           FontSize="11"
+                           Foreground="#CCffffff"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Form card -->
+        <Border Grid.Row="1" Background="White" Padding="36,28,36,28">
+            <StackPanel>
+                <TextBlock Text="Enter the one-time uninstall code"
+                           FontSize="14" FontWeight="SemiBold"
+                           Foreground="#1A1A2E"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,4"/>
+                <TextBlock Text="Contact your administrator if you don't have a code."
+                           FontSize="11"
+                           Foreground="#888"
+                           TextWrapping="Wrap"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"
+                           Margin="0,0,0,24"/>
+
+                <!-- Code field with eye toggle -->
+                <Grid Margin="0,0,0,8">
+                    <PasswordBox x:Name="CodeBox"
+                                 md:HintAssist.Hint="Uninstall code"
+                                 md:TextFieldAssist.HasLeadingIcon="True"
+                                 md:TextFieldAssist.LeadingIcon="Key"
+                                 PasswordChanged="CodeBox_PasswordChanged">
+                        <PasswordBox.Style>
+                            <Style TargetType="PasswordBox" BasedOn="{StaticResource MaterialDesignOutlinedPasswordBox}">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsCodeVisible}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </PasswordBox.Style>
+                    </PasswordBox>
+                    <TextBox x:Name="CodeText"
+                             Text="{Binding Code, UpdateSourceTrigger=PropertyChanged}"
+                             md:HintAssist.Hint="Uninstall code"
+                             md:TextFieldAssist.HasLeadingIcon="True"
+                             md:TextFieldAssist.LeadingIcon="Key">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsCodeVisible}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                    <Button x:Name="ToggleBtn"
+                            Style="{StaticResource MaterialDesignIconButton}"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Margin="0,4,4,0"
+                            Width="32" Height="32"
+                            Padding="0"
+                            Click="ToggleCodeButton_Click"
+                            Foreground="#888"
+                            ToolTip="Show/hide code">
+                        <md:PackIcon x:Name="EyeIcon" Kind="Eye" Width="18" Height="18"/>
+                    </Button>
+                </Grid>
+
+                <!-- Error message -->
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"
+                           Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,16"
+                           Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}"/>
+
+                <!-- Verify button -->
+                <Button Command="{Binding VerifyCommand}"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        HorizontalAlignment="Stretch"
+                        Height="44"
+                        Margin="0,0,0,8"
+                        md:ButtonAssist.CornerRadius="6">
+                    <Grid>
+                        <TextBlock Text="VERIFY"
+                                   Visibility="{Binding IsBusy, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                        <ProgressBar IsIndeterminate="True"
+                                     Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                     Width="20" Height="20"
+                                     Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                    </Grid>
+                </Button>
+
+                <!-- Cancel button -->
+                <Button Command="{Binding CancelCommand}"
+                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        HorizontalAlignment="Stretch"
+                        Height="40"
+                        md:ButtonAssist.CornerRadius="6"
+                        Content="CANCEL"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
