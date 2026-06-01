@@ -28,7 +28,7 @@ public class GeofenceService(AppDbContext db, AlertService alertService)
         return isWithin;
     }
 
-    internal static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)
+    private static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)
     {
         var dLat = ToRadians(lat2 - lat1);
         var dLon = ToRadians(lon2 - lon1);

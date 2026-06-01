@@ -81,19 +81,28 @@ public partial class FleetMapPage : UserControl
         }
 
         var feature = new PointFeature(mpoint);
-        feature.Styles.Add(MakeSymbol(color, pin.MachineName));
+        feature.Styles.Add(MakeSymbol(color));
+        feature.Styles.Add(new LabelStyle
+        {
+            Text       = pin.MachineName,
+            ForeColor  = Mapsui.Styles.Color.White,
+            BackColor  = new Mapsui.Styles.Brush(Mapsui.Styles.Color.FromArgb(180, 0, 0, 0)),
+            Offset     = new Offset(0, -20),
+            MaxVisible = double.MaxValue,
+            MinVisible = double.MinValue,
+        });
         _features[pin.MachineId] = feature;
         _markerLayer.Add(feature);
     }
 
-    private static IStyle MakeSymbol(Mapsui.Styles.Color fill, string label) =>
+    private static IStyle MakeSymbol(Mapsui.Styles.Color fill) =>
         new SymbolStyle
         {
-            SymbolScale       = 0.6,
-            Fill              = new Mapsui.Styles.Brush(fill),
-            Outline           = new Pen(Mapsui.Styles.Color.White, 2),
-            MaxVisible        = double.MaxValue,
-            MinVisible        = double.MinValue,
+            SymbolScale = 0.6,
+            Fill        = new Mapsui.Styles.Brush(fill),
+            Outline     = new Pen(Mapsui.Styles.Color.White, 2),
+            MaxVisible  = double.MaxValue,
+            MinVisible  = double.MinValue,
         };
 
     private void ZoomToFit()
