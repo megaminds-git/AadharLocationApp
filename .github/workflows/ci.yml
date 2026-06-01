@@ -59,7 +59,7 @@ jobs:
         continue-on-error: true
 
       - name: Wait for App Pool to release files
-        run: Start-Sleep -Seconds 10
+        run: Start-Sleep -Seconds 15
 
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -69,3 +69,10 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./publish/
           server-dir: /
+
+      - name: Bring app back online
+        run: |
+          $ftpRequest = [System.Net.FtpWebRequest]::Create("ftp://${{ secrets.FTP_HOST }}/app_offline.htm")
+          $ftpRequest.Method = [System.Net.WebRequestMethods+Ftp]::DeleteFile
+          $ftpRequest.Credentials = New-Object System.Net.NetworkCredential("${{ secrets.FTP_USERNAME }}", "${{ secrets.FTP_PASSWORD }}")
+          $ftpRequest.GetResponse() | Out-Null
