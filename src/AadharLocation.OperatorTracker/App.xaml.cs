@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using System.IO;
 using System.Windows;
+using Windows.Devices.Geolocation;
 using WinForms = System.Windows.Forms;
 
 namespace AadharLocation.OperatorTracker;
@@ -16,6 +17,7 @@ public partial class App
 {
     private IHost? _host;
     private WinForms.NotifyIcon? _trayIcon;
+    private ProfileWindow? _profileWindow;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -53,8 +55,13 @@ public partial class App
                 services.AddSingleton<LocationSenderService>();
                 services.AddHostedService(sp => sp.GetRequiredService<LocationSenderService>());
 
+                services.AddTransient<IProfileService, ProfileService>();
                 services.AddTransient<LoginViewModel>();
                 services.AddTransient<LoginWindow>();
+                services.AddTransient<ProfileViewModel>();
+                services.AddTransient<ProfileWindow>();
+                services.AddTransient<LocationAccessViewModel>();
+                services.AddTransient<LocationAccessWindow>();
             })
             .Build();
 
@@ -66,12 +73,31 @@ public partial class App
         BuildTrayIcon(sender);
 
         activation.AuthenticationRequired += (_, _) =>
-            Dispatcher.Invoke(() => ShowLoginWindow());
+            Dispatcher.Invoke(() =>
+            {
+                _profileWindow?.Close();
+                ShowLoginWindow();
+            });
+
+        await EnsureLocationAccessAsync();
 
         if (!activation.HasCredentials())
             ShowLoginWindow();
         else
-            _trayIcon!.ShowBalloonTip(3000, "AadharLocation", "Tracker is running.", WinForms.ToolTipIcon.Info);
+            ShowProfileWindow();
+    }
+
+    private async Task EnsureLocationAccessAsync()
+    {
+        var status = await Geolocator.RequestAccessAsync();
+        if (status != GeolocationAccessStatus.Denied)
+            return;
+
+        var tcs = new TaskCompletionSource();
+        var win = _host!.Services.GetRequiredService<LocationAccessWindow>();
+        win.Closed += (_, _) => tcs.TrySetResult();
+        win.Show();
+        await tcs.Task;
     }
 
     private void BuildTrayIcon(LocationSenderService sender)
@@ -87,10 +113,23 @@ public partial class App
         var statusItem = menu.Items.Add("Status: idle");
         statusItem!.Enabled = false;
         menu.Items.Add("-");
+        menu.Items.Add("Show Profile", null, (_, _) =>
+            Dispatcher.Invoke(() =>
+            {
+                var activation = _host!.Services.GetRequiredService<IActivationService>();
+                if (activation.HasCredentials())
+                    ShowProfileWindow();
+            }));
+        menu.Items.Add("-");
         menu.Items.Add("Exit", null, (_, _) => ExitApp());
 
         _trayIcon.ContextMenuStrip = menu;
-        _trayIcon.DoubleClick += (_, _) => _trayIcon.ShowBalloonTip(2000, "AadharLocation", _trayIcon.Text, WinForms.ToolTipIcon.Info);
+        _trayIcon.DoubleClick += (_, _) => Dispatcher.Invoke(() =>
+        {
+            var activation = _host!.Services.GetRequiredService<IActivationService>();
+            if (activation.HasCredentials())
+                ShowProfileWindow();
+        });
 
         sender.PingSent += (_, msg) => Dispatcher.Invoke(() =>
         {
@@ -107,11 +146,23 @@ public partial class App
         {
             var activation = _host.Services.GetRequiredService<IActivationService>();
             if (activation.HasCredentials())
-                _trayIcon!.ShowBalloonTip(3000, "AadharLocation", "Tracker is now active.", WinForms.ToolTipIcon.Info);
+                ShowProfileWindow();
             else
                 ExitApp();
         };
         win.Show();
+    }
+
+    private void ShowProfileWindow()
+    {
+        if (_profileWindow is { IsVisible: true })
+        {
+            _profileWindow.Activate();
+            return;
+        }
+        _profileWindow = _host!.Services.GetRequiredService<ProfileWindow>();
+        _profileWindow.Closed += (_, _) => _profileWindow = null;
+        _profileWindow.Show();
     }
 
     private async void ExitApp()

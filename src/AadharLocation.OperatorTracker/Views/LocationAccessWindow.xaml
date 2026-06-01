@@ -1,0 +1,117 @@
+<Window x:Class="AadharLocation.OperatorTracker.Views.LocationAccessWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="AadharLocation Tracker — Location Required"
+        Width="420"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="White">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <md:BundledTheme BaseTheme="Light" PrimaryColor="Teal" SecondaryColor="Teal" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="110"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Teal header banner -->
+        <Border Grid.Row="0" Background="{DynamicResource PrimaryHueMidBrush}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <md:PackIcon Kind="MapMarkerRadius"
+                             Width="40" Height="40"
+                             HorizontalAlignment="Center"
+                             Foreground="White"/>
+                <TextBlock Text="AadharLocation"
+                           FontSize="20" FontWeight="Bold"
+                           Foreground="White"
+                           HorizontalAlignment="Center"
+                           Margin="0,6,0,0"/>
+                <TextBlock Text="Operator Tracker"
+                           FontSize="12"
+                           Foreground="#CCffffff"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Content -->
+        <StackPanel Grid.Row="1" Margin="32,28,32,28" VerticalAlignment="Center">
+
+            <md:PackIcon Kind="MapMarkerOff"
+                         Width="48" Height="48"
+                         HorizontalAlignment="Center"
+                         Foreground="#E53935"
+                         Margin="0,0,0,16"/>
+
+            <TextBlock Text="Location Access Required"
+                       FontSize="16" FontWeight="SemiBold"
+                       Foreground="#1A1A2E"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,10"/>
+
+            <TextBlock TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Foreground="#555"
+                       FontSize="12"
+                       Margin="0,0,0,8">
+                This app tracks your machine's location to verify it is operating within its assigned area.
+                <LineBreak/><LineBreak/>
+                Location Services is currently <Bold>disabled or denied</Bold>. You must enable it to continue.
+            </TextBlock>
+
+            <TextBlock Text="{Binding StatusMessage}"
+                       FontSize="12"
+                       Foreground="{DynamicResource PrimaryHueMidBrush}"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Margin="0,8,0,20"/>
+
+            <!-- Open Settings button -->
+            <Button Command="{Binding OpenSettingsCommand}"
+                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    HorizontalAlignment="Stretch"
+                    Height="44"
+                    Margin="0,0,0,10"
+                    md:ButtonAssist.CornerRadius="6">
+                <StackPanel Orientation="Horizontal">
+                    <md:PackIcon Kind="Cog" Width="16" Height="16"
+                                 VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="OPEN LOCATION SETTINGS" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+
+            <!-- Retry button -->
+            <Button Command="{Binding RetryCommand}"
+                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                    HorizontalAlignment="Stretch"
+                    Height="44"
+                    md:ButtonAssist.CornerRadius="6"
+                    Foreground="{DynamicResource PrimaryHueMidBrush}"
+                    BorderBrush="{DynamicResource PrimaryHueMidBrush}">
+                <Grid>
+                    <StackPanel Orientation="Horizontal"
+                                Visibility="{Binding IsChecking, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                        <md:PackIcon Kind="Refresh" Width="16" Height="16"
+                                     VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="I'VE ENABLED IT — RETRY" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <ProgressBar IsIndeterminate="True"
+                                 Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                 Width="20" Height="20"
+                                 Visibility="{Binding IsChecking, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                </Grid>
+            </Button>
+
+        </StackPanel>
+    </Grid>
+</Window>

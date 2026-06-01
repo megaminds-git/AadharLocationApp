@@ -8,6 +8,7 @@ public static class ApiRoutes
     {
         public const string Login = $"{Base}/auth/login";
         public const string TrackerLogin = $"{Base}/auth/tracker-login";
+        public const string TrackerProfile = $"{Base}/auth/tracker-profile";
     }
 
     public static class Operators

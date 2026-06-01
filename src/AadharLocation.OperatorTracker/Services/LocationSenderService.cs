@@ -48,13 +48,15 @@ public class LocationSenderService : BackgroundService
         }
     }
 
-    private async Task SendPingAsync(CancellationToken ct)
+    public Task<bool> SendNowAsync() => SendPingAsync(CancellationToken.None);
+
+    private async Task<bool> SendPingAsync(CancellationToken ct)
     {
         var creds = _activation.GetCredentials();
         if (creds is null)
         {
             _logger.LogDebug("No credentials — skipping ping.");
-            return;
+            return false;
         }
 
         GpsReading? reading;
@@ -64,13 +66,13 @@ public class LocationSenderService : BackgroundService
         }
         catch (OperationCanceledException)
         {
-            return;
+            return false;
         }
 
         if (reading is null)
         {
             _logger.LogWarning("GPS unavailable — skipping ping.");
-            return;
+            return false;
         }
 
         var request = new LocationPingRequest(
@@ -94,18 +96,19 @@ public class LocationSenderService : BackgroundService
             {
                 _logger.LogWarning("401 on ping — token expired, clearing credentials.");
                 _activation.ClearCredentials();
-                return;
+                return false;
             }
 
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("Ping failed: {Status}", response.StatusCode);
-                return;
+                return false;
             }
 
             var timestamp = DateTime.Now.ToString("HH:mm:ss");
             _logger.LogInformation("Ping sent at {Time}: {Lat:F5}, {Lon:F5}", timestamp, reading.Latitude, reading.Longitude);
             PingSent?.Invoke(this, $"Last ping: {timestamp}");
+            return true;
         }
         catch (OperationCanceledException)
         {
@@ -114,6 +117,7 @@ public class LocationSenderService : BackgroundService
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Ping send failed — will retry next cycle.");
+            return false;
         }
     }
 }

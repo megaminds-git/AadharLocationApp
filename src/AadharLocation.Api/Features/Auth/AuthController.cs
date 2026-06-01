@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using AadharLocation.Api.Data;
 using AadharLocation.Api.Domain.Entities;
 using AadharLocation.Api.Services;
 using AadharLocation.Shared.DTOs.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -60,5 +62,40 @@ public class AuthController(AppDbContext db, JwtService jwt) : ControllerBase
 
         var token = jwt.GenerateTrackerToken(op, activation.DeviceKey);
         return Ok(new TrackerLoginResponse(token, activation.DeviceKey, op.Id, activation.MachineId));
+    }
+
+    [HttpGet("tracker-profile")]
+    [Authorize(Policy = "TrackerOnly")]
+    public async Task<IActionResult> TrackerProfile()
+    {
+        var operatorIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(operatorIdClaim, out var operatorId))
+            return Unauthorized();
+
+        var op = await db.Operators
+            .Include(o => o.AssignedMachine)
+                .ThenInclude(m => m!.Geofences)
+            .FirstOrDefaultAsync(o => o.Id == operatorId && !o.IsDeleted);
+
+        if (op is null || op.AssignedMachine is null)
+            return NotFound(new { message = "Operator or machine not found." });
+
+        var geofence = op.AssignedMachine.Geofences.FirstOrDefault(g => g.IsActive);
+
+        return Ok(new TrackerProfileResponse(
+            OperatorId: op.Id,
+            Name: op.Name,
+            Email: op.Email,
+            Phone: op.Phone,
+            District: op.District,
+            MachineId: op.AssignedMachine.Id,
+            MachineName: op.AssignedMachine.Name,
+            SerialNumber: op.AssignedMachine.SerialNumber,
+            MachineType: op.AssignedMachine.Type,
+            MachineStatus: op.AssignedMachine.Status,
+            GeofenceLat: geofence?.CenterLatitude,
+            GeofenceLon: geofence?.CenterLongitude,
+            GeofenceRadius: geofence?.RadiusMeters
+        ));
     }
 }

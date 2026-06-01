@@ -29,7 +29,7 @@ public class GpsService : IGpsService
             if (accessStatus == GeolocationAccessStatus.Denied)
             {
                 if (_lastAccessStatus != GeolocationAccessStatus.Denied)
-                    _logger.LogWarning("Location access denied by user or system policy.");
+                    _logger.LogWarning("Location access denied — user may have revoked it after startup.");
                 _lastAccessStatus = accessStatus;
                 return null;
             }
