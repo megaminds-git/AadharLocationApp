@@ -10,12 +10,12 @@ public class EmailService(
 {
     private bool IsConfigured =>
         !string.IsNullOrWhiteSpace(settings.Value.ApiKey) &&
-        !string.IsNullOrWhiteSpace(settings.Value.FromAddress) &&
-        settings.Value.AdminRecipients.Count > 0;
+        !string.IsNullOrWhiteSpace(settings.Value.FromAddress);
 
     public async Task SendGeofenceBreachAlertAsync(
         string machineName, string operatorName,
-        double lat, double lon, double distanceMeters, DateTime breachedAt)
+        double lat, double lon, double distanceMeters, DateTime breachedAt,
+        IEnumerable<string> adminEmails)
     {
         if (!IsConfigured)
         {
@@ -25,11 +25,12 @@ public class EmailService(
 
         var subject = $"[AadharLocation] Geofence Breach — {machineName}";
         var body    = BuildGeofenceBreachHtml(machineName, operatorName, lat, lon, distanceMeters, breachedAt);
-        await SendAsync(subject, body);
+        await SendAsync(subject, body, adminEmails);
     }
 
     public async Task SendMachineOfflineAlertAsync(
-        string machineName, DateTime lastSeenAt, int minutesOffline)
+        string machineName, DateTime lastSeenAt, int minutesOffline,
+        IEnumerable<string> adminEmails)
     {
         if (!IsConfigured)
         {
@@ -39,12 +40,19 @@ public class EmailService(
 
         var subject = $"[AadharLocation] Machine Offline — {machineName}";
         var body    = BuildMachineOfflineHtml(machineName, lastSeenAt, minutesOffline);
-        await SendAsync(subject, body);
+        await SendAsync(subject, body, adminEmails);
     }
 
-    private async Task SendAsync(string subject, string htmlBody)
+    private async Task SendAsync(string subject, string htmlBody, IEnumerable<string> adminEmails)
     {
-        var cfg = settings.Value;
+        var cfg        = settings.Value;
+        var recipients = adminEmails.ToList();
+
+        if (recipients.Count == 0)
+        {
+            logger.LogWarning("No admin recipients found — skipping alert email: {Subject}", subject);
+            return;
+        }
 
         var message = new EmailMessage
         {
@@ -53,7 +61,7 @@ public class EmailService(
             HtmlBody = htmlBody,
         };
 
-        foreach (var recipient in cfg.AdminRecipients)
+        foreach (var recipient in recipients)
             message.To.Add(recipient);
 
         try

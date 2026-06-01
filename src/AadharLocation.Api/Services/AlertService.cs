@@ -46,8 +46,9 @@ public class AlertService(
             alert.Id, machine.Id, machine.Name, op.Id, op.Name,
             lat, lon, distanceMeters, alert.CreatedAt));
 
+        var adminEmails = await GetAdminEmailsAsync();
         _ = emailService.SendGeofenceBreachAlertAsync(
-            machine.Name, op.Name, lat, lon, distanceMeters, alert.CreatedAt);
+            machine.Name, op.Name, lat, lon, distanceMeters, alert.CreatedAt, adminEmails);
 
         return alert;
     }
@@ -91,7 +92,8 @@ public class AlertService(
         db.Alerts.Add(alert);
         await db.SaveChangesAsync();
 
-        _ = emailService.SendMachineOfflineAlertAsync(machine.Name, lastSeenAt, minutesOffline);
+        var adminEmails = await GetAdminEmailsAsync();
+        _ = emailService.SendMachineOfflineAlertAsync(machine.Name, lastSeenAt, minutesOffline, adminEmails);
 
         return alert;
     }
@@ -145,4 +147,10 @@ public class AlertService(
 
         return alert;
     }
+
+    private Task<List<string>> GetAdminEmailsAsync() =>
+        db.Users
+            .Where(u => u.Role == "Admin" && u.Email != string.Empty)
+            .Select(u => u.Email)
+            .ToListAsync();
 }

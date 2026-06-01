@@ -28,7 +28,6 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _smtpPort = "587";
     [ObservableProperty] private string _smtpUser = string.Empty;
     [ObservableProperty] private string _fromAddress = string.Empty;
-    [ObservableProperty] private string _adminRecipients = string.Empty;
 
     // Timing settings
     [ObservableProperty] private string _offlineThresholdMinutes = "5";
@@ -68,7 +67,6 @@ public partial class SettingsViewModel : ObservableObject
                 SmtpPort                = settings.GetValueOrDefault("SmtpPort", "587");
                 SmtpUser                = settings.GetValueOrDefault("SmtpUser", string.Empty);
                 FromAddress             = settings.GetValueOrDefault("FromAddress", string.Empty);
-                AdminRecipients         = settings.GetValueOrDefault("AdminRecipients", string.Empty);
                 OfflineThresholdMinutes = settings.GetValueOrDefault("OfflineThresholdMinutes", "5");
                 GeofenceCooldownMinutes = settings.GetValueOrDefault("GeofenceCooldownMinutes", "5");
             }
@@ -135,7 +133,6 @@ public partial class SettingsViewModel : ObservableObject
                 ["SmtpPort"]                = SmtpPort,
                 ["SmtpUser"]                = SmtpUser,
                 ["FromAddress"]             = FromAddress,
-                ["AdminRecipients"]         = AdminRecipients,
                 ["OfflineThresholdMinutes"] = OfflineThresholdMinutes,
                 ["GeofenceCooldownMinutes"] = GeofenceCooldownMinutes,
             };

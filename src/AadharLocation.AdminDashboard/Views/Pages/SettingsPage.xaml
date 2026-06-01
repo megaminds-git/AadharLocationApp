@@ -97,10 +97,7 @@
                              Text="{Binding SmtpUser, UpdateSourceTrigger=PropertyChanged}"
                              Margin="0,0,0,12"/>
                     <TextBox materialDesign:HintAssist.Hint="From address"
-                             Text="{Binding FromAddress, UpdateSourceTrigger=PropertyChanged}"
-                             Margin="0,0,0,12"/>
-                    <TextBox materialDesign:HintAssist.Hint="Admin recipients (comma-separated)"
-                             Text="{Binding AdminRecipients, UpdateSourceTrigger=PropertyChanged}"/>
+                             Text="{Binding FromAddress, UpdateSourceTrigger=PropertyChanged}"/>
                 </StackPanel>
             </Border>
 
