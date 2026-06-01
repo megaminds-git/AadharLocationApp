@@ -36,6 +36,7 @@ jobs:
         run: |
           dotnet ef database update `
             --project src/AadharLocation.Api `
+            --configuration Release `
             --no-build
 
       - name: Deploy via FTP
