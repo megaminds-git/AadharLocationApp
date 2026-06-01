@@ -11,24 +11,31 @@ namespace AadharLocation.AdminDashboard.ViewModels;
 public partial class ReportsViewModel : ObservableObject
 {
     private readonly ApiClient _api;
-    private const int PageSize = 50;
 
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _errorMessage  = string.Empty;
     [ObservableProperty] private string _exportStatus  = string.Empty;
     [ObservableProperty] private int    _currentPage   = 1;
-    [ObservableProperty] private int    _totalCount;
     [ObservableProperty] private DateTime? _fromDate = DateTime.Today.AddMonths(-1);
     [ObservableProperty] private DateTime? _toDate   = DateTime.Today;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TotalPages))]
+    [NotifyPropertyChangedFor(nameof(TotalCountText))]
+    private int _totalCount;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TotalPages))]
+    private int _pageSize = 50;
+
+    public int    TotalPages     => Math.Max(1, (int)Math.Ceiling((double)TotalCount / PageSize));
+    public string TotalCountText => TotalCount == 0
+        ? string.Empty
+        : $"{TotalCount} alert{(TotalCount == 1 ? "" : "s")} total";
 
     public ObservableCollection<SelectableItem> MachineItems  { get; } = [];
     public ObservableCollection<SelectableItem> OperatorItems { get; } = [];
     public ObservableCollection<AlertDto>       ReportRows    { get; } = [];
-
-    public int    TotalPages      => (int)Math.Ceiling((double)TotalCount / PageSize);
-    public string TotalCountText  => TotalCount == 0
-        ? string.Empty
-        : $"{TotalCount} alert{(TotalCount == 1 ? "" : "s")} total";
 
     public string MachinesSummary  => GetSummary(MachineItems);
     public string OperatorsSummary => GetSummary(OperatorItems);
@@ -37,7 +44,7 @@ public partial class ReportsViewModel : ObservableObject
     {
         if (items.Count == 0) return "Select...";
         var selected = items.Where(i => i.IsSelected).ToList();
-        if (selected.Count == 0)         return "None selected";
+        if (selected.Count == 0)           return "None selected";
         if (selected.Count == items.Count) return $"All ({items.Count})";
         return selected.Count <= 2
             ? string.Join(", ", selected.Select(i => i.Label))
@@ -108,15 +115,20 @@ public partial class ReportsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task NextPageAsync()
+    private async Task GoToPageAsync(int page)
     {
-        if (CurrentPage * PageSize < TotalCount) { CurrentPage++; await LoadReportAsync(); }
+        if (page < 1 || page > TotalPages || page == CurrentPage) return;
+        CurrentPage = page;
+        await LoadReportAsync();
     }
 
     [RelayCommand]
-    private async Task PrevPageAsync()
+    private async Task ChangePageSizeAsync(int size)
     {
-        if (CurrentPage > 1) { CurrentPage--; await LoadReportAsync(); }
+        if (size <= 0 || size == PageSize) return;
+        PageSize = size;
+        CurrentPage = 1;
+        await LoadReportAsync();
     }
 
     private async Task LoadReportAsync()
@@ -141,8 +153,6 @@ public partial class ReportsViewModel : ObservableObject
             {
                 foreach (var row in result.Items) ReportRows.Add(row);
                 TotalCount = result.TotalCount;
-                OnPropertyChanged(nameof(TotalPages));
-                OnPropertyChanged(nameof(TotalCountText));
             }
         }
         catch (Exception ex) { ErrorMessage = ex.Message; }

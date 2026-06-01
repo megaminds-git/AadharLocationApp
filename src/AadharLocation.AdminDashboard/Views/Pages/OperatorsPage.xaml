@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             xmlns:converters="clr-namespace:AadharLocation.AdminDashboard.Converters">
+             xmlns:converters="clr-namespace:AadharLocation.AdminDashboard.Converters"
+             xmlns:controls="clr-namespace:AadharLocation.AdminDashboard.Controls">
 
     <UserControl.Resources>
         <ResourceDictionary>
@@ -134,16 +135,13 @@
             <TextBlock Text="{Binding ErrorMessage}" Foreground="#F87171"
                        VerticalAlignment="Center"
                        Visibility="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
-            <StackPanel Grid.Column="1" Orientation="Horizontal">
-                <Button Content="←" Command="{Binding PrevPageCommand}"
-                        Style="{StaticResource MaterialDesignIconButton}"/>
-                <TextBlock VerticalAlignment="Center" Margin="8,0">
-                    <Run Text="Page "/><Run Text="{Binding CurrentPage}"/><Run Text=" of "/>
-                    <Run Text="{Binding TotalCount}"/>
-                </TextBlock>
-                <Button Content="→" Command="{Binding NextPageCommand}"
-                        Style="{StaticResource MaterialDesignIconButton}"/>
-            </StackPanel>
+            <controls:PaginationControl Grid.Column="1"
+                CurrentPage="{Binding CurrentPage, Mode=OneWay}"
+                TotalPages="{Binding TotalPages, Mode=OneWay}"
+                TotalCount="{Binding TotalCount, Mode=OneWay}"
+                PageSize="{Binding PageSize, Mode=OneWay}"
+                GoToPageCommand="{Binding GoToPageCommand}"
+                ChangePageSizeCommand="{Binding ChangePageSizeCommand}"/>
         </Grid>
 
         <!-- Loading -->

@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.IO;
 using AadharLocation.AdminDashboard.Infrastructure;
 using AadharLocation.Shared.DTOs.Machines;
 using AadharLocation.Shared.DTOs.SignalR;
@@ -15,22 +14,24 @@ public partial class MachinesViewModel : ObservableObject
 
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _errorMessage = string.Empty;
-    // [ObservableProperty] private string _exportStatusMessage = string.Empty;
-    [ObservableProperty] private int _totalCount;
     [ObservableProperty] private int _currentPage = 1;
     [ObservableProperty] private MachineDto? _selectedMachine;
-    // [ObservableProperty] private DateTime? _exportFromDate;
-    // [ObservableProperty] private DateTime? _exportToDate;
 
-    // public event Action<byte[], string>? ExportReady;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TotalPages))]
+    private int _totalCount;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TotalPages))]
+    private int _pageSize = 20;
+
+    public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)TotalCount / PageSize));
 
     public ObservableCollection<MachineDto> Machines { get; } = [];
 
     public event Action<MachineDto?>? EditRequested;
     public event Action? AddRequested;
     public event Action<MachineDto>? GeofenceRequested;
-
-    private const int PageSize = 20;
 
     public MachinesViewModel(ApiClient api, SignalRClient signalR)
     {
@@ -83,31 +84,21 @@ public partial class MachinesViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task NextPageAsync()
+    private async Task GoToPageAsync(int page)
     {
-        if (CurrentPage * PageSize < TotalCount) { CurrentPage++; await LoadAsync(); }
+        if (page < 1 || page > TotalPages || page == CurrentPage) return;
+        CurrentPage = page;
+        await LoadAsync();
     }
 
     [RelayCommand]
-    private async Task PrevPageAsync()
+    private async Task ChangePageSizeAsync(int size)
     {
-        if (CurrentPage > 1) { CurrentPage--; await LoadAsync(); }
+        if (size <= 0 || size == PageSize) return;
+        PageSize = size;
+        CurrentPage = 1;
+        await LoadAsync();
     }
-
-    // [RelayCommand]
-    // private async Task ExportCsvAsync()
-    // {
-    //     IsLoading = true;
-    //     ExportStatusMessage = string.Empty;
-    //     try
-    //     {
-    //         var bytes = await _api.ExportMachinesCsvAsync(null, ExportFromDate, ExportToDate);
-    //         var filename = $"machines_report_{DateTime.Now:yyyyMMdd}.csv";
-    //         ExportReady?.Invoke(bytes, filename);
-    //     }
-    //     catch (Exception ex) { ExportStatusMessage = $"Export failed: {ex.Message}"; }
-    //     finally { IsLoading = false; }
-    // }
 
     private void OnLocationUpdate(MachineLocationUpdate u)
     {

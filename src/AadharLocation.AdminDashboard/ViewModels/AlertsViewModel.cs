@@ -14,14 +14,21 @@ public partial class AlertsViewModel : ObservableObject
 
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _errorMessage = string.Empty;
-    [ObservableProperty] private int _totalCount;
     [ObservableProperty] private int _currentPage = 1;
     [ObservableProperty] private bool _showUnackOnly;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TotalPages))]
+    private int _totalCount;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TotalPages))]
+    private int _pageSize = 20;
+
+    public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)TotalCount / PageSize));
+
     public ObservableCollection<AlertDto> Alerts { get; } = [];
     public int UnacknowledgedCount => Alerts.Count(a => !a.IsAcknowledged);
-
-    private const int PageSize = 30;
 
     public AlertsViewModel(ApiClient api, SignalRClient signalR)
     {
@@ -78,15 +85,20 @@ public partial class AlertsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task NextPageAsync()
+    private async Task GoToPageAsync(int page)
     {
-        if (CurrentPage * PageSize < TotalCount) { CurrentPage++; await LoadAsync(); }
+        if (page < 1 || page > TotalPages || page == CurrentPage) return;
+        CurrentPage = page;
+        await LoadAsync();
     }
 
     [RelayCommand]
-    private async Task PrevPageAsync()
+    private async Task ChangePageSizeAsync(int size)
     {
-        if (CurrentPage > 1) { CurrentPage--; await LoadAsync(); }
+        if (size <= 0 || size == PageSize) return;
+        PageSize = size;
+        CurrentPage = 1;
+        await LoadAsync();
     }
 
     private void OnAlertAcknowledged(int id)

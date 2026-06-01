@@ -1,0 +1,56 @@
+<UserControl x:Class="AadharLocation.AdminDashboard.Controls.PaginationControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             x:Name="Self">
+
+    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+        <!-- Total record count -->
+        <TextBlock x:Name="TotalCountBlock" VerticalAlignment="Center"
+                   Margin="0,0,14,0" Opacity="0.6" FontSize="13"/>
+
+        <!-- Separator -->
+        <Rectangle Width="1" Height="16" Margin="0,0,14,0" VerticalAlignment="Center"
+                   Fill="{DynamicResource SecondaryTextBrush}" Opacity="0.3"/>
+
+        <!-- Rows per page -->
+        <TextBlock Text="Rows:" VerticalAlignment="Center" Margin="0,0,6,0"
+                   Opacity="0.6" FontSize="13"/>
+        <ComboBox x:Name="PageSizeCombo" Width="62" FontSize="13"
+                  VerticalAlignment="Center"
+                  SelectionChanged="PageSizeCombo_SelectionChanged"/>
+
+        <!-- Separator -->
+        <Rectangle Width="1" Height="16" Margin="14,0" VerticalAlignment="Center"
+                   Fill="{DynamicResource SecondaryTextBrush}" Opacity="0.3"/>
+
+        <!-- Prev -->
+        <Button x:Name="PrevBtn" Width="28" Height="28" Padding="3"
+                ToolTip="Previous page" Click="PrevBtn_Click"
+                Style="{StaticResource MaterialDesignIconButton}">
+            <materialDesign:PackIcon Kind="ChevronLeft" Width="16" Height="16"/>
+        </Button>
+
+        <!-- Page label + editable input -->
+        <TextBlock Text="Page " VerticalAlignment="Center" FontSize="13" Margin="4,0,0,0"/>
+        <Border BorderBrush="{DynamicResource SecondaryTextBrush}" BorderThickness="1"
+                CornerRadius="3" Margin="0,0,0,0">
+            <TextBox x:Name="PageInput" Width="40" TextAlignment="Center" FontSize="13"
+                     VerticalAlignment="Center" Background="Transparent" BorderThickness="0"
+                     Padding="4,2" VerticalContentAlignment="Center"
+                     KeyDown="PageInput_KeyDown"
+                     LostFocus="PageInput_LostFocus"/>
+        </Border>
+        <TextBlock x:Name="TotalPagesBlock" VerticalAlignment="Center"
+                   FontSize="13" Margin="4,0" Opacity="0.6"/>
+
+        <!-- Next -->
+        <Button x:Name="NextBtn" Width="28" Height="28" Padding="3"
+                ToolTip="Next page" Click="NextBtn_Click"
+                Style="{StaticResource MaterialDesignIconButton}">
+            <materialDesign:PackIcon Kind="ChevronRight" Width="16" Height="16"/>
+        </Button>
+
+    </StackPanel>
+</UserControl>
