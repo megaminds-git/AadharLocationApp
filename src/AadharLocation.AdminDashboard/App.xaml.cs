@@ -149,6 +149,7 @@ public partial class App : Application
         services.AddSingleton<MachinesViewModel>();
         services.AddSingleton<FleetMapViewModel>();
         services.AddSingleton<AlertsViewModel>();
+        services.AddSingleton<ReportsViewModel>();
         services.AddSingleton<SettingsViewModel>();
 
         // Dialog ViewModels (transient — fresh state each dialog open)
@@ -169,6 +170,7 @@ public partial class App : Application
         services.AddSingleton<MachinesPage>();
         services.AddSingleton<FleetMapPage>();
         services.AddSingleton<AlertsPage>();
+        services.AddSingleton<ReportsPage>();
         services.AddSingleton<SettingsPage>();
     }
 

@@ -9,6 +9,7 @@ public enum NavPage
     Machines,
     FleetMap,
     Alerts,
+    Reports,
     Settings
 }
 
@@ -35,6 +36,7 @@ public class NavigationService
         NavPage.Machines   => (UserControl)_services.GetService(typeof(Views.Pages.MachinesPage))!,
         NavPage.FleetMap   => (UserControl)_services.GetService(typeof(Views.Pages.FleetMapPage))!,
         NavPage.Alerts     => (UserControl)_services.GetService(typeof(Views.Pages.AlertsPage))!,
+        NavPage.Reports    => (UserControl)_services.GetService(typeof(Views.Pages.ReportsPage))!,
         NavPage.Settings   => (UserControl)_services.GetService(typeof(Views.Pages.SettingsPage))!,
         _ => throw new ArgumentOutOfRangeException(nameof(page))
     };

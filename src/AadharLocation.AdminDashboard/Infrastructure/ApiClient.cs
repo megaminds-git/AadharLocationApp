@@ -195,6 +195,39 @@ public class ApiClient
         return await resp.Content.ReadAsByteArrayAsync();
     }
 
+    public async Task<PagedResult<AlertDto>?> GetAlertReportAsync(
+        int[]? machineIds, int[]? operatorIds,
+        DateTime? from, DateTime? to,
+        int page = 1, int pageSize = 50)
+    {
+        SetAuthHeader();
+        var parts = new List<string> { $"page={page}", $"pageSize={pageSize}" };
+        if (machineIds  != null) foreach (var id in machineIds)  parts.Add($"machineIds={id}");
+        if (operatorIds != null) foreach (var id in operatorIds) parts.Add($"operatorIds={id}");
+        if (from.HasValue) parts.Add($"from={from.Value:yyyy-MM-ddTHH:mm:ss}");
+        if (to.HasValue)   parts.Add($"to={to.Value:yyyy-MM-ddTHH:mm:ss}");
+        return await _http.GetFromJsonAsync<PagedResult<AlertDto>>(
+            ApiRoutes.Reports.Alerts + "?" + string.Join("&", parts), _json);
+    }
+
+    public async Task<byte[]> ExportAlertReportAsync(
+        int[]? machineIds, int[]? operatorIds,
+        DateTime? from, DateTime? to)
+    {
+        SetAuthHeader();
+        var parts = new List<string>();
+        if (machineIds  != null) foreach (var id in machineIds)  parts.Add($"machineIds={id}");
+        if (operatorIds != null) foreach (var id in operatorIds) parts.Add($"operatorIds={id}");
+        if (from.HasValue) parts.Add($"from={from.Value:yyyy-MM-ddTHH:mm:ss}");
+        if (to.HasValue)   parts.Add($"to={to.Value:yyyy-MM-ddTHH:mm:ss}");
+        var url = parts.Count > 0
+            ? ApiRoutes.Reports.AlertsExport + "?" + string.Join("&", parts)
+            : ApiRoutes.Reports.AlertsExport;
+        var resp = await _http.GetAsync(url);
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadAsByteArrayAsync();
+    }
+
     // ── Activation ────────────────────────────────────────────────────────────
 
     public async Task<List<DeviceDto>?> GetDevicesAsync()

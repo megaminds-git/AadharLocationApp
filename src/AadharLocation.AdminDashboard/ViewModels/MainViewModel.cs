@@ -65,6 +65,7 @@ public partial class MainViewModel : ObservableObject
             NavPage.Machines  => "Machines",
             NavPage.FleetMap  => "Fleet Map",
             NavPage.Alerts    => "Alerts",
+            NavPage.Reports   => "Reports",
             NavPage.Settings  => "Settings",
             _ => string.Empty
         };
