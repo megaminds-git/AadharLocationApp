@@ -71,6 +71,7 @@ jobs:
           server-dir: /
 
       - name: Bring app back online
+        continue-on-error: true
         run: |
           $ftpRequest = [System.Net.FtpWebRequest]::Create("ftp://${{ secrets.FTP_HOST }}/app_offline.htm")
           $ftpRequest.Method = [System.Net.WebRequestMethods+Ftp]::DeleteFile
