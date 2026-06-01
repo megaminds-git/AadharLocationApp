@@ -27,8 +27,7 @@
     <PackageReference Include="NetTopologySuite" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="BCrypt.Net-Next" />
-    <PackageReference Include="MailKit" />
-    <PackageReference Include="MimeKit" />
+    <PackageReference Include="Resend" />
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.File" />

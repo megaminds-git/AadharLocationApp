@@ -1,17 +1,16 @@
-using MailKit.Net.Smtp;
-using MailKit.Security;
 using Microsoft.Extensions.Options;
-using MimeKit;
+using Resend;
 
 namespace AadharLocation.Api.Services;
 
 public class EmailService(
+    IResend resend,
     IOptions<EmailSettings> settings,
     ILogger<EmailService> logger)
 {
     private bool IsConfigured =>
-        !string.IsNullOrWhiteSpace(settings.Value.Username) &&
-        !string.IsNullOrWhiteSpace(settings.Value.Password) &&
+        !string.IsNullOrWhiteSpace(settings.Value.ApiKey) &&
+        !string.IsNullOrWhiteSpace(settings.Value.FromAddress) &&
         settings.Value.AdminRecipients.Count > 0;
 
     public async Task SendGeofenceBreachAlertAsync(
@@ -47,22 +46,20 @@ public class EmailService(
     {
         var cfg = settings.Value;
 
-        var msg = new MimeMessage();
-        msg.From.Add(new MailboxAddress(cfg.FromName, cfg.FromAddress));
+        var message = new EmailMessage
+        {
+            From     = $"{cfg.FromName} <{cfg.FromAddress}>",
+            Subject  = subject,
+            HtmlBody = htmlBody,
+        };
+
         foreach (var recipient in cfg.AdminRecipients)
-            msg.To.Add(MailboxAddress.Parse(recipient));
-        msg.Subject = subject;
-        msg.Body    = new TextPart("html") { Text = htmlBody };
+            message.To.Add(recipient);
 
         try
         {
-            using var smtp = new SmtpClient();
-            await smtp.ConnectAsync(cfg.SmtpHost, cfg.SmtpPort,
-                cfg.UseSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None);
-            await smtp.AuthenticateAsync(cfg.Username, cfg.Password);
-            await smtp.SendAsync(msg);
-            await smtp.DisconnectAsync(true);
-            logger.LogInformation("Alert email sent: {Subject}", subject);
+            await resend.EmailSendAsync(message);
+            logger.LogInformation("Alert email sent via Resend: {Subject}", subject);
         }
         catch (Exception ex)
         {

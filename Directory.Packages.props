@@ -17,8 +17,7 @@
     <!-- API - Auth, Security, Email -->
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.5" />
     <PackageVersion Include="BCrypt.Net-Next" Version="4.0.3" />
-    <PackageVersion Include="MailKit" Version="4.17.0" />
-    <PackageVersion Include="MimeKit" Version="4.17.0" />
+    <PackageVersion Include="Resend" Version="0.5.1" />
 
     <!-- API - Environment config -->
     <PackageVersion Include="DotNetEnv" Version="3.1.1" />

@@ -7,6 +7,7 @@ using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Resend;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -40,6 +41,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.Configure<GeofenceSettings>(builder.Configuration.GetSection("GeofenceSettings"));
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
+builder.Services.AddResend(options =>
+    options.ApiToken = builder.Configuration["Email:ApiKey"] ?? string.Empty);
 
 builder.Services.AddHostedService<DatabaseSeeder>();
 builder.Services.AddHostedService<OfflineDetectionService>();

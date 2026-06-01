@@ -12,6 +12,7 @@ namespace AadharLocation.Api.Features.Settings;
 public class SettingsController(
     IOptionsMonitor<EmailSettings> emailOpts,
     IOptionsMonitor<GeofenceSettings> geofenceOpts,
+    EmailService emailService,
     IWebHostEnvironment env) : ControllerBase
 {
     private string RuntimeSettingsPath =>
@@ -20,18 +21,27 @@ public class SettingsController(
     [HttpGet]
     public IActionResult Get()
     {
-        var email   = emailOpts.CurrentValue;
-        var geo     = geofenceOpts.CurrentValue;
+        var email = emailOpts.CurrentValue;
+        var geo   = geofenceOpts.CurrentValue;
         return Ok(new Dictionary<string, string>
         {
-            ["SmtpHost"]                = email.SmtpHost,
-            ["SmtpPort"]                = email.SmtpPort.ToString(),
-            ["SmtpUser"]                = email.Username,
             ["FromAddress"]             = email.FromAddress,
             ["AdminRecipients"]         = string.Join(",", email.AdminRecipients),
             ["OfflineThresholdMinutes"] = geo.OfflineThresholdMinutes.ToString(),
             ["GeofenceCooldownMinutes"] = geo.BreachCooldownMinutes.ToString(),
         });
+    }
+
+    [HttpPost("test-email")]
+    public async Task<IActionResult> TestEmail()
+    {
+        await emailService.SendGeofenceBreachAlertAsync(
+            machineName: "TEST-MACHINE-01",
+            operatorName: "Test Operator",
+            lat: 28.6139, lon: 77.2090,
+            distanceMeters: 125.5,
+            breachedAt: DateTime.UtcNow);
+        return Ok(new { message = "Test email dispatched — check your inbox." });
     }
 
     [HttpPost]
@@ -41,10 +51,7 @@ public class SettingsController(
         {
             Email = new
             {
-                SmtpHost   = settings.GetValueOrDefault("SmtpHost", "smtp.gmail.com"),
-                SmtpPort   = int.TryParse(settings.GetValueOrDefault("SmtpPort"), out var port) ? port : 587,
-                Username   = settings.GetValueOrDefault("SmtpUser", string.Empty),
-                FromAddress = settings.GetValueOrDefault("FromAddress", string.Empty),
+                FromAddress     = settings.GetValueOrDefault("FromAddress", string.Empty),
                 AdminRecipients = (settings.GetValueOrDefault("AdminRecipients") ?? string.Empty)
                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             },
