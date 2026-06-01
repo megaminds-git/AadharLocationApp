@@ -29,6 +29,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Code]
 var
   AppTypePage: TInputOptionWizardPage;
+  ServerUrlPage: TInputQueryWizardPage;
   AppTypeSelected: Integer;  // 0 = Admin, 1 = Operator
 
 procedure InitializeWizard;
@@ -44,6 +45,15 @@ begin
   AppTypePage.Add('Admin Dashboard  –  Monitor operators, view live map, manage users');
   AppTypePage.Add('Operator Tracker  –  Report location and receive field assignments');
   AppTypePage.SelectedValueIndex := 0;
+
+  ServerUrlPage := CreateInputQueryPage(
+    AppTypePage.ID,
+    'Server Configuration',
+    'Enter the API Server URL',
+    'Enter the URL of the AadharLocation API server that this application will connect to. Example: http://192.168.1.10:5163'
+  );
+  ServerUrlPage.Add('Server URL:', False);
+  ServerUrlPage.Values[0] := 'http://192.168.5.106:5163';
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -51,6 +61,14 @@ begin
   Result := True;
   if CurPageID = AppTypePage.ID then
     AppTypeSelected := AppTypePage.SelectedValueIndex;
+  if CurPageID = ServerUrlPage.ID then
+  begin
+    if Trim(ServerUrlPage.Values[0]) = '' then
+    begin
+      MsgBox('Please enter a valid Server URL.', mbError, MB_OK);
+      Result := False;
+    end;
+  end;
 end;
 
 function IsAdmin: Boolean;
@@ -80,6 +98,8 @@ begin
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ServerUrl: String;
 begin
   if CurStep = ssPostInstall then
   begin
@@ -87,6 +107,14 @@ begin
     SaveStringToFile(
       ExpandConstant('{app}\install-mode.txt'),
       AppDisplayName,
+      False
+    );
+
+    // Write server URL config so the app connects to the correct API on first launch
+    ServerUrl := Trim(ServerUrlPage.Values[0]);
+    SaveStringToFile(
+      ExpandConstant('{app}\server_config.json'),
+      '{"ApiBaseUrl":"' + ServerUrl + '"}',
       False
     );
   end;

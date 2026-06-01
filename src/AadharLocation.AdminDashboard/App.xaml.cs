@@ -66,6 +66,11 @@ public partial class App : Application
             {
                 config.SetBasePath(AppContext.BaseDirectory);
                 config.AddJsonFile("appsettings.json", optional: true);
+                config.AddJsonFile("server_config.json", optional: true, reloadOnChange: false);
+                // User-saved override (from Settings page) takes highest priority
+                config.AddJsonFile(
+                    Path.Combine(appDataDir, "server_config.json"),
+                    optional: true, reloadOnChange: false);
                 config.AddEnvironmentVariables();
             })
             .ConfigureServices((ctx, services) => ConfigureServices(ctx.Configuration, services))

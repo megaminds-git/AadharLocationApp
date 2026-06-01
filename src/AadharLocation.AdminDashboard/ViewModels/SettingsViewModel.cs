@@ -1,8 +1,11 @@
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Text.Json;
 using AadharLocation.AdminDashboard.Infrastructure;
 using AadharLocation.Shared.DTOs.Activation;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Configuration;
 
 namespace AadharLocation.AdminDashboard.ViewModels;
 
@@ -10,10 +13,15 @@ public partial class SettingsViewModel : ObservableObject
 {
     private readonly ApiClient _api;
     private readonly AuthStateService _auth;
+    private readonly string _serverConfigPath;
 
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private bool _isDarkTheme;
+
+    // Server connection
+    [ObservableProperty] private string _serverUrl = string.Empty;
+    [ObservableProperty] private string _serverStatusMessage = string.Empty;
 
     // Email settings
     [ObservableProperty] private string _smtpHost = string.Empty;
@@ -32,11 +40,18 @@ public partial class SettingsViewModel : ObservableObject
 
     public event Action<string, DateTime>? UninstallCodeGenerated;
 
-    public SettingsViewModel(ApiClient api, AuthStateService auth)
+    public SettingsViewModel(ApiClient api, AuthStateService auth, IConfiguration config)
     {
         _api  = api;
         _auth = auth;
         _isDarkTheme = auth.IsDarkTheme;
+
+        var appDataDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "AadharLocation");
+        _serverConfigPath = Path.Combine(appDataDir, "server_config.json");
+
+        _serverUrl = (config["ApiBaseUrl"] ?? "http://localhost:5163").TrimEnd('/');
     }
 
     [RelayCommand]
@@ -137,5 +152,24 @@ public partial class SettingsViewModel : ObservableObject
         IsDarkTheme = !IsDarkTheme;
         _auth.SetTheme(IsDarkTheme);
         App.SwitchTheme(IsDarkTheme);
+    }
+
+    [RelayCommand]
+    private void SaveServerUrl()
+    {
+        var url = ServerUrl.Trim().TrimEnd('/');
+        if (string.IsNullOrEmpty(url))
+        {
+            ServerStatusMessage = "URL cannot be empty.";
+            return;
+        }
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(_serverConfigPath)!);
+            File.WriteAllText(_serverConfigPath,
+                JsonSerializer.Serialize(new { ApiBaseUrl = url }, new JsonSerializerOptions { WriteIndented = false }));
+            ServerStatusMessage = "Saved. Restart the app to connect to the new server.";
+        }
+        catch (Exception ex) { ServerStatusMessage = $"Save failed: {ex.Message}"; }
     }
 }

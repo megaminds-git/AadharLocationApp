@@ -35,6 +35,7 @@ public partial class App
             {
                 config.SetBasePath(AppContext.BaseDirectory);
                 config.AddJsonFile("appsettings.json", optional: false);
+                config.AddJsonFile("server_config.json", optional: true, reloadOnChange: false);
             })
             .ConfigureServices((ctx, services) =>
             {

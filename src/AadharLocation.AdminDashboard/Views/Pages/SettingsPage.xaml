@@ -27,6 +27,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- Page header -->
@@ -47,8 +48,33 @@
                 </StackPanel>
             </Grid>
 
-            <!-- Email settings card -->
+            <!-- Server connection card -->
             <Border Grid.Row="1" CornerRadius="8" Padding="24" Margin="0,0,0,16"
+                    Background="{DynamicResource MaterialDesignPaper}">
+                <StackPanel>
+                    <TextBlock Text="Server Connection" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,16"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 materialDesign:HintAssist.Hint="API Server URL (e.g. http://192.168.1.10:5163)"
+                                 Text="{Binding ServerUrl, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Button Grid.Column="2" Content="Save &amp; Restart"
+                                Command="{Binding SaveServerUrlCommand}"
+                                Style="{StaticResource MaterialDesignOutlinedButton}"
+                                Padding="12,0" VerticalAlignment="Bottom"/>
+                    </Grid>
+                    <TextBlock Text="{Binding ServerStatusMessage}" Margin="0,8,0,0"
+                               Foreground="#2DD4BF" FontSize="12"
+                               Visibility="{Binding ServerStatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Email settings card -->
+            <Border Grid.Row="2" CornerRadius="8" Padding="24" Margin="0,0,0,16"
                     Background="{DynamicResource MaterialDesignPaper}">
                 <StackPanel>
                     <TextBlock Text="Email Alerts (SMTP)" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,16"/>
@@ -79,7 +105,7 @@
             </Border>
 
             <!-- Timing settings card -->
-            <Border Grid.Row="2" CornerRadius="8" Padding="24" Margin="0,0,0,16"
+            <Border Grid.Row="3" CornerRadius="8" Padding="24" Margin="0,0,0,16"
                     Background="{DynamicResource MaterialDesignPaper}">
                 <StackPanel>
                     <TextBlock Text="Detection Thresholds" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,16"/>
@@ -104,7 +130,7 @@
             </Border>
 
             <!-- Device management card -->
-            <Border Grid.Row="3" CornerRadius="8" Padding="24" Margin="0,0,0,16"
+            <Border Grid.Row="4" CornerRadius="8" Padding="24" Margin="0,0,0,16"
                     Background="{DynamicResource MaterialDesignPaper}">
                 <StackPanel>
                     <Grid Margin="0,0,0,16">
@@ -210,7 +236,7 @@
             </Border>
 
             <!-- Save row -->
-            <Grid Grid.Row="4">
+            <Grid Grid.Row="5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
