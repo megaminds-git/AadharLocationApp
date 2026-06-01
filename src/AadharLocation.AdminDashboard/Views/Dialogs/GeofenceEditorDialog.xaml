@@ -77,14 +77,13 @@
                          materialDesign:HintAssist.Hint="Geofence radius (meters)"
                          Text="{Binding RadiusMeters, UpdateSourceTrigger=LostFocus, StringFormat=F0}"/>
 
-                <!-- Lat / Lng readout -->
+                <!-- Lat / Lng editable inputs -->
                 <StackPanel Grid.Row="6">
-                    <TextBlock FontSize="12" Opacity="0.6">
-                        <Run Text="Lat: "/><Run Text="{Binding CenterLatitude,  StringFormat=F6}"/>
-                    </TextBlock>
-                    <TextBlock FontSize="12" Opacity="0.6" Margin="0,4,0,0">
-                        <Run Text="Lng: "/><Run Text="{Binding CenterLongitude, StringFormat=F6}"/>
-                    </TextBlock>
+                    <TextBox materialDesign:HintAssist.Hint="Latitude"
+                             Text="{Binding LatitudeText,  Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                    <TextBox Margin="0,12,0,0"
+                             materialDesign:HintAssist.Hint="Longitude"
+                             Text="{Binding LongitudeText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
                 </StackPanel>
 
                 <!-- Existing-geofence info -->

@@ -1,3 +1,4 @@
+using System.Globalization;
 using AadharLocation.AdminDashboard.Infrastructure;
 using AadharLocation.Shared.DTOs.Geofences;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -17,6 +18,35 @@ public partial class GeofenceEditorViewModel : ObservableObject
     [ObservableProperty] private string _errorMessage = string.Empty;
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private GeofenceDto? _existingGeofence;
+
+    // String-typed properties bound to the editable TextBoxes.
+    // Avoids the WPF StringFormat+TwoWay binding bug where ConvertBack silently fails.
+    [ObservableProperty] private string _latitudeText  = string.Empty;
+    [ObservableProperty] private string _longitudeText = string.Empty;
+
+    partial void OnLatitudeTextChanged(string value)
+    {
+        if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var lat))
+            CenterLatitude = lat;
+    }
+
+    partial void OnLongitudeTextChanged(string value)
+    {
+        if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var lon))
+            CenterLongitude = lon;
+    }
+
+    partial void OnCenterLatitudeChanged(double value)
+    {
+        var formatted = value.ToString("F6", CultureInfo.InvariantCulture);
+        if (LatitudeText != formatted) LatitudeText = formatted;
+    }
+
+    partial void OnCenterLongitudeChanged(double value)
+    {
+        var formatted = value.ToString("F6", CultureInfo.InvariantCulture);
+        if (LongitudeText != formatted) LongitudeText = formatted;
+    }
 
     public event Action? SaveSucceeded;
 
