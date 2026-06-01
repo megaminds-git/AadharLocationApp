@@ -1,13 +1,11 @@
-name: CI
+name: CD
 
 on:
   push:
-    branches: ["**"]
-  pull_request:
     branches: [main]
 
 jobs:
-  build-and-test:
+  deploy:
     runs-on: windows-latest
 
     steps:
@@ -19,20 +17,16 @@ jobs:
           dotnet-version: 9.0.x
 
       - name: Restore
-        run: dotnet restore AadharLocation.slnx
+        run: dotnet restore src/AadharLocation.Api/AadharLocation.Api.csproj
 
       - name: Publish API
         run: dotnet publish src/AadharLocation.Api/AadharLocation.Api.csproj --configuration Release --output ./publish --no-restore
 
       - name: Install EF Tools
-        run: dotnet tool install --global dotnet-ef
+        run: dotnet tool install --global dotnet-ef --version 9.*
 
       - name: Add dotnet tools to PATH
         run: echo "$HOME/.dotnet/tools" >> $env:GITHUB_PATH
-
-      - name: Debug Connection String
-        run: |
-          echo "Connection: ${{ secrets.DB_CONNECTION_STRING }}" | Select-String "Host="
 
       - name: Run Database Migrations
         env:
@@ -45,21 +39,24 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "${{ secrets.ENV_FILE }}" | Out-File -FilePath ./publish/.env -Encoding utf8
-      
-      - name: Stop IIS App Pool via FTP marker
+          "${{ secrets.ENV_FILE }}" | Out-File -FilePath ./publish/.env -Encoding utf8
+
+      - name: Create app_offline.htm
+        run: |
+          New-Item -ItemType Directory -Force -Path ./offline
+          "App is being updated." | Out-File -FilePath ./offline/app_offline.htm -Encoding utf8
+
+      - name: Upload app_offline.htm to stop IIS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./publish/
+          local-dir: ./offline/
           server-dir: /
-          dangerous-clean-slate: false
-        continue-on-error: true
 
-      - name: Wait for App Pool to release files
-        run: Start-Sleep -Seconds 15
+      - name: Wait for IIS to release file locks
+        run: Start-Sleep -Seconds 20
 
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
