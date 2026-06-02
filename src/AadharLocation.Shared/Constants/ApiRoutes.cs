@@ -49,6 +49,7 @@ public static class ApiRoutes
         public const string Device        = $"{Base}/reports/device";
         public const string Alerts        = $"{Base}/reports/alerts";
         public const string AlertsExport  = $"{Base}/reports/alerts/export";
+        public const string AlertsEmail   = $"{Base}/reports/alerts/email";
     }
 
     public static class Activation

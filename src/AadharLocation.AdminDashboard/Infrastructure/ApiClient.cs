@@ -237,6 +237,20 @@ public class ApiClient
         return await resp.Content.ReadAsByteArrayAsync();
     }
 
+    public async Task EmailAlertReportAsync(
+        string email, int[]? machineIds, int[]? operatorIds,
+        DateTime? from, DateTime? to)
+    {
+        SetAuthHeader();
+        var body = new { email, machineIds, operatorIds, from, to };
+        var resp = await _http.PostAsJsonAsync(ApiRoutes.Reports.AlertsEmail, body, _json);
+        if (!resp.IsSuccessStatusCode)
+        {
+            var detail = await resp.Content.ReadAsStringAsync();
+            throw new Exception(detail);
+        }
+    }
+
     // ── Activation ────────────────────────────────────────────────────────────
 
     public async Task<List<DeviceDto>?> GetDevicesAsync()

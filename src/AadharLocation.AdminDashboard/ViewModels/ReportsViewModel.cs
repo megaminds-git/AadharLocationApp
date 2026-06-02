@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Net.Mail;
 using AadharLocation.AdminDashboard.Infrastructure;
 using AadharLocation.Shared.DTOs.Alerts;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -15,6 +16,7 @@ public partial class ReportsViewModel : ObservableObject
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _errorMessage  = string.Empty;
     [ObservableProperty] private string _exportStatus  = string.Empty;
+    [ObservableProperty] private string _emailAddress  = string.Empty;
     [ObservableProperty] private int    _currentPage   = 1;
     [ObservableProperty] private DateTime? _fromDate = DateTime.Today.AddMonths(-1);
     [ObservableProperty] private DateTime? _toDate   = DateTime.Today;
@@ -188,5 +190,41 @@ public partial class ReportsViewModel : ObservableObject
         }
         catch (Exception ex) { ErrorMessage = ex.Message; }
         finally { IsLoading = false; }
+    }
+
+    [RelayCommand]
+    private async Task SendReportByEmailAsync()
+    {
+        if (!IsValidEmail(EmailAddress))
+        {
+            ExportStatus = "Enter a valid email address.";
+            return;
+        }
+
+        ExportStatus = string.Empty;
+        ErrorMessage = string.Empty;
+        IsLoading    = true;
+        try
+        {
+            var machineIds  = MachineItems .Where(m => m.IsSelected).Select(m => m.Id).ToArray();
+            var operatorIds = OperatorItems.Where(o => o.IsSelected).Select(o => o.Id).ToArray();
+            var toEndOfDay  = ToDate?.Date.AddDays(1).AddTicks(-1);
+
+            await _api.EmailAlertReportAsync(
+                EmailAddress,
+                machineIds .Length > 0 ? machineIds  : null,
+                operatorIds.Length > 0 ? operatorIds : null,
+                FromDate, toEndOfDay);
+
+            ExportStatus = $"Report sent to {EmailAddress}";
+        }
+        catch (Exception ex) { ErrorMessage = ex.Message; }
+        finally { IsLoading = false; }
+    }
+
+    private static bool IsValidEmail(string email)
+    {
+        try { _ = new MailAddress(email); return true; }
+        catch { return false; }
     }
 }

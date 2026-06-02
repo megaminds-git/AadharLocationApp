@@ -12,6 +12,25 @@ public class EmailService(
         !string.IsNullOrWhiteSpace(settings.Value.ApiKey) &&
         !string.IsNullOrWhiteSpace(settings.Value.FromAddress);
 
+    public async Task SendAlertReportAsync(byte[] csvBytes, string fileName, string toEmail)
+    {
+        if (!IsConfigured)
+            throw new InvalidOperationException("Email service is not configured. Set Email:ApiKey in appsettings.");
+
+        var cfg = settings.Value;
+        var message = new EmailMessage
+        {
+            From        = $"{cfg.FromName} <{cfg.FromAddress}>",
+            Subject     = $"[AadharLocation] Alert Report — {DateTime.UtcNow:dd MMM yyyy}",
+            HtmlBody    = BuildReportEmailHtml(fileName),
+            Attachments = [new EmailAttachment { Filename = fileName, Content = csvBytes, ContentType = "text/csv" }],
+        };
+        message.To.Add(toEmail);
+
+        await resend.EmailSendAsync(message);
+        logger.LogInformation("Report email sent to {Email}", toEmail);
+    }
+
     public async Task SendGeofenceBreachAlertAsync(
         string machineName, string operatorName,
         double lat, double lon, double distanceMeters, DateTime breachedAt,
@@ -74,6 +93,28 @@ public class EmailService(
             logger.LogError(ex, "Failed to send alert email: {Subject}", subject);
         }
     }
+
+    private static string BuildReportEmailHtml(string fileName) =>
+        $"""
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family:sans-serif;background:#f4f4f4;padding:24px;margin:0">
+          <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+            <div style="background:#2DD4BF;padding:20px 24px">
+              <h2 style="margin:0;color:#fff;font-size:18px;font-weight:600">&#128196; Alert Report</h2>
+            </div>
+            <div style="padding:24px">
+              <p style="margin:0 0 16px;font-size:14px;color:#374151">
+                Please find the attached alert report <strong>{fileName}</strong> as requested.
+              </p>
+              <p style="margin:0;font-size:13px;color:#6B7280">
+                Log in to the AadharLocation Admin Dashboard to view and filter alerts in real time.
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>
+        """;
 
     private static string BuildGeofenceBreachHtml(
         string machineName, string operatorName,

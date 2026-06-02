@@ -1,5 +1,6 @@
 using System.Text;
 using AadharLocation.Api.Data;
+using AadharLocation.Api.Services;
 using AadharLocation.Shared.DTOs;
 using AadharLocation.Shared.DTOs.Alerts;
 using Microsoft.AspNetCore.Authorization;
@@ -8,10 +9,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AadharLocation.Api.Features.Reports;
 
+public record EmailAlertReportRequest(
+    string Email, int[]? MachineIds, int[]? OperatorIds,
+    DateTime? From, DateTime? To);
+
 [ApiController]
 [Route("api/reports")]
 [Authorize(Roles = "Admin")]
-public class ReportsController(AppDbContext db) : ControllerBase
+public class ReportsController(AppDbContext db, EmailService emailService, ILogger<ReportsController> logger) : ControllerBase
 {
     [HttpGet("device")]
     public async Task<IActionResult> ExportDevice(
@@ -148,5 +153,71 @@ public class ReportsController(AppDbContext db) : ControllerBase
 
         var fileName = $"alert_report_{DateTime.UtcNow:yyyyMMddHHmmss}.csv";
         return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv", fileName);
+    }
+
+    [HttpPost("alerts/email")]
+    public async Task<IActionResult> EmailAlerts([FromBody] EmailAlertReportRequest req)
+    {
+        if (string.IsNullOrWhiteSpace(req.Email))
+            return BadRequest(new { message = "Email address is required." });
+
+        var query = db.Alerts
+            .Include(a => a.Machine)
+            .Include(a => a.Operator)
+            .AsNoTracking();
+
+        if (req.MachineIds?.Length  > 0) query = query.Where(a => req.MachineIds.Contains(a.MachineId));
+        if (req.OperatorIds?.Length > 0) query = query.Where(a => req.OperatorIds.Contains(a.OperatorId));
+        if (req.From.HasValue) query = query.Where(a => a.CreatedAt >= req.From.Value.ToUniversalTime());
+        if (req.To.HasValue)   query = query.Where(a => a.CreatedAt <= req.To.Value.ToUniversalTime());
+
+        var alerts = await query
+            .OrderByDescending(a => a.CreatedAt)
+            .Select(a => new
+            {
+                a.AlertType,
+                MachineName  = a.Machine.Name,
+                OperatorName = a.Operator.Name,
+                a.Message,
+                a.Latitude,
+                a.Longitude,
+                a.CreatedAt,
+            })
+            .ToListAsync();
+
+        var sb = new StringBuilder();
+        sb.AppendLine("Alert Type,Machine Name,Operator Name,Message,Latitude,Longitude,Created At (UTC)");
+
+        foreach (var a in alerts)
+        {
+            var machineName  = a.MachineName.Replace("\"",  "\"\"");
+            var operatorName = a.OperatorName.Replace("\"", "\"\"");
+            var message      = a.Message.Replace("\"",      "\"\"");
+
+            sb.AppendLine(
+                $"\"{a.AlertType}\",\"{machineName}\",\"{operatorName}\",\"{message}\"," +
+                $"{(a.Latitude.HasValue  ? a.Latitude.Value.ToString()  : string.Empty)}," +
+                $"{(a.Longitude.HasValue ? a.Longitude.Value.ToString() : string.Empty)}," +
+                $"\"{a.CreatedAt:yyyy-MM-dd HH:mm:ss}\"");
+        }
+
+        var fileName = $"alert_report_{DateTime.UtcNow:yyyyMMddHHmmss}.csv";
+        var csvBytes = Encoding.UTF8.GetBytes(sb.ToString());
+
+        try
+        {
+            await emailService.SendAlertReportAsync(csvBytes, fileName, req.Email);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Resend error while emailing report to {Email}", req.Email);
+            return Problem($"Failed to send email: {ex.Message}");
+        }
+
+        return Ok(new { message = $"Report sent to {req.Email}" });
     }
 }
