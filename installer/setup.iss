@@ -53,7 +53,7 @@ begin
     'Enter the URL of the AadharLocation API server that this application will connect to. Example: http://192.168.1.10:5163'
   );
   ServerUrlPage.Add('Server URL:', False);
-  ServerUrlPage.Values[0] := 'http://192.168.5.106:5163';
+  ServerUrlPage.Values[0] := 'http://157.15.203.127:81';
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
