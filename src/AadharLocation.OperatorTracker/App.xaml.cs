@@ -57,12 +57,20 @@ public partial class App
                     client.Timeout = TimeSpan.FromSeconds(20);
                 });
 
+                services.AddHttpClient("Nominatim", client =>
+                {
+                    client.BaseAddress = new Uri("https://nominatim.openstreetmap.org/");
+                    client.DefaultRequestHeaders.Add("User-Agent", "AadharLocationTracker/1.0");
+                    client.Timeout = TimeSpan.FromSeconds(10);
+                });
+
                 services.AddSingleton<IActivationService, ActivationService>();
                 services.AddSingleton<IGpsService, GpsService>();
                 services.AddSingleton<LocationSenderService>();
                 services.AddHostedService(sp => sp.GetRequiredService<LocationSenderService>());
 
                 services.AddTransient<IProfileService, ProfileService>();
+                services.AddTransient<IReverseGeocodingService, ReverseGeocodingService>();
                 services.AddTransient<LoginViewModel>();
                 services.AddTransient<LoginWindow>();
                 services.AddTransient<ProfileViewModel>();

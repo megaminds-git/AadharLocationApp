@@ -16,6 +16,7 @@ public partial class ProfileViewModel : ObservableObject, IDisposable
     private readonly LocationSenderService _sender;
     private readonly IGpsService _gps;
     private readonly IHttpClientFactory _httpFactory;
+    private readonly IReverseGeocodingService _geocoding;
 
     public event EventHandler? LogoutRequested;
 
@@ -30,8 +31,14 @@ public partial class ProfileViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _geofenceLat = "—";
     [ObservableProperty] private string _geofenceLon = "—";
     [ObservableProperty] private string _geofenceRadius = "—";
+    [ObservableProperty] private string _geofenceArea = "—";
+    [ObservableProperty] private string _geofenceCity = "—";
+    [ObservableProperty] private string _geofenceState = "—";
     [ObservableProperty] private string _currentLat = "Fetching...";
     [ObservableProperty] private string _currentLon = "Fetching...";
+    [ObservableProperty] private string _currentArea = "Fetching...";
+    [ObservableProperty] private string _currentCity = "Fetching...";
+    [ObservableProperty] private string _currentState = "Fetching...";
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private bool _isSending;
 
@@ -40,13 +47,15 @@ public partial class ProfileViewModel : ObservableObject, IDisposable
         IActivationService activation,
         LocationSenderService sender,
         IGpsService gps,
-        IHttpClientFactory httpFactory)
+        IHttpClientFactory httpFactory,
+        IReverseGeocodingService geocoding)
     {
         _profileService = profileService;
         _activation = activation;
         _sender = sender;
         _gps = gps;
         _httpFactory = httpFactory;
+        _geocoding = geocoding;
         _sender.PingSent += OnPingSent;
     }
 
@@ -68,11 +77,30 @@ public partial class ProfileViewModel : ObservableObject, IDisposable
             GeofenceRadius = profile.GeofenceRadius.HasValue
                 ? $"{profile.GeofenceRadius:F0} m"
                 : "Not set";
+
+            if (profile.GeofenceLat.HasValue && profile.GeofenceLon.HasValue)
+            {
+                var geo = await _geocoding.GetDetailsAsync(profile.GeofenceLat.Value, profile.GeofenceLon.Value);
+                GeofenceArea  = geo.Area;
+                GeofenceCity  = geo.City;
+                GeofenceState = geo.State;
+            }
         }
 
         var gps = await _gps.GetLocationAsync(CancellationToken.None);
         CurrentLat = gps?.Latitude.ToString("F5") ?? "Unavailable";
         CurrentLon = gps?.Longitude.ToString("F5") ?? "Unavailable";
+        if (gps is not null)
+        {
+            var loc = await _geocoding.GetDetailsAsync(gps.Latitude, gps.Longitude);
+            CurrentArea  = loc.Area;
+            CurrentCity  = loc.City;
+            CurrentState = loc.State;
+        }
+        else
+        {
+            CurrentArea = CurrentCity = CurrentState = "—";
+        }
     }
 
     [RelayCommand(CanExecute = nameof(CanSend))]

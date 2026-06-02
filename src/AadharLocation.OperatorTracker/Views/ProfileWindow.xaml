@@ -3,10 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
         Title="AadharLocation Tracker — Profile"
-        Width="420" Height="600"
+        Width="900" Height="660"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="NoResize"
-        Background="White"
+        ResizeMode="CanResize"
+        Background="#F0F4F8"
         ContentRendered="Window_ContentRendered">
 
     <Window.Resources>
@@ -15,182 +15,297 @@
                 <md:BundledTheme BaseTheme="Light" PrimaryColor="Teal" SecondaryColor="Teal" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <Style x:Key="SectionLabel" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Foreground" Value="#888"/>
+                <Setter Property="Margin" Value="0,0,0,4"/>
+            </Style>
+
+            <Style x:Key="ValueLabel" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Foreground" Value="#1A1A2E"/>
+            </Style>
+
+            <Style x:Key="CardBorder" TargetType="Border">
+                <Setter Property="Background" Value="White"/>
+                <Setter Property="CornerRadius" Value="12"/>
+                <Setter Property="Padding" Value="24,20"/>
+                <Setter Property="Margin" Value="0,0,0,16"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect BlurRadius="12" ShadowDepth="1" Opacity="0.07" Color="#000000"/>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="SectionHeading" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidBrush}"/>
+                <Setter Property="Margin" Value="0,0,0,14"/>
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="90"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Teal header banner -->
-        <Border Grid.Row="0" Background="{DynamicResource PrimaryHueMidBrush}">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <md:PackIcon Kind="AccountCircle"
-                             Width="36" Height="36"
-                             Foreground="White"
-                             VerticalAlignment="Center"
-                             Margin="0,0,12,0"/>
+        <!-- ── Full-width teal header ── -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource PrimaryHueMidBrush}"
+                Padding="0,28,0,28">
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <Border Width="60" Height="60"
+                        CornerRadius="30"
+                        Background="#E0F2F1"
+                        VerticalAlignment="Center"
+                        Margin="0,0,18,0">
+                    <md:PackIcon Kind="AccountCircle"
+                                 Width="38" Height="38"
+                                 Foreground="{DynamicResource PrimaryHueMidBrush}"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"/>
+                </Border>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="{Binding OperatorName}"
-                               FontSize="18" FontWeight="Bold"
-                               Foreground="White"/>
+                               FontSize="28" FontWeight="Bold"
+                               Foreground="#1A1A2E"/>
                     <TextBlock Text="Operator Profile"
-                               FontSize="11"
-                               Foreground="#CCffffff"/>
+                               FontSize="15"
+                               Foreground="#555555"
+                               Margin="0,4,0,0"/>
                 </StackPanel>
             </StackPanel>
         </Border>
 
-        <!-- Content area -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="24,16,24,16">
+        <!-- ── Scrollable content ── -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel MaxWidth="860"
+                        HorizontalAlignment="Center"
+                        Margin="32,28,32,32">
 
-                <!-- Machine section -->
-                <StackPanel Margin="0,0,0,12">
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                        <md:PackIcon Kind="Excavator" Width="16" Height="16"
-                                     Foreground="{DynamicResource PrimaryHueMidBrush}"
-                                     VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBlock Text="ASSIGNED MACHINE"
-                                   Style="{StaticResource MaterialDesignOverlineTextBlock}"
-                                   Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                    </StackPanel>
-                    <Border Background="#F5F5F5" CornerRadius="6" Padding="14,10">
+                <!-- Machine card -->
+                <Border Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                            <md:PackIcon Kind="Excavator"
+                                         Width="18" Height="18"
+                                         Foreground="{DynamicResource PrimaryHueMidBrush}"
+                                         VerticalAlignment="Center"
+                                         Margin="0,0,8,0"/>
+                            <TextBlock Text="Assigned Machine"
+                                       Style="{StaticResource SectionHeading}"
+                                       Margin="0"/>
+                        </StackPanel>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition/>
-                                <RowDefinition/>
-                            </Grid.RowDefinitions>
-                            <StackPanel Grid.Column="0" Grid.Row="0" Margin="0,0,8,6">
-                                <TextBlock Text="Name" FontSize="10" Foreground="#888"/>
-                                <TextBlock Text="{Binding MachineName}" FontWeight="SemiBold" FontSize="13"/>
+                            <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                                <TextBlock Text="Name" Style="{StaticResource SectionLabel}"/>
+                                <TextBlock Text="{Binding MachineName}" Style="{StaticResource ValueLabel}"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="0" Margin="8,0,0,6">
-                                <TextBlock Text="Serial" FontSize="10" Foreground="#888"/>
-                                <TextBlock Text="{Binding SerialNumber}" FontWeight="SemiBold" FontSize="13"/>
+                            <StackPanel Grid.Column="1" Margin="0,0,16,0">
+                                <TextBlock Text="Serial No." Style="{StaticResource SectionLabel}"/>
+                                <TextBlock Text="{Binding SerialNumber}" Style="{StaticResource ValueLabel}"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="0" Grid.Row="1" Margin="0,0,8,0">
-                                <TextBlock Text="Type" FontSize="10" Foreground="#888"/>
-                                <TextBlock Text="{Binding MachineType}" FontSize="13"/>
+                            <StackPanel Grid.Column="2" Margin="0,0,16,0">
+                                <TextBlock Text="Type" Style="{StaticResource SectionLabel}"/>
+                                <TextBlock Text="{Binding MachineType}" Style="{StaticResource ValueLabel}"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="1" Margin="8,0,0,0">
-                                <TextBlock Text="Status" FontSize="10" Foreground="#888"/>
-                                <TextBlock Text="{Binding MachineStatus}" FontSize="13"/>
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Text="Status" Style="{StaticResource SectionLabel}"/>
+                                <TextBlock Text="{Binding MachineStatus}" Style="{StaticResource ValueLabel}"/>
                             </StackPanel>
                         </Grid>
-                    </Border>
-                </StackPanel>
-
-                <!-- Assigned location (geofence) section -->
-                <StackPanel Margin="0,0,0,12">
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                        <md:PackIcon Kind="MapMarkerRadius" Width="16" Height="16"
-                                     Foreground="{DynamicResource PrimaryHueMidBrush}"
-                                     VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBlock Text="ASSIGNED LOCATION"
-                                   Style="{StaticResource MaterialDesignOverlineTextBlock}"
-                                   Foreground="{DynamicResource PrimaryHueMidBrush}"/>
                     </StackPanel>
-                    <Border Background="#F5F5F5" CornerRadius="6" Padding="14,10">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                <TextBlock Text="Latitude" FontSize="10" Foreground="#888"/>
-                                <TextBlock Text="{Binding GeofenceLat}" FontWeight="SemiBold" FontSize="13"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Margin="8,0,8,0">
-                                <TextBlock Text="Longitude" FontSize="10" Foreground="#888"/>
-                                <TextBlock Text="{Binding GeofenceLon}" FontWeight="SemiBold" FontSize="13"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Margin="8,0,0,0">
-                                <TextBlock Text="Radius" FontSize="10" Foreground="#888"/>
-                                <TextBlock Text="{Binding GeofenceRadius}" FontWeight="SemiBold" FontSize="13"/>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-                </StackPanel>
+                </Border>
 
-                <!-- Current GPS section -->
-                <StackPanel Margin="0,0,0,16">
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                        <md:PackIcon Kind="Navigation" Width="16" Height="16"
-                                     Foreground="{DynamicResource PrimaryHueMidBrush}"
-                                     VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBlock Text="CURRENT GPS"
-                                   Style="{StaticResource MaterialDesignOverlineTextBlock}"
-                                   Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                    </StackPanel>
-                    <Border Background="#F5F5F5" CornerRadius="6" Padding="14,10">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                <TextBlock Text="Latitude" FontSize="10" Foreground="#888"/>
-                                <TextBlock Text="{Binding CurrentLat}" FontWeight="SemiBold" FontSize="13"/>
+                <!-- Two-column row: Assigned Location + Current GPS -->
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Assigned Location card -->
+                    <Border Grid.Column="0"
+                            Background="White" CornerRadius="12" Padding="24,20">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="12" ShadowDepth="1" Opacity="0.07" Color="#000000"/>
+                        </Border.Effect>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                <md:PackIcon Kind="MapMarkerRadius"
+                                             Width="18" Height="18"
+                                             Foreground="{DynamicResource PrimaryHueMidBrush}"
+                                             VerticalAlignment="Center"
+                                             Margin="0,0,8,0"/>
+                                <TextBlock Text="Assigned Location"
+                                           Style="{StaticResource SectionHeading}"
+                                           Margin="0"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                                <TextBlock Text="Longitude" FontSize="10" Foreground="#888"/>
-                                <TextBlock Text="{Binding CurrentLon}" FontWeight="SemiBold" FontSize="13"/>
-                            </StackPanel>
-                        </Grid>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                                    <TextBlock Text="Latitude" Style="{StaticResource SectionLabel}"/>
+                                    <TextBlock Text="{Binding GeofenceLat}" Style="{StaticResource ValueLabel}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,16,0">
+                                    <TextBlock Text="Longitude" Style="{StaticResource SectionLabel}"/>
+                                    <TextBlock Text="{Binding GeofenceLon}" Style="{StaticResource ValueLabel}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Radius" Style="{StaticResource SectionLabel}"/>
+                                    <TextBlock Text="{Binding GeofenceRadius}" Style="{StaticResource ValueLabel}"/>
+                                </StackPanel>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                                    <TextBlock Text="Area" Style="{StaticResource SectionLabel}"/>
+                                    <TextBlock Text="{Binding GeofenceArea}" Style="{StaticResource ValueLabel}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,16,0">
+                                    <TextBlock Text="City" Style="{StaticResource SectionLabel}"/>
+                                    <TextBlock Text="{Binding GeofenceCity}" Style="{StaticResource ValueLabel}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="State" Style="{StaticResource SectionLabel}"/>
+                                    <TextBlock Text="{Binding GeofenceState}" Style="{StaticResource ValueLabel}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
                     </Border>
-                </StackPanel>
+
+                    <!-- Current GPS card -->
+                    <Border Grid.Column="2"
+                            Background="White" CornerRadius="12" Padding="24,20">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="12" ShadowDepth="1" Opacity="0.07" Color="#000000"/>
+                        </Border.Effect>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                <md:PackIcon Kind="Navigation"
+                                             Width="18" Height="18"
+                                             Foreground="{DynamicResource PrimaryHueMidBrush}"
+                                             VerticalAlignment="Center"
+                                             Margin="0,0,8,0"/>
+                                <TextBlock Text="Current GPS"
+                                           Style="{StaticResource SectionHeading}"
+                                           Margin="0"/>
+                            </StackPanel>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                                    <TextBlock Text="Latitude" Style="{StaticResource SectionLabel}"/>
+                                    <TextBlock Text="{Binding CurrentLat}" Style="{StaticResource ValueLabel}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Longitude" Style="{StaticResource SectionLabel}"/>
+                                    <TextBlock Text="{Binding CurrentLon}" Style="{StaticResource ValueLabel}"/>
+                                </StackPanel>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                                    <TextBlock Text="Area" Style="{StaticResource SectionLabel}"/>
+                                    <TextBlock Text="{Binding CurrentArea}" Style="{StaticResource ValueLabel}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,16,0">
+                                    <TextBlock Text="City" Style="{StaticResource SectionLabel}"/>
+                                    <TextBlock Text="{Binding CurrentCity}" Style="{StaticResource ValueLabel}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="State" Style="{StaticResource SectionLabel}"/>
+                                    <TextBlock Text="{Binding CurrentState}" Style="{StaticResource ValueLabel}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </Grid>
 
                 <!-- Status message -->
                 <TextBlock Text="{Binding StatusMessage}"
-                           FontSize="12"
+                           FontSize="13"
                            Foreground="{DynamicResource PrimaryHueMidBrush}"
                            HorizontalAlignment="Center"
-                           Margin="0,0,0,10"
+                           Margin="0,0,0,12"
+                           TextWrapping="Wrap"
                            Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibilityConverter}}"/>
 
-                <!-- Send Status Now button -->
-                <Button Command="{Binding SendNowCommand}"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        HorizontalAlignment="Stretch"
-                        Height="44"
-                        Margin="0,0,0,10"
-                        md:ButtonAssist.CornerRadius="6">
-                    <Grid>
-                        <StackPanel Orientation="Horizontal"
-                                    Visibility="{Binding IsSending, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-                            <md:PackIcon Kind="Refresh" Width="16" Height="16"
-                                         VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBlock Text="SEND STATUS NOW" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <ProgressBar IsIndeterminate="True"
-                                     Style="{StaticResource MaterialDesignCircularProgressBar}"
-                                     Width="20" Height="20"
-                                     Visibility="{Binding IsSending, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                    </Grid>
-                </Button>
+                <!-- Action buttons -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                <!-- Logout button -->
-                <Button Command="{Binding LogoutCommand}"
-                        Style="{StaticResource MaterialDesignOutlinedButton}"
-                        HorizontalAlignment="Stretch"
-                        Height="44"
-                        md:ButtonAssist.CornerRadius="6"
-                        Foreground="{DynamicResource PrimaryHueMidBrush}"
-                        BorderBrush="{DynamicResource PrimaryHueMidBrush}">
-                    <StackPanel Orientation="Horizontal">
-                        <md:PackIcon Kind="Logout" Width="16" Height="16"
-                                     VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <TextBlock Text="LOGOUT" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
+                    <!-- Send Status Now -->
+                    <Button Grid.Column="0"
+                            Command="{Binding SendNowCommand}"
+                            Style="{StaticResource MaterialDesignRaisedButton}"
+                            Height="48"
+                            md:ButtonAssist.CornerRadius="10">
+                        <Grid>
+                            <StackPanel Orientation="Horizontal"
+                                        Visibility="{Binding IsSending, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                <md:PackIcon Kind="Refresh" Width="18" Height="18"
+                                             VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Text="SEND STATUS NOW" VerticalAlignment="Center" FontSize="15"/>
+                            </StackPanel>
+                            <ProgressBar IsIndeterminate="True"
+                                         Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                         Width="22" Height="22"
+                                         Visibility="{Binding IsSending, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        </Grid>
+                    </Button>
+
+                    <!-- Logout -->
+                    <Button Grid.Column="2"
+                            Command="{Binding LogoutCommand}"
+                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Height="48"
+                            md:ButtonAssist.CornerRadius="10"
+                            Foreground="{DynamicResource PrimaryHueMidBrush}"
+                            BorderBrush="{DynamicResource PrimaryHueMidBrush}">
+                        <StackPanel Orientation="Horizontal">
+                            <md:PackIcon Kind="Logout" Width="18" Height="18"
+                                         VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="LOGOUT" VerticalAlignment="Center" FontSize="15"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
 
             </StackPanel>
         </ScrollViewer>
