@@ -1,12 +1,14 @@
 using System.Windows;
 using System.Windows.Controls;
 using AadharLocation.AdminDashboard.ViewModels;
+using BruTile.Predefined;
+using BruTile.Web;
 using Mapsui;
 using Mapsui.Extensions;
 using Mapsui.Layers;
 using Mapsui.Projections;
 using Mapsui.Styles;
-using Mapsui.Tiling;
+using Mapsui.Tiling.Layers;
 using CommunityToolkit.Mvvm.Input;
 
 namespace AadharLocation.AdminDashboard.Views.Pages;
@@ -23,8 +25,10 @@ public partial class FleetMapPage : UserControl
         _vm = vm;
         DataContext = vm;
 
-        vm.PinsLoaded  += OnPinsLoaded;
-        vm.PinUpdated  += OnPinUpdated;
+        vm.PinsLoaded        += OnPinsLoaded;
+        vm.PinUpdated        += OnPinUpdated;
+        vm.PlaceFound        += OnPlaceFound;
+        vm.PinFocusRequested += OnPinFocusRequested;
 
         InitMap();
     }
@@ -32,9 +36,33 @@ public partial class FleetMapPage : UserControl
     private void InitMap()
     {
         var map = new Map();
-        map.Layers.Add(OpenStreetMap.CreateTileLayer());
+        map.Layers.Add(CreateCartoVoyagerLayer());
         map.Layers.Add(_markerLayer);
         MapControl.Map = map;
+    }
+
+    private static TileLayer CreateCartoVoyagerLayer()
+    {
+        var tileSource = new HttpTileSource(
+            new GlobalSphericalMercator(),
+            "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+            name: "CARTO Voyager");
+        return new TileLayer(tileSource) { Name = "Base Map" };
+    }
+
+    private void OnPlaceFound(double lat, double lon)
+    {
+        var pt = SphericalMercator.FromLonLat(lon, lat);
+        MapControl.Map.Navigator.CenterOnAndZoomTo(new MPoint(pt.x, pt.y), resolution: 5);
+    }
+
+    private void OnPinFocusRequested(MapMachinePin pin)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            var pt = SphericalMercator.FromLonLat(pin.Longitude, pin.Latitude);
+            MapControl.Map.Navigator.CenterOnAndZoomTo(new MPoint(pt.x, pt.y), resolution: 5);
+        });
     }
 
     public async Task ActivateAsync()
@@ -91,6 +119,19 @@ public partial class FleetMapPage : UserControl
             MaxVisible = double.MaxValue,
             MinVisible = double.MinValue,
         });
+        if (!string.IsNullOrEmpty(pin.City))
+        {
+            feature.Styles.Add(new LabelStyle
+            {
+                Text       = pin.City,
+                ForeColor  = Mapsui.Styles.Color.White,
+                BackColor  = new Mapsui.Styles.Brush(Mapsui.Styles.Color.FromArgb(150, 30, 30, 30)),
+                Offset     = new Offset(0, 20),
+                Font       = new Font { Size = 10 },
+                MaxVisible = double.MaxValue,
+                MinVisible = double.MinValue,
+            });
+        }
         _features[pin.MachineId] = feature;
         _markerLayer.Add(feature);
     }

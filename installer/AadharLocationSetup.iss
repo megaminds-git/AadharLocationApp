@@ -1,6 +1,6 @@
 #define AppName "Aadhar Location"
 #define AppVersion "1.0.0"
-#define AppPublisher "Megaminds Technologies"
+#define AppPublisher "sstelecomjk"
 #define AppURL "https://megamindstechnologies.com"
 #define AdminExe "..\publish\sc\AdminDashboard\AadharLocation.AdminDashboard.exe"
 #define AdminSettings "..\publish\sc\AdminDashboard\appsettings.json"

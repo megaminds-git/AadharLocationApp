@@ -23,12 +23,41 @@
         <Grid Grid.Column="0">
             <mapsui:MapControl x:Name="MapControl" Margin="0"/>
 
+            <!-- Search bar overlay (top-center) -->
+            <Border VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,14,0,0"
+                    Background="{DynamicResource MaterialDesignPaper}" CornerRadius="24"
+                    Padding="4" Width="380" Panel.ZIndex="10">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.2"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             materialDesign:HintAssist.Hint="Search place on map..."
+                             BorderThickness="0" Margin="10,0,0,0" VerticalAlignment="Center"
+                             FontSize="13">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Return" Command="{Binding SearchCommand}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
+                    <Button Grid.Column="1" Style="{StaticResource MaterialDesignIconButton}"
+                            Command="{Binding SearchCommand}" Width="36" Height="36"
+                            IsEnabled="{Binding IsSearching, Converter={StaticResource InverseBool}}">
+                        <materialDesign:PackIcon Kind="Magnify" Width="20" Height="20"/>
+                    </Button>
+                </Grid>
+            </Border>
+
             <!-- Status bar -->
             <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Left"
                         Margin="12" Background="#AA000000">
                 <Border Padding="8,4" CornerRadius="4">
                     <TextBlock Text="{Binding StatusMessage}" Foreground="White" FontSize="12"
-                               Visibility="{Binding StatusMessage, Converter={StaticResource BoolToVisibility}}"/>
+                               Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
                 </Border>
             </StackPanel>
 
@@ -81,13 +110,24 @@
                                             <TextBlock Text="{Binding MachineName}" FontWeight="Medium" FontSize="13"/>
                                             <TextBlock Text="{Binding OperatorName}"
                                                        Opacity="0.6" FontSize="11"/>
+                                            <TextBlock Opacity="0.5" FontSize="10" Margin="0,2,0,0">
+                                                <Run Text="Lat: "/>
+                                                <Run Text="{Binding Latitude, StringFormat=F4}"/>
+                                                <Run Text="  Lon: "/>
+                                                <Run Text="{Binding Longitude, StringFormat=F4}"/>
+                                            </TextBlock>
                                         </StackPanel>
-                                        <materialDesign:PackIcon Grid.Column="2"
-                                                                  Kind="AlertCircle" Width="16" Height="16"
-                                                                  Foreground="#F87171" VerticalAlignment="Center"
-                                                                  Visibility="{Binding IsWithinGeofence,
-                                                                      Converter={StaticResource BoolToVisibility},
-                                                                      ConverterParameter=Inverse}"/>
+                                        <StackPanel Grid.Column="2" HorizontalAlignment="Right"
+                                                    VerticalAlignment="Center" Margin="4,0,0,0">
+                                            <TextBlock Text="{Binding City}" FontSize="10" Opacity="0.65"
+                                                       HorizontalAlignment="Right" FontWeight="Medium"
+                                                       Visibility="{Binding City, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                                            <materialDesign:PackIcon Kind="AlertCircle" Width="14" Height="14"
+                                                                      Foreground="#F87171" HorizontalAlignment="Right"
+                                                                      Visibility="{Binding IsWithinGeofence,
+                                                                          Converter={StaticResource BoolToVisibility},
+                                                                          ConverterParameter=Inverse}"/>
+                                        </StackPanel>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -100,13 +140,36 @@
                         Background="{DynamicResource MaterialDesignCardBackground}"
                         Visibility="{Binding SelectedPin, Converter={StaticResource BoolToVisibility}}">
                     <StackPanel>
-                        <TextBlock Text="{Binding SelectedPin.MachineName}" FontWeight="SemiBold"/>
-                        <TextBlock Margin="0,4" Opacity="0.7" FontSize="12">
+                        <!-- Machine name + status dot -->
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="10" Height="10" VerticalAlignment="Center"
+                                     Fill="{Binding SelectedPin.Status, Converter={StaticResource StatusColor}}"
+                                     Margin="0,0,6,0"/>
+                            <TextBlock Text="{Binding SelectedPin.MachineName}" FontWeight="SemiBold" FontSize="14"/>
+                        </StackPanel>
+
+                        <!-- Operator -->
+                        <TextBlock Margin="0,4,0,0" Opacity="0.7" FontSize="12">
+                            <Run Text="Operator: "/><Run Text="{Binding SelectedPin.OperatorName}"/>
+                        </TextBlock>
+
+                        <!-- Coordinates -->
+                        <TextBlock Margin="0,4,0,0" Opacity="0.7" FontSize="12">
                             <Run Text="Lat: "/><Run Text="{Binding SelectedPin.Latitude, StringFormat=F6}"/>
+                            <Run Text="  Lon: "/><Run Text="{Binding SelectedPin.Longitude, StringFormat=F6}"/>
                         </TextBlock>
-                        <TextBlock Margin="0,0" Opacity="0.7" FontSize="12">
-                            <Run Text="Lon: "/><Run Text="{Binding SelectedPin.Longitude, StringFormat=F6}"/>
-                        </TextBlock>
+
+                        <!-- Address loading -->
+                        <StackPanel Margin="0,6,0,0"
+                                    Visibility="{Binding IsLoadingAddress, Converter={StaticResource BoolToVisibility}}">
+                            <ProgressBar IsIndeterminate="True" Height="2"/>
+                            <TextBlock Text="Fetching location..." Opacity="0.5" FontSize="11" Margin="0,2,0,0"/>
+                        </StackPanel>
+
+                        <!-- Address -->
+                        <TextBlock Margin="0,6,0,0" FontSize="11" TextWrapping="Wrap" Opacity="0.75"
+                                   Text="{Binding SelectedPinAddress}"
+                                   Visibility="{Binding SelectedPinAddress, Converter={StaticResource StringNotEmptyToVisibility}}"/>
                     </StackPanel>
                 </Border>
             </DockPanel>
