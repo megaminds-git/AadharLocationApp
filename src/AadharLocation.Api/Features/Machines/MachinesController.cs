@@ -20,17 +20,17 @@ public class MachinesController(AppDbContext db) : ControllerBase
     {
         var query = db.Machines
             .Include(m => m.AssignedOperator)
+            .Include(m => m.Geofences.Where(g => g.IsActive))
             .AsNoTracking();
 
         var total = await query.CountAsync();
-        var items = await query
+        var machines = await query
             .OrderBy(m => m.Name)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(m => ToDto(m))
             .ToListAsync();
 
-        return Ok(new PagedResult<MachineDto>(items, total, page, pageSize));
+        return Ok(new PagedResult<MachineDto>(machines.Select(ToDto).ToList(), total, page, pageSize));
     }
 
     [HttpGet("{id:int}")]
@@ -38,6 +38,7 @@ public class MachinesController(AppDbContext db) : ControllerBase
     {
         var machine = await db.Machines
             .Include(m => m.AssignedOperator)
+            .Include(m => m.Geofences.Where(g => g.IsActive))
             .AsNoTracking()
             .FirstOrDefaultAsync(m => m.Id == id);
 
@@ -51,11 +52,11 @@ public class MachinesController(AppDbContext db) : ControllerBase
     {
         var machines = await db.Machines
             .Include(m => m.AssignedOperator)
+            .Include(m => m.Geofences.Where(g => g.IsActive))
             .AsNoTracking()
-            .Select(m => ToDto(m))
             .ToListAsync();
 
-        return Ok(machines);
+        return Ok(machines.Select(ToDto).ToList());
     }
 
     [HttpPost]
@@ -136,9 +137,32 @@ public class MachinesController(AppDbContext db) : ControllerBase
         return NoContent();
     }
 
-    private static MachineDto ToDto(Machine m) => new(
-        m.Id, m.Name, m.SerialNumber, m.Type,
-        m.AssignedOperatorId, m.AssignedOperator?.Name,
-        m.CurrentLatitude, m.CurrentLongitude, m.LastSeenAt,
-        m.Status, m.CreatedAt, m.UpdatedAt, m.MachineAuthCode, m.IsDeleted);
+    private static MachineDto ToDto(Machine m)
+    {
+        var fence = m.Geofences?.FirstOrDefault(g => g.IsActive);
+        bool? isWithinGeofence = null;
+        if (fence != null && m.CurrentLatitude.HasValue && m.CurrentLongitude.HasValue)
+        {
+            var dist = HaversineDistance(
+                m.CurrentLatitude.Value, m.CurrentLongitude.Value,
+                fence.CenterLatitude, fence.CenterLongitude);
+            isWithinGeofence = dist <= fence.RadiusMeters;
+        }
+        return new(m.Id, m.Name, m.SerialNumber, m.Type,
+            m.AssignedOperatorId, m.AssignedOperator?.Name,
+            m.CurrentLatitude, m.CurrentLongitude, m.LastSeenAt,
+            m.Status, m.CreatedAt, m.UpdatedAt, m.MachineAuthCode, m.IsDeleted,
+            isWithinGeofence);
+    }
+
+    private static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)
+    {
+        const double r = 6_371_000;
+        var dLat = (lat2 - lat1) * Math.PI / 180;
+        var dLon = (lon2 - lon1) * Math.PI / 180;
+        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+              + Math.Cos(lat1 * Math.PI / 180) * Math.Cos(lat2 * Math.PI / 180)
+              * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+        return r * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+    }
 }

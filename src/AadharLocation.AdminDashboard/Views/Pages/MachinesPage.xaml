@@ -112,6 +112,15 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Boundary" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding IsWithinGeofence, Converter={StaticResource BoundaryText}}"
+                                           Foreground="{Binding IsWithinGeofence, Converter={StaticResource BoundaryColor}}"
+                                           VerticalAlignment="Center" FontWeight="Medium"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTextColumn Header="Last Seen"
                                         Binding="{Binding LastSeenAt, Converter={StaticResource DateTimeConverter}}"
                                         Width="150" ElementStyle="{StaticResource CellText}"/>

@@ -16,4 +16,5 @@ public record MachineDto(
     DateTime CreatedAt,
     DateTime? UpdatedAt,
     string? MachineAuthCode,
-    bool IsDeleted);
+    bool IsDeleted,
+    bool? IsWithinGeofence);

@@ -110,7 +110,8 @@ public partial class MachinesViewModel : ObservableObject
             CurrentLatitude  = u.Latitude,
             CurrentLongitude = u.Longitude,
             LastSeenAt       = u.RecordedAt,
-            Status           = Shared.Enums.MachineStatus.Online
+            Status           = Shared.Enums.MachineStatus.Online,
+            IsWithinGeofence = m.IsWithinGeofence.HasValue ? u.IsWithinGeofence : null
         };
     }
 

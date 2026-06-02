@@ -57,3 +57,25 @@ public class StringNotEmptyToVisibilityConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
         throw new NotSupportedException();
 }
+
+public class BoundaryStatusToTextConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        value is bool b ? (b ? "In-boundary" : "Out-boundary") : "—";
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+public class BoundaryStatusToColorConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        value is bool b
+            ? (b
+                ? new SolidColorBrush(Color.FromRgb(0x4A, 0xDE, 0x80))
+                : new SolidColorBrush(Color.FromRgb(0xF8, 0x71, 0x71)))
+            : new SolidColorBrush(Color.FromRgb(0x9C, 0xA3, 0xAF));
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
