@@ -144,5 +144,13 @@ begin
   end;
 
   if ResultCode <> 0 then
+  begin
     Result := False;
+    Exit;
+  end;
+
+  // Kill the running tracker instance so it is removed from the taskbar and tray
+  Exec(ExpandConstant('{sys}') + '\taskkill.exe',
+       '/F /IM AadharLocation.OperatorTracker.exe', '',
+       SW_HIDE, ewWaitUntilTerminated, ResultCode);
 end;
