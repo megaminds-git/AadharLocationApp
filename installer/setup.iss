@@ -22,6 +22,8 @@ ArchitecturesInstallIn64BitMode=x64os
 MinVersion=10.0.19041
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\{#AdminExeName}
+CloseApplications=force
+RestartApplications=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -29,7 +31,6 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Code]
 var
   AppTypePage: TInputOptionWizardPage;
-  ServerUrlPage: TInputQueryWizardPage;
   AppTypeSelected: Integer;  // 0 = Admin, 1 = Operator
 
 procedure InitializeWizard;
@@ -45,15 +46,6 @@ begin
   AppTypePage.Add('Admin Dashboard  –  Monitor operators, view live map, manage users');
   AppTypePage.Add('Operator Tracker  –  Report location and receive field assignments');
   AppTypePage.SelectedValueIndex := 0;
-
-  ServerUrlPage := CreateInputQueryPage(
-    AppTypePage.ID,
-    'Server Configuration',
-    'Enter the API Server URL',
-    'Enter the URL of the AadharLocation API server that this application will connect to. Example: http://192.168.1.10:5163'
-  );
-  ServerUrlPage.Add('Server URL:', False);
-  ServerUrlPage.Values[0] := 'http://157.15.203.127:81';
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -61,14 +53,6 @@ begin
   Result := True;
   if CurPageID = AppTypePage.ID then
     AppTypeSelected := AppTypePage.SelectedValueIndex;
-  if CurPageID = ServerUrlPage.ID then
-  begin
-    if Trim(ServerUrlPage.Values[0]) = '' then
-    begin
-      MsgBox('Please enter a valid Server URL.', mbError, MB_OK);
-      Result := False;
-    end;
-  end;
 end;
 
 function IsAdmin: Boolean;
@@ -122,23 +106,18 @@ begin
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
-var
-  ServerUrl: String;
 begin
   if CurStep = ssPostInstall then
   begin
-    // Write a small marker so the app can detect how it was installed
     SaveStringToFile(
       ExpandConstant('{app}\install-mode.txt'),
       AppDisplayName,
       False
     );
 
-    // Write server URL config so the app connects to the correct API on first launch
-    ServerUrl := Trim(ServerUrlPage.Values[0]);
     SaveStringToFile(
       ExpandConstant('{app}\server_config.json'),
-      '{"ApiBaseUrl":"' + ServerUrl + '"}',
+      '{"ApiBaseUrl":"http://157.15.203.127:81"}',
       False
     );
   end;
@@ -183,6 +162,11 @@ Name: "{commondesktop}\AadharLocation Operator"; \
 ; Uninstall
 Name: "{group}\Uninstall {#MyAppName}"; \
   Filename: "{uninstallexe}"
+
+[UninstallDelete]
+Type: files; Name: "{app}\server_config.json"
+Type: files; Name: "{app}\install-mode.txt"
+Type: dirifempty; Name: "{app}"
 
 [Run]
 Filename: "{app}\{#AdminExeName}"; \
