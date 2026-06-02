@@ -5,6 +5,7 @@ using AadharLocation.Shared.DTOs.SignalR;
 using AadharLocation.Shared.Enums;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AadharLocation.Api.Services;
@@ -13,7 +14,8 @@ public class AlertService(
     AppDbContext db,
     IHubContext<AadharLocationHub, ITrackingClient> hub,
     IOptions<GeofenceSettings> settings,
-    EmailService emailService)
+    EmailService emailService,
+    ILogger<AlertService> logger)
 {
     public async Task<Alert?> CreateGeofenceBreachAlertAsync(
         Machine machine, Operator op, double lat, double lon, double distanceMeters)
@@ -47,8 +49,8 @@ public class AlertService(
             lat, lon, distanceMeters, alert.CreatedAt));
 
         var adminEmails = await GetAdminEmailsAsync();
-        _ = emailService.SendGeofenceBreachAlertAsync(
-            machine.Name, op.Name, lat, lon, distanceMeters, alert.CreatedAt, adminEmails);
+        FireAndForgetEmail(emailService.SendGeofenceBreachAlertAsync(
+            machine.Name, op.Name, lat, lon, distanceMeters, alert.CreatedAt, adminEmails));
 
         return alert;
     }
@@ -93,7 +95,8 @@ public class AlertService(
         await db.SaveChangesAsync();
 
         var adminEmails = await GetAdminEmailsAsync();
-        _ = emailService.SendMachineOfflineAlertAsync(machine.Name, lastSeenAt, minutesOffline, adminEmails);
+        FireAndForgetEmail(emailService.SendMachineOfflineAlertAsync(
+            machine.Name, lastSeenAt, minutesOffline, adminEmails));
 
         return alert;
     }
@@ -147,6 +150,13 @@ public class AlertService(
 
         return alert;
     }
+
+    private void FireAndForgetEmail(Task emailTask) =>
+        emailTask.ContinueWith(t =>
+        {
+            if (t.IsFaulted && t.Exception is { } ex)
+                logger.LogError(ex, "Background email send failed");
+        }, TaskContinuationOptions.OnlyOnFaulted);
 
     private Task<List<string>> GetAdminEmailsAsync() =>
         db.Users

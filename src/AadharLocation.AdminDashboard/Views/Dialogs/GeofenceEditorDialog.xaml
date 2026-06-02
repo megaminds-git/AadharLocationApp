@@ -75,15 +75,15 @@
                 <!-- Radius input -->
                 <TextBox Grid.Row="4"
                          materialDesign:HintAssist.Hint="Geofence radius (meters)"
-                         Text="{Binding RadiusMeters, UpdateSourceTrigger=LostFocus, StringFormat=F0}"/>
+                         Text="{Binding RadiusText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                 <!-- Lat / Lng editable inputs -->
                 <StackPanel Grid.Row="6">
                     <TextBox materialDesign:HintAssist.Hint="Latitude"
-                             Text="{Binding LatitudeText,  Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                             Text="{Binding LatitudeText,  Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <TextBox Margin="0,12,0,0"
                              materialDesign:HintAssist.Hint="Longitude"
-                             Text="{Binding LongitudeText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                             Text="{Binding LongitudeText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                 </StackPanel>
 
                 <!-- Existing-geofence info -->

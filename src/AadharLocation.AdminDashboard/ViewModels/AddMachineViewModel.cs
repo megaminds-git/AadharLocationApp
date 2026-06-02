@@ -4,6 +4,7 @@ using AadharLocation.Shared.DTOs.Operators;
 using AadharLocation.Shared.Enums;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using System.Collections;
 using System.ComponentModel;
 
@@ -17,6 +18,7 @@ public record OperatorSelectionItem(OperatorDto? Operator, bool IsOccupied)
 public partial class AddMachineViewModel : ObservableObject, INotifyDataErrorInfo
 {
     private readonly ApiClient _api;
+    private readonly ILogger<AddMachineViewModel> _logger;
 
     [ObservableProperty] private string _name = string.Empty;
     [ObservableProperty] private string _serialNumber = string.Empty;
@@ -41,7 +43,11 @@ public partial class AddMachineViewModel : ObservableObject, INotifyDataErrorInf
     public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
     public event Action? SaveSucceeded;
 
-    public AddMachineViewModel(ApiClient api) => _api = api;
+    public AddMachineViewModel(ApiClient api, ILogger<AddMachineViewModel> logger)
+    {
+        _api    = api;
+        _logger = logger;
+    }
 
     public IEnumerable GetErrors(string? propertyName)
     {
@@ -124,7 +130,7 @@ public partial class AddMachineViewModel : ObservableObject, INotifyDataErrorInf
             ];
             OnPropertyChanged(nameof(AvailableOperators));
         }
-        catch { /* ignore */ }
+        catch (Exception ex) { _logger.LogWarning(ex, "Failed to load operators list for machine form"); }
     }
 
     [RelayCommand]

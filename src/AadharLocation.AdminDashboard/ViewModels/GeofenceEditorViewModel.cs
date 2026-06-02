@@ -23,6 +23,7 @@ public partial class GeofenceEditorViewModel : ObservableObject
     // Avoids the WPF StringFormat+TwoWay binding bug where ConvertBack silently fails.
     [ObservableProperty] private string _latitudeText  = string.Empty;
     [ObservableProperty] private string _longitudeText = string.Empty;
+    [ObservableProperty] private string _radiusText    = "500";
 
     partial void OnLatitudeTextChanged(string value)
     {
@@ -36,6 +37,12 @@ public partial class GeofenceEditorViewModel : ObservableObject
             CenterLongitude = lon;
     }
 
+    partial void OnRadiusTextChanged(string value)
+    {
+        if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var r) && r > 0)
+            RadiusMeters = r;
+    }
+
     partial void OnCenterLatitudeChanged(double value)
     {
         var formatted = value.ToString("F6", CultureInfo.InvariantCulture);
@@ -46,6 +53,12 @@ public partial class GeofenceEditorViewModel : ObservableObject
     {
         var formatted = value.ToString("F6", CultureInfo.InvariantCulture);
         if (LongitudeText != formatted) LongitudeText = formatted;
+    }
+
+    partial void OnRadiusMetersChanged(double value)
+    {
+        var formatted = value.ToString("F0", CultureInfo.InvariantCulture);
+        if (RadiusText != formatted) RadiusText = formatted;
     }
 
     public event Action? SaveSucceeded;
@@ -70,7 +83,10 @@ public partial class GeofenceEditorViewModel : ObservableObject
                 RadiusMeters    = ExistingGeofence.RadiusMeters;
             }
         }
-        catch { /* no existing geofence */ }
+        catch
+        {
+            // Expected: API returns 404 or empty when no geofence exists yet.
+        }
     }
 
     [RelayCommand]

@@ -4,6 +4,7 @@ using AadharLocation.Shared.DTOs.Alerts;
 using AadharLocation.Shared.DTOs.SignalR;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 
 namespace AadharLocation.AdminDashboard.ViewModels;
 
@@ -11,6 +12,7 @@ public partial class AlertsViewModel : ObservableObject
 {
     private readonly ApiClient _api;
     private readonly SignalRClient _signalR;
+    private readonly ILogger<AlertsViewModel> _logger;
 
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _errorMessage = string.Empty;
@@ -30,10 +32,11 @@ public partial class AlertsViewModel : ObservableObject
     public ObservableCollection<AlertDto> Alerts { get; } = [];
     public int UnacknowledgedCount => Alerts.Count(a => !a.IsAcknowledged);
 
-    public AlertsViewModel(ApiClient api, SignalRClient signalR)
+    public AlertsViewModel(ApiClient api, SignalRClient signalR, ILogger<AlertsViewModel> logger)
     {
         _api     = api;
         _signalR = signalR;
+        _logger  = logger;
         _signalR.GeofenceBreachDetected      += _ => { var t = LoadAsync(); };
         _signalR.MachineWentOffline          += _ => { var t = LoadAsync(); };
         _signalR.OperatorEventAlertReceived  += _ => { var t = LoadAsync(); };
@@ -80,7 +83,7 @@ public partial class AlertsViewModel : ObservableObject
         foreach (var a in unacked)
         {
             try { await _api.AcknowledgeAlertAsync(a.Id); }
-            catch { /* continue */ }
+            catch (Exception ex) { _logger.LogWarning(ex, "Failed to acknowledge alert {AlertId}", a.Id); }
         }
         await LoadAsync();
     }

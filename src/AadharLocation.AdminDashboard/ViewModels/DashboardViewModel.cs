@@ -6,6 +6,7 @@ using AadharLocation.Shared.DTOs.SignalR;
 using AadharLocation.Shared.Enums;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 
 namespace AadharLocation.AdminDashboard.ViewModels;
 
@@ -13,6 +14,7 @@ public partial class DashboardViewModel : ObservableObject
 {
     private readonly ApiClient _api;
     private readonly SignalRClient _signalR;
+    private readonly ILogger<DashboardViewModel> _logger;
 
     [ObservableProperty] private int _totalMachines;
     [ObservableProperty] private int _onlineMachines;
@@ -25,10 +27,11 @@ public partial class DashboardViewModel : ObservableObject
     public List<AlertDto> RecentAlerts { get; private set; } = [];
     public List<MachineDto> RecentMachines { get; private set; } = [];
 
-    public DashboardViewModel(ApiClient api, SignalRClient signalR)
+    public DashboardViewModel(ApiClient api, SignalRClient signalR, ILogger<DashboardViewModel> logger)
     {
         _api     = api;
         _signalR = signalR;
+        _logger  = logger;
 
         _signalR.MachineLocationUpdated  += OnMachineUpdate;
         _signalR.MachineWentOffline      += OnMachineOffline;
@@ -87,6 +90,6 @@ public partial class DashboardViewModel : ObservableObject
                 OfflineMachines = machines.Items.Count(m => m.Status == MachineStatus.Offline);
             }
         }
-        catch { /* silent refresh */ }
+        catch (Exception ex) { _logger.LogWarning(ex, "Background dashboard refresh failed"); }
     }
 }

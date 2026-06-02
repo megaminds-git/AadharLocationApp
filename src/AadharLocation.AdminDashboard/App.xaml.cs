@@ -62,6 +62,7 @@ public partial class App : Application
             IsDarkTheme = File.ReadAllText(_themeFile).Trim() != "light";
 
         _host = Host.CreateDefaultBuilder()
+            .UseSerilog()
             .ConfigureAppConfiguration(config =>
             {
                 config.SetBasePath(AppContext.BaseDirectory);
