@@ -97,6 +97,30 @@ begin
     Result := '{#OperatorExeName}';
 end;
 
+function InitializeUninstall(): Boolean;
+var
+  AppPath: String;
+  ResultCode: Integer;
+begin
+  Result := True;
+  AppPath := ExpandConstant('{app}') + '\{#OperatorExeName}';
+
+  if not FileExists(AppPath) then
+    Exit;
+
+  if not Exec(AppPath, '--verify-uninstall', ExpandConstant('{app}'),
+              SW_SHOW, ewWaitUntilTerminated, ResultCode) then
+  begin
+    MsgBox('Could not launch uninstall verification. Uninstall cancelled.',
+           mbError, MB_OK);
+    Result := False;
+    Exit;
+  end;
+
+  if ResultCode <> 0 then
+    Result := False;
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   ServerUrl: String;

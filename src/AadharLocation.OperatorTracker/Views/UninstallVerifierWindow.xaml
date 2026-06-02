@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
         Title="AadharLocation — Uninstall Verification"
-        Width="400" Height="440"
+        Width="400" Height="500"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Background="White">
@@ -139,7 +139,7 @@
                         Height="40"
                         md:ButtonAssist.CornerRadius="6"
                         Content="CANCEL"
-                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"/>
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBooleanConverter}}"/>
             </StackPanel>
         </Border>
     </Grid>
