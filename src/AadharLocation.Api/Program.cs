@@ -112,3 +112,4 @@ app.MapControllers();
 app.MapHub<AadharLocationHub>("/hubs/tracking");
 
 app.Run();
+
