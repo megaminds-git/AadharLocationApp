@@ -10,6 +10,7 @@ public static class ApiRoutes
         public const string TrackerLogin = $"{Base}/auth/tracker-login";
         public const string TrackerProfile = $"{Base}/auth/tracker-profile";
         public const string TrackerLogout = $"{Base}/auth/tracker-logout";
+        public const string ChangePassword = $"{Base}/auth/change-password";
     }
 
     public static class Operators

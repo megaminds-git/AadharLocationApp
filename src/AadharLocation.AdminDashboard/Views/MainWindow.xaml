@@ -96,6 +96,7 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <!-- User avatar -->
                     <Border Grid.Column="0" Width="32" Height="32" CornerRadius="16"
@@ -118,6 +119,12 @@
                                    FontSize="10" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                     <Button Grid.Column="2"
+                            Style="{StaticResource MaterialDesignIconButton}"
+                            ToolTip="Change Password" Command="{Binding OpenChangePasswordDialogCommand}"
+                            Foreground="{DynamicResource SidebarTextBrush}">
+                        <materialDesign:PackIcon Kind="LockReset" Width="16" Height="16"/>
+                    </Button>
+                    <Button Grid.Column="3"
                             Style="{StaticResource MaterialDesignIconButton}"
                             ToolTip="Logout" Command="{Binding LogoutCommand}"
                             Foreground="{DynamicResource SidebarTextBrush}">

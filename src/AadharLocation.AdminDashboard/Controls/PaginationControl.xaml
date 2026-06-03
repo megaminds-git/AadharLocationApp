@@ -8,7 +8,8 @@
 
         <!-- Total record count -->
         <TextBlock x:Name="TotalCountBlock" VerticalAlignment="Center"
-                   Margin="0,0,14,0" Opacity="0.6" FontSize="13"/>
+                   Margin="0,0,14,0" Opacity="0.6" FontSize="13"
+                   Foreground="{DynamicResource PrimaryTextBrush}"/>
 
         <!-- Separator -->
         <Rectangle Width="1" Height="16" Margin="0,0,14,0" VerticalAlignment="Center"
@@ -16,9 +17,11 @@
 
         <!-- Rows per page -->
         <TextBlock Text="Rows:" VerticalAlignment="Center" Margin="0,0,6,0"
-                   Opacity="0.6" FontSize="13"/>
+                   Opacity="0.6" FontSize="13"
+                   Foreground="{DynamicResource PrimaryTextBrush}"/>
         <ComboBox x:Name="PageSizeCombo" Width="62" FontSize="13"
                   VerticalAlignment="Center"
+                  Foreground="{DynamicResource PrimaryTextBrush}"
                   SelectionChanged="PageSizeCombo_SelectionChanged"/>
 
         <!-- Separator -->
@@ -33,17 +36,20 @@
         </Button>
 
         <!-- Page label + editable input -->
-        <TextBlock Text="Page " VerticalAlignment="Center" FontSize="13" Margin="4,0,0,0"/>
+        <TextBlock Text="Page " VerticalAlignment="Center" FontSize="13" Margin="4,0,0,0"
+                   Foreground="{DynamicResource PrimaryTextBrush}"/>
         <Border BorderBrush="{DynamicResource SecondaryTextBrush}" BorderThickness="1"
                 CornerRadius="3" Margin="0,0,0,0">
             <TextBox x:Name="PageInput" Width="40" TextAlignment="Center" FontSize="13"
                      VerticalAlignment="Center" Background="Transparent" BorderThickness="0"
+                     Foreground="{DynamicResource PrimaryTextBrush}"
                      Padding="4,2" VerticalContentAlignment="Center"
                      KeyDown="PageInput_KeyDown"
                      LostFocus="PageInput_LostFocus"/>
         </Border>
         <TextBlock x:Name="TotalPagesBlock" VerticalAlignment="Center"
-                   FontSize="13" Margin="4,0" Opacity="0.6"/>
+                   FontSize="13" Margin="4,0" Opacity="0.6"
+                   Foreground="{DynamicResource PrimaryTextBrush}"/>
 
         <!-- Next -->
         <Button x:Name="NextBtn" Width="28" Height="28" Padding="3"

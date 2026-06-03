@@ -28,7 +28,8 @@
                    Foreground="{DynamicResource PrimaryTextBrush}"/>
 
         <!-- Filter card -->
-        <Border Grid.Row="1" CornerRadius="8" Background="{DynamicResource MaterialDesignPaper}"
+        <Border Grid.Row="1" CornerRadius="8" Background="{DynamicResource CardBackgroundBrush}"
+                BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                 Padding="16,14" Margin="0,0,0,12">
             <Grid>
                 <Grid.RowDefinitions>
@@ -39,11 +40,12 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Machines multi-select dropdown -->
-                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,16,0">
-                    <TextBlock Text="Machines" FontSize="11" Opacity="0.6" Margin="0,0,0,6"/>
+                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,0">
+                    <TextBlock Text="Machines" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,6"/>
                     <Grid>
                         <ToggleButton x:Name="MachineToggle"
                                       Content="{Binding MachinesSummary}"
@@ -55,15 +57,18 @@
                                AllowsTransparency="True"
                                PopupAnimation="Slide"
                                MinWidth="{Binding ActualWidth, ElementName=MachineToggle}">
-                            <Border Background="{DynamicResource MaterialDesignPaper}"
+                            <Border Background="{DynamicResource CardBackgroundBrush}"
                                     BorderBrush="#2DD4BF" BorderThickness="1"
                                     CornerRadius="4" Padding="4">
-                                <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto">
-                                    <ItemsControl ItemsSource="{Binding MachineItems}">
+                                <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto"
+                                              Background="Transparent">
+                                    <ItemsControl ItemsSource="{Binding MachineItems}"
+                                                  Background="Transparent">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <CheckBox Content="{Binding Label}"
                                                           IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                          Foreground="{DynamicResource PrimaryTextBrush}"
                                                           Margin="8,4"/>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -75,8 +80,8 @@
                 </StackPanel>
 
                 <!-- Operators multi-select dropdown -->
-                <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,16,0">
-                    <TextBlock Text="Operators" FontSize="11" Opacity="0.6" Margin="0,0,0,6"/>
+                <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,12,0">
+                    <TextBlock Text="Operators" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,6"/>
                     <Grid>
                         <ToggleButton x:Name="OperatorToggle"
                                       Content="{Binding OperatorsSummary}"
@@ -88,15 +93,18 @@
                                AllowsTransparency="True"
                                PopupAnimation="Slide"
                                MinWidth="{Binding ActualWidth, ElementName=OperatorToggle}">
-                            <Border Background="{DynamicResource MaterialDesignPaper}"
+                            <Border Background="{DynamicResource CardBackgroundBrush}"
                                     BorderBrush="#2DD4BF" BorderThickness="1"
                                     CornerRadius="4" Padding="4">
-                                <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto">
-                                    <ItemsControl ItemsSource="{Binding OperatorItems}">
+                                <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto"
+                                              Background="Transparent">
+                                    <ItemsControl ItemsSource="{Binding OperatorItems}"
+                                                  Background="Transparent">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <CheckBox Content="{Binding Label}"
                                                           IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                          Foreground="{DynamicResource PrimaryTextBrush}"
                                                           Margin="8,4"/>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -107,37 +115,39 @@
                     </Grid>
                 </StackPanel>
 
-                <!-- Date range + action buttons -->
-                <StackPanel Grid.Row="0" Grid.Column="2" VerticalAlignment="Top">
-                    <TextBlock Text="Date Range" FontSize="11" Opacity="0.6" Margin="0,0,0,6"/>
-                    <DatePicker materialDesign:HintAssist.Hint="From date"
-                                SelectedDate="{Binding FromDate}"
-                                Style="{StaticResource MaterialDesignDatePicker}"
-                                Width="180" Margin="0,0,0,8"/>
-                    <DatePicker materialDesign:HintAssist.Hint="To date"
-                                SelectedDate="{Binding ToDate}"
-                                Style="{StaticResource MaterialDesignDatePicker}"
-                                Width="180" Margin="0,0,0,16"/>
-                    <StackPanel Orientation="Horizontal">
-                        <Button Content="Apply Filters"
-                                Command="{Binding ApplyCommand}"
-                                Style="{StaticResource PrimaryButtonStyle}"
-                                Margin="0,0,8,0"
-                                IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBool}}"/>
-                        <Button Content="Export CSV"
-                                Command="{Binding ExportCommand}"
-                                Style="{StaticResource GhostButtonStyle}"
-                                IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBool}}"/>
-                    </StackPanel>
+                <!-- Date Range (single range picker) -->
+                <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,12,0" VerticalAlignment="Top">
+                    <TextBlock Text="Date Range" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,6"/>
+                    <controls:DateRangePickerControl
+                        FromDate="{Binding FromDate, Mode=TwoWay}"
+                        ToDate="{Binding ToDate, Mode=TwoWay}"
+                        Width="210"/>
+                </StackPanel>
+
+                <!-- Action buttons -->
+                <StackPanel Grid.Row="0" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Button Content="Apply Filters"
+                            Command="{Binding ApplyCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Margin="0,0,8,0"
+                            IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBool}}"/>
+                    <Button Content="Export CSV"
+                            Command="{Binding ExportCommand}"
+                            Style="{StaticResource GhostButtonStyle}"
+                            IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBool}}"/>
                 </StackPanel>
 
                 <!-- Email report bar -->
-                <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal"
+                <StackPanel Grid.Row="1" Grid.ColumnSpan="4" Orientation="Horizontal"
                             VerticalAlignment="Center" Margin="0,14,0,0">
-                    <TextBlock Text="Email Report To:" FontSize="11" Opacity="0.6"
+                    <TextBlock Text="Email Report To:" FontSize="11"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <TextBox Text="{Binding EmailAddress, UpdateSourceTrigger=PropertyChanged}"
                              materialDesign:HintAssist.Hint="Enter email address..."
+                             materialDesign:HintAssist.Foreground="{DynamicResource SecondaryTextBrush}"
+                             Foreground="{DynamicResource PrimaryTextBrush}"
+                             CaretBrush="{DynamicResource PrimaryTextBrush}"
                              Style="{StaticResource MaterialDesignTextBox}"
                              Width="280" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <Button Content="Send Report"
@@ -149,7 +159,8 @@
         </Border>
 
         <!-- Data grid -->
-        <Border Grid.Row="2" CornerRadius="8" Background="{DynamicResource MaterialDesignPaper}"
+        <Border Grid.Row="2" CornerRadius="8" Background="{DynamicResource CardBackgroundBrush}"
+                BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                 ClipToBounds="True">
             <DataGrid ItemsSource="{Binding ReportRows}"
                       AutoGenerateColumns="False"
@@ -176,25 +187,6 @@
                     <DataGridTextColumn Header="Time"
                                         Binding="{Binding CreatedAt, Converter={StaticResource DateTimeConverter}}"
                                         Width="150"/>
-                    <DataGridTemplateColumn Header="Status" Width="120">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding IsAcknowledged, Converter={StaticResource BoolToAck}}"
-                                           FontSize="12">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="#4ADE80"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsAcknowledged}" Value="False">
-                                                    <Setter Property="Foreground" Value="#FBBF24"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>

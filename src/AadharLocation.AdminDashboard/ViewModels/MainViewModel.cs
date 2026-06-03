@@ -21,6 +21,7 @@ public partial class MainViewModel : ObservableObject
     public string UserEmail => _auth.UserEmail;
 
     public event Action? LogoutRequested;
+    public event Action? ChangePasswordRequested;
 
     public MainViewModel(NavigationService nav, AuthStateService auth,
         SignalRClient signalR, AlertsViewModel alertsVm, ApiClient api)
@@ -72,6 +73,9 @@ public partial class MainViewModel : ObservableObject
         };
         _nav.NavigateTo(page);
     }
+
+    [RelayCommand]
+    private void OpenChangePasswordDialog() => ChangePasswordRequested?.Invoke();
 
     [RelayCommand]
     private async Task LogoutAsync()

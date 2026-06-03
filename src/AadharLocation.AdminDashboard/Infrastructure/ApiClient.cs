@@ -45,6 +45,14 @@ public class ApiClient
         return await resp.Content.ReadFromJsonAsync<LoginResponse>(_json);
     }
 
+    public async Task ChangePasswordAsync(string currentPassword, string newPassword)
+    {
+        SetAuthHeader();
+        var resp = await _http.PostAsJsonAsync(ApiRoutes.Auth.ChangePassword,
+            new ChangePasswordRequest(currentPassword, newPassword));
+        resp.EnsureSuccessStatusCode();
+    }
+
     // ── Operators ─────────────────────────────────────────────────────────────
 
     public async Task<PagedResult<OperatorDto>?> GetOperatorsAsync(int page = 1, int pageSize = 20, string? search = null)

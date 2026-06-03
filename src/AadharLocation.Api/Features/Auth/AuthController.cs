@@ -99,6 +99,27 @@ public class AuthController(AppDbContext db, JwtService jwt, AlertService alertS
         ));
     }
 
+    [HttpPost("change-password")]
+    [Authorize(Policy = "AdminOnly")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user is null)
+            return Unauthorized();
+
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+            return BadRequest(new { message = "Current password is incorrect." });
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        await db.SaveChangesAsync();
+
+        return Ok(new { message = "Password changed successfully." });
+    }
+
     [HttpPost("tracker-logout")]
     [Authorize(Policy = "TrackerOnly")]
     public async Task<IActionResult> TrackerLogout([FromBody] TrackerLogoutRequest request)
