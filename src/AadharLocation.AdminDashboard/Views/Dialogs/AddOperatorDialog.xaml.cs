@@ -1,5 +1,6 @@
 using System.Windows;
 using AadharLocation.AdminDashboard.ViewModels;
+using MaterialDesignThemes.Wpf;
 
 namespace AadharLocation.AdminDashboard.Views.Dialogs;
 
@@ -20,13 +21,23 @@ public partial class AddOperatorDialog : Window
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
-        _vm.TrackerPassword = PwdBox.Password;
         _vm.SaveCommand.Execute(null);
     }
 
-    private void PwdBox_PasswordChanged(object sender, RoutedEventArgs e)
+    private void PwdRevealToggle_Click(object sender, RoutedEventArgs e)
     {
-        if (_vm.PasswordHasError && PwdBox.Password.Length > 0)
-            _vm.PasswordHasError = false;
+        if (PwdRevealToggle.IsChecked == true)
+        {
+            PwdBox.Visibility = Visibility.Collapsed;
+            PwdText.Visibility = Visibility.Visible;
+            PwdText.CaretIndex = PwdText.Text.Length;
+            PwdRevealIcon.Kind = PackIconKind.EyeOff;
+        }
+        else
+        {
+            PwdText.Visibility = Visibility.Collapsed;
+            PwdBox.Visibility = Visibility.Visible;
+            PwdRevealIcon.Kind = PackIconKind.Eye;
+        }
     }
 }

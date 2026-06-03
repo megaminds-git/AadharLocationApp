@@ -21,9 +21,12 @@ public partial class AddOperatorViewModel : ObservableObject, INotifyDataErrorIn
     [ObservableProperty] private string _errorMessage = string.Empty;
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private bool _isEditMode;
-    [ObservableProperty] private bool _passwordHasError;
 
     public List<OperatorStatus> Statuses { get; } = [OperatorStatus.Active, OperatorStatus.Inactive];
+
+    public string PasswordHint => IsEditMode ? "New password (leave blank to keep)" : "Password *";
+
+    partial void OnIsEditModeChanged(bool value) => OnPropertyChanged(nameof(PasswordHint));
 
     private int? _editingId;
     private bool _validationActive;
@@ -58,6 +61,8 @@ public partial class AddOperatorViewModel : ObservableObject, INotifyDataErrorIn
     {
         SetFieldError(nameof(Name), string.IsNullOrWhiteSpace(Name));
         SetFieldError(nameof(Email), string.IsNullOrWhiteSpace(Email));
+        if (!IsEditMode)
+            SetFieldError(nameof(TrackerPassword), string.IsNullOrWhiteSpace(TrackerPassword));
     }
 
     partial void OnNameChanged(string value)
@@ -68,6 +73,12 @@ public partial class AddOperatorViewModel : ObservableObject, INotifyDataErrorIn
     partial void OnEmailChanged(string value)
     {
         if (_validationActive) SetFieldError(nameof(Email), string.IsNullOrWhiteSpace(value));
+    }
+
+    partial void OnTrackerPasswordChanged(string value)
+    {
+        if (_validationActive && !IsEditMode)
+            SetFieldError(nameof(TrackerPassword), string.IsNullOrWhiteSpace(value));
     }
 
     public Task InitForAddAsync()
@@ -106,14 +117,6 @@ public partial class AddOperatorViewModel : ObservableObject, INotifyDataErrorIn
         _validationActive = true;
         ValidateFields();
         if (HasErrors) return;
-
-        if (!IsEditMode && string.IsNullOrWhiteSpace(TrackerPassword))
-        {
-            PasswordHasError = true;
-            ErrorMessage = "Password is required.";
-            return;
-        }
-        PasswordHasError = false;
 
         IsBusy = true;
         try

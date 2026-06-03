@@ -157,6 +157,7 @@ public partial class App : Application
         services.AddTransient<AddOperatorViewModel>();
         services.AddTransient<AddMachineViewModel>();
         services.AddTransient<GeofenceEditorViewModel>();
+        services.AddTransient<ChangePasswordViewModel>();
 
         // Main window VM and window
         services.AddSingleton<MainViewModel>();

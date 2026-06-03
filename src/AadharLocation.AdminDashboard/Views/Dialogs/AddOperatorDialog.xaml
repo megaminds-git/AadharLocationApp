@@ -99,28 +99,47 @@
                          Text="{Binding Phone, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBox materialDesign:HintAssist.Hint="District"
                          Text="{Binding District, UpdateSourceTrigger=PropertyChanged}"/>
-                <PasswordBox x:Name="PwdBox" PasswordChanged="PwdBox_PasswordChanged"
-                             Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverse}">
-                    <PasswordBox.Style>
-                        <Style TargetType="PasswordBox" BasedOn="{StaticResource MaterialDesignOutlinedPasswordBox}">
-                            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
-                            <Setter Property="CaretBrush" Value="{DynamicResource BrandTealBrush}"/>
-                            <Setter Property="materialDesign:HintAssist.IsFloating" Value="True"/>
-                            <Setter Property="materialDesign:HintAssist.Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
-                            <Setter Property="Margin" Value="0,8,0,8"/>
-                            <Setter Property="materialDesign:HintAssist.Hint" Value="Password *"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsEditMode}" Value="True">
-                                    <Setter Property="materialDesign:HintAssist.Hint" Value="New password (leave blank to keep)"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding PasswordHasError}" Value="True">
-                                    <Setter Property="BorderBrush" Value="#F87171"/>
-                                    <Setter Property="materialDesign:HintAssist.Foreground" Value="#F87171"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </PasswordBox.Style>
-                </PasswordBox>
+                <!-- Password with show/hide toggle -->
+                <Grid Margin="0,8,0,8">
+                    <PasswordBox x:Name="PwdBox"
+                                 materialDesign:HintAssist.Hint="{Binding PasswordHint}"
+                                 materialDesign:PasswordBoxAssist.Password="{Binding TrackerPassword, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}">
+                        <PasswordBox.Style>
+                            <Style TargetType="PasswordBox" BasedOn="{StaticResource MaterialDesignOutlinedPasswordBox}">
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+                                <Setter Property="CaretBrush" Value="{DynamicResource BrandTealBrush}"/>
+                                <Setter Property="materialDesign:HintAssist.IsFloating" Value="True"/>
+                                <Setter Property="materialDesign:HintAssist.Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
+                            </Style>
+                        </PasswordBox.Style>
+                    </PasswordBox>
+                    <TextBox x:Name="PwdText"
+                             materialDesign:HintAssist.Hint="{Binding PasswordHint}"
+                             Text="{Binding TrackerPassword, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"
+                             Visibility="Collapsed">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+                                <Setter Property="CaretBrush" Value="{DynamicResource BrandTealBrush}"/>
+                                <Setter Property="materialDesign:HintAssist.IsFloating" Value="True"/>
+                                <Setter Property="materialDesign:HintAssist.Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                    <ToggleButton x:Name="PwdRevealToggle"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                                  Margin="0,4,4,0"
+                                  Style="{StaticResource MaterialDesignIconButton}"
+                                  Width="28" Height="28"
+                                  Click="PwdRevealToggle_Click"
+                                  Foreground="{DynamicResource SecondaryTextBrush}">
+                        <materialDesign:PackIcon x:Name="PwdRevealIcon" Kind="Eye" Width="16" Height="16"/>
+                    </ToggleButton>
+                </Grid>
                 <ComboBox materialDesign:HintAssist.Hint="Status"
                           ItemsSource="{Binding Statuses}"
                           SelectedItem="{Binding Status}"

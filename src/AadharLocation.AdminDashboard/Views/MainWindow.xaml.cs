@@ -2,8 +2,10 @@ using System.Windows;
 using System.Windows.Controls;
 using AadharLocation.AdminDashboard.Infrastructure;
 using AadharLocation.AdminDashboard.ViewModels;
+using AadharLocation.AdminDashboard.Views.Dialogs;
 using AadharLocation.AdminDashboard.Views.Pages;
 using MaterialDesignThemes.Wpf;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AadharLocation.AdminDashboard.Views;
 
@@ -23,8 +25,9 @@ public partial class MainWindow : Window
 
         DataContext = vm;
 
-        nav.Navigated      += OnNavigated;
-        vm.LogoutRequested += OnLogoutRequested;
+        nav.Navigated                += OnNavigated;
+        vm.LogoutRequested           += OnLogoutRequested;
+        vm.ChangePasswordRequested   += OnChangePasswordRequested;
 
         Loaded += (_, _) => SyncThemeIcon();
         Closed += (_, _) => { if (!_loggingOut) Application.Current.Shutdown(); };
@@ -50,6 +53,13 @@ public partial class MainWindow : Window
             case ReportsPage p:    await p.ActivateAsync(); break;
             case SettingsPage p:   await p.ActivateAsync(); break;
         }
+    }
+
+    private void OnChangePasswordRequested()
+    {
+        var vm = App.Services.GetRequiredService<ChangePasswordViewModel>();
+        var dialog = new ChangePasswordDialog(vm) { Owner = this };
+        dialog.ShowDialog();
     }
 
     private void OnLogoutRequested()
