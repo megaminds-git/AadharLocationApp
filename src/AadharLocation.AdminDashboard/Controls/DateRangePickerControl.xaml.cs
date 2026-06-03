@@ -75,9 +75,9 @@ public partial class DateRangePickerControl : UserControl
     {
         if (_rangeDisplay == null) return;
         if (FromDate.HasValue && ToDate.HasValue)
-            _rangeDisplay.Text = $"{FromDate:MM-dd-yyyy}  —  {ToDate:MM-dd-yyyy}";
+            _rangeDisplay.Text = $"{FromDate:dd-MM-yyyy}  —  {ToDate:dd-MM-yyyy}";
         else if (FromDate.HasValue)
-            _rangeDisplay.Text = $"{FromDate:MM-dd-yyyy}  —  pick end date";
+            _rangeDisplay.Text = $"{FromDate:dd-MM-yyyy}  —  pick end date";
         else
             _rangeDisplay.Text = "Select date range";
     }
