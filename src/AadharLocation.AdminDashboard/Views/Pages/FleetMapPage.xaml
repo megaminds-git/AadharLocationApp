@@ -25,8 +25,9 @@
 
             <!-- Search bar overlay (top-center) -->
             <Border VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,14,0,0"
-                    Background="{DynamicResource MaterialDesignPaper}" CornerRadius="24"
-                    Padding="4" Width="380" Panel.ZIndex="10">
+                    Background="{DynamicResource CardBackgroundBrush}"
+                    BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                    CornerRadius="24" Padding="4" Width="380" Panel.ZIndex="10">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.2"/>
                 </Border.Effect>
@@ -38,6 +39,9 @@
                     <TextBox Grid.Column="0"
                              Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                              materialDesign:HintAssist.Hint="Search place on map..."
+                             materialDesign:HintAssist.Foreground="{DynamicResource SecondaryTextBrush}"
+                             Foreground="{DynamicResource PrimaryTextBrush}"
+                             CaretBrush="{DynamicResource PrimaryTextBrush}"
                              BorderThickness="0" Margin="10,0,0,0" VerticalAlignment="Center"
                              FontSize="13">
                         <TextBox.InputBindings>
@@ -71,17 +75,21 @@
         </Grid>
 
         <!-- Side panel -->
-        <Border Grid.Column="1" Background="{DynamicResource MaterialDesignPaper}">
+        <Border Grid.Column="1"
+                Background="{DynamicResource CardBackgroundBrush}"
+                BorderBrush="{DynamicResource CardBorderBrush}"
+                BorderThickness="1,0,0,0">
             <DockPanel>
 
                 <!-- Header -->
                 <StackPanel DockPanel.Dock="Top" Margin="16">
-                    <TextBlock Text="Fleet Map" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="Fleet Map" FontSize="18" FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryTextBrush}"/>
                     <TextBlock Text="{Binding Pins.Count, StringFormat='{}{0} machines tracked'}"
-                               Opacity="0.6" FontSize="13"/>
+                               Foreground="{DynamicResource SecondaryTextBrush}" FontSize="13"/>
                 </StackPanel>
 
-                <Separator DockPanel.Dock="Top"/>
+                <Separator DockPanel.Dock="Top" Background="{DynamicResource SeparatorBrush}" Height="1" Margin="0"/>
 
                 <!-- Machine list -->
                 <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto">
@@ -89,7 +97,9 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Padding="10,8" Margin="4,2" CornerRadius="6"
-                                        Background="{DynamicResource MaterialDesignCardBackground}"
+                                        Background="{DynamicResource AppBackgroundBrush}"
+                                        BorderBrush="{DynamicResource CardBorderBrush}"
+                                        BorderThickness="1"
                                         Cursor="Hand">
                                     <Border.InputBindings>
                                         <MouseBinding MouseAction="LeftClick"
@@ -107,10 +117,11 @@
                                                  Fill="{Binding Status, Converter={StaticResource StatusColor}}"
                                                  VerticalAlignment="Center"/>
                                         <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                                            <TextBlock Text="{Binding MachineName}" FontWeight="Medium" FontSize="13"/>
+                                            <TextBlock Text="{Binding MachineName}" FontWeight="Medium" FontSize="13"
+                                                       Foreground="{DynamicResource PrimaryTextBrush}"/>
                                             <TextBlock Text="{Binding OperatorName}"
-                                                       Opacity="0.6" FontSize="11"/>
-                                            <TextBlock Opacity="0.5" FontSize="10" Margin="0,2,0,0">
+                                                       Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
+                                            <TextBlock Foreground="{DynamicResource TertiaryTextBrush}" FontSize="10" Margin="0,2,0,0">
                                                 <Run Text="Lat: "/>
                                                 <Run Text="{Binding Latitude, StringFormat=F4}"/>
                                                 <Run Text="  Lon: "/>
@@ -119,7 +130,8 @@
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" HorizontalAlignment="Right"
                                                     VerticalAlignment="Center" Margin="4,0,0,0">
-                                            <TextBlock Text="{Binding City}" FontSize="10" Opacity="0.65"
+                                            <TextBlock Text="{Binding City}" FontSize="10"
+                                                       Foreground="{DynamicResource TertiaryTextBrush}"
                                                        HorizontalAlignment="Right" FontWeight="Medium"
                                                        Visibility="{Binding City, Converter={StaticResource StringNotEmptyToVisibility}}"/>
                                             <materialDesign:PackIcon Kind="AlertCircle" Width="14" Height="14"
@@ -137,7 +149,8 @@
 
                 <!-- Selected pin detail -->
                 <Border DockPanel.Dock="Bottom" Margin="12" Padding="12" CornerRadius="8"
-                        Background="{DynamicResource MaterialDesignCardBackground}"
+                        Background="{DynamicResource AppBackgroundBrush}"
+                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                         Visibility="{Binding SelectedPin, Converter={StaticResource BoolToVisibility}}">
                     <StackPanel>
                         <!-- Machine name + status dot -->
@@ -145,16 +158,17 @@
                             <Ellipse Width="10" Height="10" VerticalAlignment="Center"
                                      Fill="{Binding SelectedPin.Status, Converter={StaticResource StatusColor}}"
                                      Margin="0,0,6,0"/>
-                            <TextBlock Text="{Binding SelectedPin.MachineName}" FontWeight="SemiBold" FontSize="14"/>
+                            <TextBlock Text="{Binding SelectedPin.MachineName}" FontWeight="SemiBold" FontSize="14"
+                                       Foreground="{DynamicResource PrimaryTextBrush}"/>
                         </StackPanel>
 
                         <!-- Operator -->
-                        <TextBlock Margin="0,4,0,0" Opacity="0.7" FontSize="12">
+                        <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="12">
                             <Run Text="Operator: "/><Run Text="{Binding SelectedPin.OperatorName}"/>
                         </TextBlock>
 
                         <!-- Coordinates -->
-                        <TextBlock Margin="0,4,0,0" Opacity="0.7" FontSize="12">
+                        <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="12">
                             <Run Text="Lat: "/><Run Text="{Binding SelectedPin.Latitude, StringFormat=F6}"/>
                             <Run Text="  Lon: "/><Run Text="{Binding SelectedPin.Longitude, StringFormat=F6}"/>
                         </TextBlock>
@@ -163,11 +177,12 @@
                         <StackPanel Margin="0,6,0,0"
                                     Visibility="{Binding IsLoadingAddress, Converter={StaticResource BoolToVisibility}}">
                             <ProgressBar IsIndeterminate="True" Height="2"/>
-                            <TextBlock Text="Fetching location..." Opacity="0.5" FontSize="11" Margin="0,2,0,0"/>
+                            <TextBlock Text="Fetching location..." Foreground="{DynamicResource TertiaryTextBrush}" FontSize="11" Margin="0,2,0,0"/>
                         </StackPanel>
 
                         <!-- Address -->
-                        <TextBlock Margin="0,6,0,0" FontSize="11" TextWrapping="Wrap" Opacity="0.75"
+                        <TextBlock Margin="0,6,0,0" FontSize="11" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
                                    Text="{Binding SelectedPinAddress}"
                                    Visibility="{Binding SelectedPinAddress, Converter={StaticResource StringNotEmptyToVisibility}}"/>
                     </StackPanel>

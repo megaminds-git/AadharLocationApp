@@ -28,7 +28,8 @@
                    Foreground="{DynamicResource PrimaryTextBrush}"/>
 
         <!-- Filter card -->
-        <Border Grid.Row="1" CornerRadius="8" Background="{DynamicResource MaterialDesignPaper}"
+        <Border Grid.Row="1" CornerRadius="8" Background="{DynamicResource CardBackgroundBrush}"
+                BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                 Padding="16,14" Margin="0,0,0,12">
             <Grid>
                 <Grid.RowDefinitions>
@@ -43,7 +44,7 @@
 
                 <!-- Machines multi-select dropdown -->
                 <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,16,0">
-                    <TextBlock Text="Machines" FontSize="11" Opacity="0.6" Margin="0,0,0,6"/>
+                    <TextBlock Text="Machines" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,6"/>
                     <Grid>
                         <ToggleButton x:Name="MachineToggle"
                                       Content="{Binding MachinesSummary}"
@@ -55,7 +56,7 @@
                                AllowsTransparency="True"
                                PopupAnimation="Slide"
                                MinWidth="{Binding ActualWidth, ElementName=MachineToggle}">
-                            <Border Background="{DynamicResource MaterialDesignPaper}"
+                            <Border Background="{DynamicResource CardBackgroundBrush}"
                                     BorderBrush="#2DD4BF" BorderThickness="1"
                                     CornerRadius="4" Padding="4">
                                 <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto">
@@ -76,7 +77,7 @@
 
                 <!-- Operators multi-select dropdown -->
                 <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,16,0">
-                    <TextBlock Text="Operators" FontSize="11" Opacity="0.6" Margin="0,0,0,6"/>
+                    <TextBlock Text="Operators" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,6"/>
                     <Grid>
                         <ToggleButton x:Name="OperatorToggle"
                                       Content="{Binding OperatorsSummary}"
@@ -88,7 +89,7 @@
                                AllowsTransparency="True"
                                PopupAnimation="Slide"
                                MinWidth="{Binding ActualWidth, ElementName=OperatorToggle}">
-                            <Border Background="{DynamicResource MaterialDesignPaper}"
+                            <Border Background="{DynamicResource CardBackgroundBrush}"
                                     BorderBrush="#2DD4BF" BorderThickness="1"
                                     CornerRadius="4" Padding="4">
                                 <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto">
@@ -109,12 +110,16 @@
 
                 <!-- Date range + action buttons -->
                 <StackPanel Grid.Row="0" Grid.Column="2" VerticalAlignment="Top">
-                    <TextBlock Text="Date Range" FontSize="11" Opacity="0.6" Margin="0,0,0,6"/>
+                    <TextBlock Text="Date Range" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,6"/>
                     <DatePicker materialDesign:HintAssist.Hint="From date"
+                                materialDesign:HintAssist.Foreground="{DynamicResource SecondaryTextBrush}"
+                                Foreground="{DynamicResource PrimaryTextBrush}"
                                 SelectedDate="{Binding FromDate}"
                                 Style="{StaticResource MaterialDesignDatePicker}"
                                 Width="180" Margin="0,0,0,8"/>
                     <DatePicker materialDesign:HintAssist.Hint="To date"
+                                materialDesign:HintAssist.Foreground="{DynamicResource SecondaryTextBrush}"
+                                Foreground="{DynamicResource PrimaryTextBrush}"
                                 SelectedDate="{Binding ToDate}"
                                 Style="{StaticResource MaterialDesignDatePicker}"
                                 Width="180" Margin="0,0,0,16"/>
@@ -134,10 +139,14 @@
                 <!-- Email report bar -->
                 <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal"
                             VerticalAlignment="Center" Margin="0,14,0,0">
-                    <TextBlock Text="Email Report To:" FontSize="11" Opacity="0.6"
+                    <TextBlock Text="Email Report To:" FontSize="11"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <TextBox Text="{Binding EmailAddress, UpdateSourceTrigger=PropertyChanged}"
                              materialDesign:HintAssist.Hint="Enter email address..."
+                             materialDesign:HintAssist.Foreground="{DynamicResource SecondaryTextBrush}"
+                             Foreground="{DynamicResource PrimaryTextBrush}"
+                             CaretBrush="{DynamicResource PrimaryTextBrush}"
                              Style="{StaticResource MaterialDesignTextBox}"
                              Width="280" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <Button Content="Send Report"
@@ -149,7 +158,8 @@
         </Border>
 
         <!-- Data grid -->
-        <Border Grid.Row="2" CornerRadius="8" Background="{DynamicResource MaterialDesignPaper}"
+        <Border Grid.Row="2" CornerRadius="8" Background="{DynamicResource CardBackgroundBrush}"
+                BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                 ClipToBounds="True">
             <DataGrid ItemsSource="{Binding ReportRows}"
                       AutoGenerateColumns="False"
