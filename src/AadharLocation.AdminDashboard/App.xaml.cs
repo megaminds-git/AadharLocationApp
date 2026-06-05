@@ -147,6 +147,7 @@ public partial class App : Application
         // Page ViewModels (singleton — preserve state on navigation)
         services.AddSingleton<DashboardViewModel>();
         services.AddSingleton<OperatorsViewModel>();
+        services.AddSingleton<AdminsViewModel>();
         services.AddSingleton<MachinesViewModel>();
         services.AddSingleton<FleetMapViewModel>();
         services.AddSingleton<AlertsViewModel>();
@@ -154,6 +155,7 @@ public partial class App : Application
         services.AddSingleton<SettingsViewModel>();
 
         // Dialog ViewModels (transient — fresh state each dialog open)
+        services.AddTransient<AddAdminViewModel>();
         services.AddTransient<AddOperatorViewModel>();
         services.AddTransient<AddMachineViewModel>();
         services.AddTransient<GeofenceEditorViewModel>();
@@ -169,6 +171,7 @@ public partial class App : Application
         // Pages (singleton — NavigationService resolves from DI)
         services.AddSingleton<DashboardPage>();
         services.AddSingleton<OperatorsPage>();
+        services.AddSingleton<AdminsPage>();
         services.AddSingleton<MachinesPage>();
         services.AddSingleton<FleetMapPage>();
         services.AddSingleton<AlertsPage>();

@@ -240,7 +240,9 @@
                         <ListView DockPanel.Dock="Top"
                                   ItemsSource="{Binding RecentAlerts}"
                                   BorderThickness="0" Background="Transparent"
-                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                  MaxHeight="350"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <ListView.ItemContainerStyle>
                                 <Style TargetType="ListViewItem">
                                     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>

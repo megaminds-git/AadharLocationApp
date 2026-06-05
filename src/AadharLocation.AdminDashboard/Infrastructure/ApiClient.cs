@@ -9,6 +9,7 @@ using AadharLocation.Shared.DTOs.Alerts;
 using AadharLocation.Shared.DTOs.Auth;
 using AadharLocation.Shared.DTOs.Geofences;
 using AadharLocation.Shared.DTOs.Machines;
+using AadharLocation.Shared.DTOs.Admins;
 using AadharLocation.Shared.DTOs.Operators;
 
 namespace AadharLocation.AdminDashboard.Infrastructure;
@@ -50,6 +51,36 @@ public class ApiClient
         SetAuthHeader();
         var resp = await _http.PostAsJsonAsync(ApiRoutes.Auth.ChangePassword,
             new ChangePasswordRequest(currentPassword, newPassword));
+        resp.EnsureSuccessStatusCode();
+    }
+
+    // ── Admins ────────────────────────────────────────────────────────────────
+
+    public async Task<List<AdminDto>?> GetAdminsAsync()
+    {
+        SetAuthHeader();
+        return await _http.GetFromJsonAsync<List<AdminDto>>(ApiRoutes.Admins.Base, _json);
+    }
+
+    public async Task<AdminDto?> CreateAdminAsync(CreateAdminRequest req)
+    {
+        SetAuthHeader();
+        var resp = await _http.PostAsJsonAsync(ApiRoutes.Admins.Base, req);
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadFromJsonAsync<AdminDto>(_json);
+    }
+
+    public async Task UpdateAdminAsync(int id, UpdateAdminRequest req)
+    {
+        SetAuthHeader();
+        var resp = await _http.PutAsJsonAsync(ApiRoutes.Admins.Base + $"/{id}", req);
+        resp.EnsureSuccessStatusCode();
+    }
+
+    public async Task DeleteAdminAsync(int id)
+    {
+        SetAuthHeader();
+        var resp = await _http.DeleteAsync(ApiRoutes.Admins.Base + $"/{id}");
         resp.EnsureSuccessStatusCode();
     }
 

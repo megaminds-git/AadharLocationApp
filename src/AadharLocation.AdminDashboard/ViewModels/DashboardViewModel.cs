@@ -56,7 +56,7 @@ public partial class DashboardViewModel : ObservableObject
         {
             var machines  = await _api.GetMachinesAsync(pageSize: 100);
             var operators = await _api.GetOperatorsAsync(pageSize: 100);
-            var alerts    = await _api.GetAlertsAsync(pageSize: 5);
+            var alerts    = await _api.GetAlertsAsync(pageSize: 500);
 
             if (machines != null)
             {
@@ -69,7 +69,7 @@ public partial class DashboardViewModel : ObservableObject
                 RecentMachines      = machines.Items.Take(6).ToList();
             }
             if (operators != null) TotalOperators = operators.TotalCount;
-            if (alerts    != null) RecentAlerts   = alerts.Items.ToList();
+            if (alerts    != null) RecentAlerts   = SortAlerts(alerts.Items);
 
             OnPropertyChanged(nameof(RecentAlerts));
             OnPropertyChanged(nameof(RecentMachines));
@@ -185,7 +185,7 @@ public partial class DashboardViewModel : ObservableObject
             InBoundaryMachines  = _allMachines.Count(m => m.IsWithinGeofence == true);
             OutBoundaryMachines = _allMachines.Count(m => m.IsWithinGeofence == false);
 
-            RecentAlerts = [newAlert, .. RecentAlerts.Take(4)];
+            RecentAlerts = SortAlerts([newAlert, .. RecentAlerts]);
             OnPropertyChanged(nameof(RecentAlerts));
 
             var ri = RecentMachines.FindIndex(m => m.Id == breach.MachineId);
@@ -231,10 +231,16 @@ public partial class DashboardViewModel : ObservableObject
 
         Application.Current.Dispatcher.InvokeAsync(() =>
         {
-            RecentAlerts = [newAlert, .. RecentAlerts.Take(4)];
+            RecentAlerts = SortAlerts([newAlert, .. RecentAlerts]);
             OnPropertyChanged(nameof(RecentAlerts));
         });
     }
+
+    private static List<AlertDto> SortAlerts(IEnumerable<AlertDto> alerts) =>
+        alerts
+            .OrderBy(a => a.AlertType is AlertType.Offline or AlertType.GeofenceBreach ? 0 : 1)
+            .ThenByDescending(a => a.CreatedAt)
+            .ToList();
 
     [RelayCommand]
     void ShowOnlineDetail()
