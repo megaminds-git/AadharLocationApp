@@ -27,14 +27,36 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Title -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,12">
-            <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}"
-                       FontSize="18" FontWeight="SemiBold"
-                       Foreground="{DynamicResource PrimaryTextBrush}"/>
-            <TextBlock Text="Machine details with last known location"
-                       FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2,0,0"/>
-        </StackPanel>
+        <!-- Title row with Export button -->
+        <Grid Grid.Row="0" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}"
+                           FontSize="18" FontWeight="SemiBold"
+                           Foreground="{DynamicResource PrimaryTextBrush}"/>
+                <TextBlock Text="Machine details with last known location"
+                           FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2,0,0"/>
+            </StackPanel>
+
+            <Button Grid.Column="1" x:Name="ExportCsvButton"
+                    Style="{StaticResource GhostButtonStyle}"
+                    VerticalAlignment="Center"
+                    Click="ExportCsv_Click">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Download" Width="16" Height="16"
+                                                     VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="Export to CSV" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+        </Grid>
 
         <!-- Separator -->
         <Rectangle Grid.Row="1" Height="1" Fill="{DynamicResource SeparatorBrush}" Margin="0,0,0,8"/>
@@ -92,6 +114,15 @@
                                     <TextBlock Text="{Binding Coordinates}"
                                                FontSize="11" Margin="0,2,0,0"
                                                Foreground="{DynamicResource TertiaryTextBrush}"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                        <materialDesign:PackIcon Kind="MapMarkerOutline" Width="12" Height="12"
+                                                                 VerticalAlignment="Center"
+                                                                 Foreground="{DynamicResource TertiaryTextBrush}"
+                                                                 Margin="0,0,3,0"/>
+                                        <TextBlock Text="{Binding City}"
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource TertiaryTextBrush}"/>
+                                    </StackPanel>
                                 </StackPanel>
 
                                 <!-- Last seen -->
@@ -129,7 +160,7 @@
 
         </Grid>
 
-        <!-- Close button -->
+        <!-- Footer -->
         <Button Grid.Row="3" Content="Close" Style="{StaticResource GhostButtonStyle}"
                 HorizontalAlignment="Right" IsCancel="True" Margin="0,14,0,0"/>
 

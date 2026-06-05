@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Windows;
 using AadharLocation.AdminDashboard.Infrastructure;
 using AadharLocation.Shared.DTOs.Machines;
 using AadharLocation.Shared.DTOs.SignalR;
@@ -149,7 +150,7 @@ public partial class FleetMapViewModel : ObservableObject
                 var pins = machines
                     .Where(m => m.CurrentLatitude.HasValue && m.CurrentLongitude.HasValue)
                     .Select(m => new MapMachinePin(m.Id, m.Name, m.AssignedOperatorName,
-                        m.CurrentLatitude!.Value, m.CurrentLongitude!.Value, m.Status, true))
+                        m.CurrentLatitude!.Value, m.CurrentLongitude!.Value, m.Status, m.IsWithinGeofence ?? true))
                     .ToList();
 
                 foreach (var p in pins) Pins.Add(p);
@@ -163,33 +164,44 @@ public partial class FleetMapViewModel : ObservableObject
 
     private void OnLocationUpdate(MachineLocationUpdate u)
     {
-        var existing = Pins.FirstOrDefault(p => p.MachineId == u.MachineId);
-        var updated  = new MapMachinePin(u.MachineId, u.MachineName, u.OperatorName,
-            u.Latitude, u.Longitude, Shared.Enums.MachineStatus.Online, u.IsWithinGeofence,
-            existing?.City ?? string.Empty);
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var existing = Pins.FirstOrDefault(p => p.MachineId == u.MachineId);
+            var updated  = new MapMachinePin(u.MachineId, u.MachineName, u.OperatorName,
+                u.Latitude, u.Longitude, Shared.Enums.MachineStatus.Online, u.IsWithinGeofence,
+                existing?.City ?? string.Empty);
 
-        if (existing != null) Pins[Pins.IndexOf(existing)] = updated;
-        else Pins.Add(updated);
+            if (existing != null) Pins[Pins.IndexOf(existing)] = updated;
+            else Pins.Add(updated);
 
-        PinUpdated?.Invoke(updated);
+            PinUpdated?.Invoke(updated);
+        });
     }
 
     private void OnMachineOffline(MachineOfflineEvent e)
     {
-        var existing = Pins.FirstOrDefault(p => p.MachineId == e.MachineId);
-        if (existing == null) return;
-        var updated = existing with { Status = Shared.Enums.MachineStatus.Offline };
-        Pins[Pins.IndexOf(existing)] = updated;
-        PinUpdated?.Invoke(updated);
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var existing = Pins.FirstOrDefault(p => p.MachineId == e.MachineId);
+            if (existing == null) return;
+            var updated = existing with { Status = Shared.Enums.MachineStatus.Offline };
+            Pins[Pins.IndexOf(existing)] = updated;
+            PinUpdated?.Invoke(updated);
+            if (SelectedPin?.MachineId == e.MachineId) SelectedPin = updated;
+        });
     }
 
     private void OnMachineOnline(int machineId, string machineName)
     {
-        var existing = Pins.FirstOrDefault(p => p.MachineId == machineId);
-        if (existing == null) return;
-        var updated = existing with { Status = Shared.Enums.MachineStatus.Online };
-        Pins[Pins.IndexOf(existing)] = updated;
-        PinUpdated?.Invoke(updated);
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var existing = Pins.FirstOrDefault(p => p.MachineId == machineId);
+            if (existing == null) return;
+            var updated = existing with { Status = Shared.Enums.MachineStatus.Online };
+            Pins[Pins.IndexOf(existing)] = updated;
+            PinUpdated?.Invoke(updated);
+            if (SelectedPin?.MachineId == machineId) SelectedPin = updated;
+        });
     }
 
     [RelayCommand]
