@@ -25,6 +25,11 @@ public partial class MachinesPage : UserControl
         vm.AddRequested      += OnAddRequested;
         vm.EditRequested     += OnEditRequested;
         vm.GeofenceRequested += OnGeofenceRequested;
+        vm.ConfirmDelete      = name =>
+        {
+            var dlg = new ConfirmDeleteDialog(name) { Owner = Window.GetWindow(this) };
+            return dlg.ShowDialog() == true;
+        };
         // vm.ExportReady    += OnExportReady;
     }
 

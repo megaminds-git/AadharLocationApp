@@ -21,6 +21,11 @@ public partial class OperatorsPage : UserControl
         vm.AddRequested            += OnAddRequested;
         vm.EditRequested           += OnEditRequested;
         vm.UninstallCodeGenerated  += OnUninstallCodeGenerated;
+        vm.ConfirmDelete            = name =>
+        {
+            var dlg = new ConfirmDeleteDialog(name) { Owner = Window.GetWindow(this) };
+            return dlg.ShowDialog() == true;
+        };
     }
 
     public async Task ActivateAsync() => await _vm.LoadAsync();

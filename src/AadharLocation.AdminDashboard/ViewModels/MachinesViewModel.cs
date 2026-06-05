@@ -32,6 +32,7 @@ public partial class MachinesViewModel : ObservableObject
     public event Action<MachineDto?>? EditRequested;
     public event Action? AddRequested;
     public event Action<MachineDto>? GeofenceRequested;
+    public Func<string, bool>? ConfirmDelete { get; set; }
 
     public MachinesViewModel(ApiClient api, SignalRClient signalR)
     {
@@ -79,6 +80,7 @@ public partial class MachinesViewModel : ObservableObject
     {
         var target = m ?? SelectedMachine;
         if (target == null) return;
+        if (ConfirmDelete != null && !ConfirmDelete(target.Name)) return;
         try { await _api.DeleteMachineAsync(target.Id); await LoadAsync(); }
         catch (Exception ex) { ErrorMessage = ex.Message; }
     }

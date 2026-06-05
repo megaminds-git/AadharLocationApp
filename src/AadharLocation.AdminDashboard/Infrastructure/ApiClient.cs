@@ -202,8 +202,8 @@ public class ApiClient
         SetAuthHeader();
         var parts = new List<string>();
         if (machineId.HasValue) parts.Add($"machineId={machineId.Value}");
-        if (from.HasValue)      parts.Add($"from={from.Value:yyyy-MM-ddTHH:mm:ss}");
-        if (to.HasValue)        parts.Add($"to={to.Value:yyyy-MM-ddTHH:mm:ss}");
+        if (from.HasValue)      parts.Add($"from={from.Value.ToUniversalTime():yyyy-MM-ddTHH:mm:ss}Z");
+        if (to.HasValue)        parts.Add($"to={to.Value.ToUniversalTime():yyyy-MM-ddTHH:mm:ss}Z");
         var url = parts.Count > 0
             ? ApiRoutes.Reports.Device + "?" + string.Join("&", parts)
             : ApiRoutes.Reports.Device;
@@ -221,8 +221,8 @@ public class ApiClient
         var parts = new List<string> { $"page={page}", $"pageSize={pageSize}" };
         if (machineIds  != null) foreach (var id in machineIds)  parts.Add($"machineIds={id}");
         if (operatorIds != null) foreach (var id in operatorIds) parts.Add($"operatorIds={id}");
-        if (from.HasValue) parts.Add($"from={from.Value:yyyy-MM-ddTHH:mm:ss}");
-        if (to.HasValue)   parts.Add($"to={to.Value:yyyy-MM-ddTHH:mm:ss}");
+        if (from.HasValue) parts.Add($"from={from.Value.ToUniversalTime():yyyy-MM-ddTHH:mm:ss}Z");
+        if (to.HasValue)   parts.Add($"to={to.Value.ToUniversalTime():yyyy-MM-ddTHH:mm:ss}Z");
         return await _http.GetFromJsonAsync<PagedResult<AlertDto>>(
             ApiRoutes.Reports.Alerts + "?" + string.Join("&", parts), _json);
     }
@@ -235,8 +235,8 @@ public class ApiClient
         var parts = new List<string>();
         if (machineIds  != null) foreach (var id in machineIds)  parts.Add($"machineIds={id}");
         if (operatorIds != null) foreach (var id in operatorIds) parts.Add($"operatorIds={id}");
-        if (from.HasValue) parts.Add($"from={from.Value:yyyy-MM-ddTHH:mm:ss}");
-        if (to.HasValue)   parts.Add($"to={to.Value:yyyy-MM-ddTHH:mm:ss}");
+        if (from.HasValue) parts.Add($"from={from.Value.ToUniversalTime():yyyy-MM-ddTHH:mm:ss}Z");
+        if (to.HasValue)   parts.Add($"to={to.Value.ToUniversalTime():yyyy-MM-ddTHH:mm:ss}Z");
         var url = parts.Count > 0
             ? ApiRoutes.Reports.AlertsExport + "?" + string.Join("&", parts)
             : ApiRoutes.Reports.AlertsExport;
@@ -250,7 +250,9 @@ public class ApiClient
         DateTime? from, DateTime? to)
     {
         SetAuthHeader();
-        var body = new { email, machineIds, operatorIds, from, to };
+        var fromUtc = from?.ToUniversalTime();
+        var toUtc   = to?.ToUniversalTime();
+        var body = new { email, machineIds, operatorIds, from = fromUtc, to = toUtc };
         var resp = await _http.PostAsJsonAsync(ApiRoutes.Reports.AlertsEmail, body, _json);
         if (!resp.IsSuccessStatusCode)
         {

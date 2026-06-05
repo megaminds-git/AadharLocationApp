@@ -31,6 +31,7 @@ public partial class OperatorsViewModel : ObservableObject
     public event Action<OperatorDto?>? EditRequested;
     public event Action? AddRequested;
     public event Action<string>? UninstallCodeGenerated;
+    public Func<string, bool>? ConfirmDelete { get; set; }
 
     public OperatorsViewModel(ApiClient api) => _api = api;
 
@@ -65,6 +66,7 @@ public partial class OperatorsViewModel : ObservableObject
     {
         var target = op ?? SelectedOperator;
         if (target == null) return;
+        if (ConfirmDelete != null && !ConfirmDelete(target.Name)) return;
         try
         {
             await _api.DeleteOperatorAsync(target.Id);
