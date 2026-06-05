@@ -20,12 +20,16 @@ public partial class DashboardViewModel : ObservableObject
     [ObservableProperty] private int _onlineMachines;
     [ObservableProperty] private int _offlineMachines;
     [ObservableProperty] private int _totalOperators;
-    [ObservableProperty] private int _unacknowledgedAlerts;
+    [ObservableProperty] private int _inBoundaryMachines;
+    [ObservableProperty] private int _outBoundaryMachines;
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _errorMessage = string.Empty;
 
     public List<AlertDto> RecentAlerts { get; private set; } = [];
     public List<MachineDto> RecentMachines { get; private set; } = [];
+
+    private List<MachineDto> _allMachines = [];
+    public Action<string, IEnumerable<MachineDto>>? ShowDetail { get; set; }
 
     public DashboardViewModel(ApiClient api, SignalRClient signalR, ILogger<DashboardViewModel> logger)
     {
@@ -48,19 +52,20 @@ public partial class DashboardViewModel : ObservableObject
         {
             var machines  = await _api.GetMachinesAsync(pageSize: 100);
             var operators = await _api.GetOperatorsAsync(pageSize: 100);
-            var summary   = await _api.GetAlertSummaryAsync();
             var alerts    = await _api.GetAlertsAsync(pageSize: 5);
 
             if (machines != null)
             {
-                TotalMachines   = machines.TotalCount;
-                OnlineMachines  = machines.Items.Count(m => m.Status == MachineStatus.Online);
-                OfflineMachines = machines.Items.Count(m => m.Status == MachineStatus.Offline);
-                RecentMachines  = machines.Items.Take(6).ToList();
+                _allMachines        = machines.Items.ToList();
+                TotalMachines      = machines.TotalCount;
+                OnlineMachines     = machines.Items.Count(m => m.Status == MachineStatus.Online);
+                OfflineMachines    = machines.Items.Count(m => m.Status == MachineStatus.Offline);
+                InBoundaryMachines  = machines.Items.Count(m => m.IsWithinGeofence == true);
+                OutBoundaryMachines = machines.Items.Count(m => m.IsWithinGeofence == false);
+                RecentMachines     = machines.Items.Take(6).ToList();
             }
             if (operators != null) TotalOperators = operators.TotalCount;
-            if (summary  != null) UnacknowledgedAlerts = summary.UnacknowledgedCount;
-            if (alerts   != null) RecentAlerts = alerts.Items.ToList();
+            if (alerts    != null) RecentAlerts   = alerts.Items.ToList();
 
             OnPropertyChanged(nameof(RecentAlerts));
             OnPropertyChanged(nameof(RecentMachines));
@@ -81,15 +86,44 @@ public partial class DashboardViewModel : ObservableObject
     {
         try
         {
-            var summary  = await _api.GetAlertSummaryAsync();
             var machines = await _api.GetMachinesAsync(pageSize: 100);
-            if (summary  != null) UnacknowledgedAlerts = summary.UnacknowledgedCount;
             if (machines != null)
             {
-                OnlineMachines  = machines.Items.Count(m => m.Status == MachineStatus.Online);
-                OfflineMachines = machines.Items.Count(m => m.Status == MachineStatus.Offline);
+                _allMachines        = machines.Items.ToList();
+                OnlineMachines      = machines.Items.Count(m => m.Status == MachineStatus.Online);
+                OfflineMachines     = machines.Items.Count(m => m.Status == MachineStatus.Offline);
+                InBoundaryMachines  = machines.Items.Count(m => m.IsWithinGeofence == true);
+                OutBoundaryMachines = machines.Items.Count(m => m.IsWithinGeofence == false);
             }
         }
         catch (Exception ex) { _logger.LogWarning(ex, "Background dashboard refresh failed"); }
+    }
+
+    [RelayCommand]
+    void ShowOnlineDetail()
+    {
+        var list = _allMachines.Where(m => m.Status == MachineStatus.Online).ToList();
+        ShowDetail?.Invoke($"Online Machines ({list.Count})", list);
+    }
+
+    [RelayCommand]
+    void ShowOfflineDetail()
+    {
+        var list = _allMachines.Where(m => m.Status == MachineStatus.Offline).ToList();
+        ShowDetail?.Invoke($"Offline Machines ({list.Count})", list);
+    }
+
+    [RelayCommand]
+    void ShowInBoundDetail()
+    {
+        var list = _allMachines.Where(m => m.IsWithinGeofence == true).ToList();
+        ShowDetail?.Invoke($"In-Boundary Machines ({list.Count})", list);
+    }
+
+    [RelayCommand]
+    void ShowOutBoundDetail()
+    {
+        var list = _allMachines.Where(m => m.IsWithinGeofence == false).ToList();
+        ShowDetail?.Invoke($"Out-Boundary Machines ({list.Count})", list);
     }
 }
