@@ -14,6 +14,7 @@ public class AlertService(
     AppDbContext db,
     IHubContext<AadharLocationHub, ITrackingClient> hub,
     IOptions<GeofenceSettings> settings,
+    IOptionsMonitor<EmailSettings> emailSettings,
     EmailService emailService,
     ILogger<AlertService> logger)
 {
@@ -158,9 +159,14 @@ public class AlertService(
                 logger.LogError(ex, "Background email send failed");
         }, TaskContinuationOptions.OnlyOnFaulted);
 
-    private Task<List<string>> GetAdminEmailsAsync() =>
-        db.Users
+    private async Task<List<string>> GetAdminEmailsAsync()
+    {
+        var dbEmails = await db.Users
             .Where(u => u.Role == "Admin" && u.Email != string.Empty)
             .Select(u => u.Email)
             .ToListAsync();
+
+        var extraEmails = emailSettings.CurrentValue.AlertEmailRecipients;
+        return dbEmails.Union(extraEmails, StringComparer.OrdinalIgnoreCase).ToList();
+    }
 }

@@ -31,6 +31,7 @@ public class SettingsController(
             ["FromAddress"]             = email.FromAddress,
             ["OfflineThresholdMinutes"] = geo.OfflineThresholdMinutes.ToString(),
             ["GeofenceCooldownMinutes"] = geo.BreachCooldownMinutes.ToString(),
+            ["AlertEmailRecipients"]    = string.Join(",", email.AlertEmailRecipients),
         });
     }
 
@@ -55,11 +56,16 @@ public class SettingsController(
     [HttpPost]
     public IActionResult Save([FromBody] Dictionary<string, string> settings)
     {
+        var recipients = (settings.GetValueOrDefault("AlertEmailRecipients", ""))
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+
         var runtimeSettings = new
         {
             Email = new
             {
-                FromAddress = settings.GetValueOrDefault("FromAddress", string.Empty),
+                FromAddress            = settings.GetValueOrDefault("FromAddress", string.Empty),
+                AlertEmailRecipients   = recipients,
             },
             GeofenceSettings = new
             {
