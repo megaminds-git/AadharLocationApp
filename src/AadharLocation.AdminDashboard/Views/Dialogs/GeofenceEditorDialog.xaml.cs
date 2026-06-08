@@ -37,7 +37,11 @@ public partial class GeofenceEditorDialog : Window
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        await MapWebView.EnsureCoreWebView2Async();
+        var userDataFolder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "AadharLocation", "WebView2Cache");
+        var env = await CoreWebView2Environment.CreateAsync(userDataFolder: userDataFolder);
+        await MapWebView.EnsureCoreWebView2Async(env);
         MapWebView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
         LoadMapHtml();
         _vm.PropertyChanged += OnVmPropertyChanged;

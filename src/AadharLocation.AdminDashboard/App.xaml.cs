@@ -74,6 +74,8 @@ public partial class App : Application
         if (File.Exists(_themeFile))
             IsDarkTheme = File.ReadAllText(_themeFile).Trim() != "light";
 
+        LoadDotEnv();
+
         _host = Host.CreateDefaultBuilder()
             .UseSerilog()
             .ConfigureAppConfiguration(config =>
@@ -116,6 +118,25 @@ public partial class App : Application
                 await main.InitAsync();
             };
             loginWindow.Show();
+        }
+    }
+
+    private static void LoadDotEnv()
+    {
+        // 1. .env placed next to the exe (production override)
+        var local = Path.Combine(AppContext.BaseDirectory, ".env");
+        if (File.Exists(local)) { DotNetEnv.Env.Load(local); return; }
+
+        // 2. Traverse up from exe directory to find solution root (development)
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir != null)
+        {
+            if (dir.GetFiles("*.slnx").Length > 0 || dir.GetFiles("*.sln").Length > 0)
+            {
+                var apiEnv = Path.Combine(dir.FullName, "src", "AadharLocation.Api", ".env");
+                if (File.Exists(apiEnv)) { DotNetEnv.Env.Load(apiEnv); return; }
+            }
+            dir = dir.Parent;
         }
     }
 

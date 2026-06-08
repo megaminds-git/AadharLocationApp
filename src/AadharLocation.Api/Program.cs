@@ -22,9 +22,6 @@ var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrEmpty(port))
     builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
-// Runtime-editable settings (persisted by SettingsController; reloaded without restart)
-builder.Configuration.AddJsonFile("appsettings.runtime.json", optional: true, reloadOnChange: true);
-
 builder.Host.UseSerilog((ctx, cfg) =>
     cfg.ReadFrom.Configuration(ctx.Configuration)
        .WriteTo.Console()
