@@ -39,10 +39,7 @@ public partial class FleetMapPage : UserControl
         if (_webViewInitialized) return;
         _webViewInitialized = true;
 
-        var userDataFolder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "AadharLocation", "WebView2Cache");
-        var env = await CoreWebView2Environment.CreateAsync(userDataFolder: userDataFolder);
+        var env = await WebViewEnvironment.GetAsync();
         await MapWebView.EnsureCoreWebView2Async(env);
         MapWebView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
         LoadMapHtml();
