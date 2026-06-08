@@ -35,6 +35,8 @@ public partial class FleetMapPage : UserControl
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
+        if (MapWebView.CoreWebView2 is not null) return;
+
         var userDataFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "AadharLocation", "WebView2Cache");
