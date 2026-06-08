@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace AadharLocation.OperatorTracker.Services;
@@ -12,7 +13,10 @@ public interface IReverseGeocodingService
     Task<LocationDetails> GetDetailsAsync(double lat, double lon, CancellationToken ct = default);
 }
 
-public class ReverseGeocodingService(IHttpClientFactory httpFactory, ILogger<ReverseGeocodingService> logger) : IReverseGeocodingService
+public class ReverseGeocodingService(
+    IHttpClientFactory httpFactory,
+    IConfiguration configuration,
+    ILogger<ReverseGeocodingService> logger) : IReverseGeocodingService
 {
     private static readonly LocationDetails Unknown = new("—", "—", "—");
 
@@ -20,17 +24,18 @@ public class ReverseGeocodingService(IHttpClientFactory httpFactory, ILogger<Rev
     {
         try
         {
-            var http = httpFactory.CreateClient("Nominatim");
-            var result = await http.GetFromJsonAsync<NominatimResponse>(
-                $"reverse?lat={lat:F6}&lon={lon:F6}&format=json", ct);
+            var apiKey = configuration["GoogleMaps:ApiKey"] ?? string.Empty;
+            var http   = httpFactory.CreateClient("GoogleGeocoding");
+            var result = await http.GetFromJsonAsync<GoogleGeocodeResponse>(
+                $"json?latlng={lat:F6},{lon:F6}&key={apiKey}", ct);
 
-            var a = result?.Address;
-            if (a is null) return Unknown;
+            if (result?.Status != "OK" || result.Results.Length == 0) return Unknown;
 
+            var components = result.Results[0].AddressComponents;
             return new LocationDetails(
-                Area:  a.Suburb ?? a.Neighbourhood ?? a.Quarter ?? a.CityDistrict ?? a.Residential ?? a.Road ?? "—",
-                City:  a.City   ?? a.Town ?? a.Village ?? a.Municipality ?? a.StateDistrict ?? "—",
-                State: a.State  ?? "—");
+                Area:  FindComponent(components, "sublocality_level_1", "sublocality", "route") ?? "—",
+                City:  FindComponent(components, "locality", "administrative_area_level_2") ?? "—",
+                State: FindComponent(components, "administrative_area_level_1") ?? "—");
         }
         catch (Exception ex)
         {
@@ -39,20 +44,24 @@ public class ReverseGeocodingService(IHttpClientFactory httpFactory, ILogger<Rev
         }
     }
 
-    private record NominatimResponse(
-        [property: JsonPropertyName("address")] NominatimAddress? Address);
+    private static string? FindComponent(AddressComponent[] components, params string[] types)
+    {
+        foreach (var type in types)
+        {
+            var match = components.FirstOrDefault(c => c.Types.Contains(type));
+            if (match is not null) return match.LongName;
+        }
+        return null;
+    }
 
-    private record NominatimAddress(
-        [property: JsonPropertyName("suburb")]         string? Suburb,
-        [property: JsonPropertyName("neighbourhood")]  string? Neighbourhood,
-        [property: JsonPropertyName("quarter")]        string? Quarter,
-        [property: JsonPropertyName("city_district")]  string? CityDistrict,
-        [property: JsonPropertyName("residential")]    string? Residential,
-        [property: JsonPropertyName("road")]           string? Road,
-        [property: JsonPropertyName("city")]           string? City,
-        [property: JsonPropertyName("town")]           string? Town,
-        [property: JsonPropertyName("village")]        string? Village,
-        [property: JsonPropertyName("municipality")]   string? Municipality,
-        [property: JsonPropertyName("state_district")] string? StateDistrict,
-        [property: JsonPropertyName("state")]          string? State);
+    private record GoogleGeocodeResponse(
+        [property: JsonPropertyName("status")]  string Status,
+        [property: JsonPropertyName("results")] GoogleGeocodeResult[] Results);
+
+    private record GoogleGeocodeResult(
+        [property: JsonPropertyName("address_components")] AddressComponent[] AddressComponents);
+
+    private record AddressComponent(
+        [property: JsonPropertyName("long_name")] string LongName,
+        [property: JsonPropertyName("types")]     string[] Types);
 }

@@ -53,7 +53,7 @@ public class ReportsController(AppDbContext db, EmailService emailService, ILogg
             .ToListAsync();
 
         var sb = new StringBuilder();
-        sb.AppendLine("Machine Name,Machine Code,Operator,Latitude,Longitude,Accuracy (m),Recorded At (UTC),Within Geofence");
+        sb.AppendLine("Machine Name,Machine Code,Operator,Latitude,Longitude,Accuracy (m),Recorded At,Within Geofence");
 
         foreach (var log in logs)
         {
@@ -64,10 +64,10 @@ public class ReportsController(AppDbContext db, EmailService emailService, ILogg
             sb.AppendLine(
                 $"\"{machineName}\",\"{machineCode}\",\"{operatorName}\"," +
                 $"{log.Latitude},{log.Longitude},{log.Accuracy}," +
-                $"\"{log.RecordedAt:yyyy-MM-dd HH:mm:ss}\",{log.IsWithinGeofence}");
+                $"\"{log.RecordedAt.ToLocalTime():yyyy-MM-dd HH:mm:ss}\",{log.IsWithinGeofence}");
         }
 
-        var fileName = $"location_report_{DateTime.UtcNow:yyyyMMddHHmmss}.csv";
+        var fileName = $"location_report_{DateTime.Now:yyyyMMddHHmmss}.csv";
         return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv", fileName);
     }
 
@@ -136,7 +136,7 @@ public class ReportsController(AppDbContext db, EmailService emailService, ILogg
             .ToListAsync();
 
         var sb = new StringBuilder();
-        sb.AppendLine("Alert Type,Machine Name,Operator Name,Message,Latitude,Longitude,Created At (UTC)");
+        sb.AppendLine("Alert Type,Machine Name,Operator Name,Message,Latitude,Longitude,Created At");
 
         foreach (var a in alerts)
         {
@@ -148,10 +148,10 @@ public class ReportsController(AppDbContext db, EmailService emailService, ILogg
                 $"\"{a.AlertType}\",\"{machineName}\",\"{operatorName}\",\"{message}\"," +
                 $"{(a.Latitude.HasValue  ? a.Latitude.Value.ToString()  : string.Empty)}," +
                 $"{(a.Longitude.HasValue ? a.Longitude.Value.ToString() : string.Empty)}," +
-                $"\"{a.CreatedAt:yyyy-MM-dd HH:mm:ss}\"");
+                $"\"{a.CreatedAt.ToLocalTime():yyyy-MM-dd HH:mm:ss}\"");
         }
 
-        var fileName = $"alert_report_{DateTime.UtcNow:yyyyMMddHHmmss}.csv";
+        var fileName = $"alert_report_{DateTime.Now:yyyyMMddHHmmss}.csv";
         return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv", fileName);
     }
 
@@ -186,7 +186,7 @@ public class ReportsController(AppDbContext db, EmailService emailService, ILogg
             .ToListAsync();
 
         var sb = new StringBuilder();
-        sb.AppendLine("Alert Type,Machine Name,Operator Name,Message,Latitude,Longitude,Created At (UTC)");
+        sb.AppendLine("Alert Type,Machine Name,Operator Name,Message,Latitude,Longitude,Created At");
 
         foreach (var a in alerts)
         {
@@ -198,10 +198,10 @@ public class ReportsController(AppDbContext db, EmailService emailService, ILogg
                 $"\"{a.AlertType}\",\"{machineName}\",\"{operatorName}\",\"{message}\"," +
                 $"{(a.Latitude.HasValue  ? a.Latitude.Value.ToString()  : string.Empty)}," +
                 $"{(a.Longitude.HasValue ? a.Longitude.Value.ToString() : string.Empty)}," +
-                $"\"{a.CreatedAt:yyyy-MM-dd HH:mm:ss}\"");
+                $"\"{a.CreatedAt.ToLocalTime():yyyy-MM-dd HH:mm:ss}\"");
         }
 
-        var fileName = $"alert_report_{DateTime.UtcNow:yyyyMMddHHmmss}.csv";
+        var fileName = $"alert_report_{DateTime.Now:yyyyMMddHHmmss}.csv";
         var csvBytes = Encoding.UTF8.GetBytes(sb.ToString());
 
         try

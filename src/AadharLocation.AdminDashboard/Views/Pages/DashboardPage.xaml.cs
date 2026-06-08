@@ -1,6 +1,6 @@
-using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
+using AadharLocation.AdminDashboard.Infrastructure;
 using AadharLocation.AdminDashboard.ViewModels;
 using AadharLocation.AdminDashboard.Views.Dialogs;
 
@@ -8,14 +8,14 @@ namespace AadharLocation.AdminDashboard.Views.Pages;
 
 public partial class DashboardPage : UserControl
 {
-    public DashboardPage(DashboardViewModel vm, IHttpClientFactory httpFactory)
+    public DashboardPage(DashboardViewModel vm, IGeocodingService geocoding)
     {
         InitializeComponent();
         DataContext = vm;
 
         vm.ShowDetail = (title, machines) =>
         {
-            var dlg = new MachineStatusDetailDialog(title, machines, httpFactory) { Owner = Window.GetWindow(this) };
+            var dlg = new MachineStatusDetailDialog(title, machines, geocoding) { Owner = Window.GetWindow(this) };
             dlg.ShowDialog();
         };
     }

@@ -1,10 +1,10 @@
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using AadharLocation.AdminDashboard.Infrastructure;
 using AadharLocation.AdminDashboard.ViewModels;
 using AadharLocation.AdminDashboard.Views.Dialogs;
 using AadharLocation.Shared.DTOs.Machines;
-using Microsoft.Win32;
+using Microsoft.Extensions.Options;
 
 namespace AadharLocation.AdminDashboard.Views.Pages;
 
@@ -13,14 +13,16 @@ public partial class MachinesPage : UserControl
     private readonly MachinesViewModel _vm;
     private readonly AddMachineViewModel _addVm;
     private readonly GeofenceEditorViewModel _geoVm;
+    private readonly IOptions<GoogleMapsOptions> _mapsOptions;
 
-    public MachinesPage(MachinesViewModel vm, AddMachineViewModel addVm, GeofenceEditorViewModel geoVm)
+    public MachinesPage(MachinesViewModel vm, AddMachineViewModel addVm, GeofenceEditorViewModel geoVm, IOptions<GoogleMapsOptions> mapsOptions)
     {
         InitializeComponent();
-        _vm    = vm;
-        _addVm = addVm;
-        _geoVm = geoVm;
-        DataContext = vm;
+        _vm          = vm;
+        _addVm       = addVm;
+        _geoVm       = geoVm;
+        _mapsOptions = mapsOptions;
+        DataContext  = vm;
 
         vm.AddRequested      += OnAddRequested;
         vm.EditRequested     += OnEditRequested;
@@ -30,7 +32,6 @@ public partial class MachinesPage : UserControl
             var dlg = new ConfirmDeleteDialog(name) { Owner = Window.GetWindow(this) };
             return dlg.ShowDialog() == true;
         };
-        // vm.ExportReady    += OnExportReady;
     }
 
     public async Task ActivateAsync() => await _vm.LoadAsync();
@@ -55,18 +56,7 @@ public partial class MachinesPage : UserControl
         double defLat = m.CurrentLatitude  ?? 28.6139;
         double defLon = m.CurrentLongitude ?? 77.2090;
         await _geoVm.InitAsync(m.Id, m.Name, defLat, defLon);
-        var dialog = new GeofenceEditorDialog(_geoVm) { Owner = Window.GetWindow(this) };
+        var dialog = new GeofenceEditorDialog(_geoVm, _mapsOptions) { Owner = Window.GetWindow(this) };
         dialog.ShowDialog();
     }
-
-    // private void OnExportReady(byte[] bytes, string suggestedName)
-    // {
-    //     var dlg = new SaveFileDialog
-    //     {
-    //         Filter   = "CSV files (*.csv)|*.csv",
-    //         FileName = suggestedName,
-    //     };
-    //     if (dlg.ShowDialog() == true)
-    //         File.WriteAllBytes(dlg.FileName, bytes);
-    // }
 }

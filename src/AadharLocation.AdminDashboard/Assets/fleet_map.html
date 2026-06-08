@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body, #map { width: 100%; height: 100%; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script>
+    var _map = null;
+    var _markers = {};
+    var _infoWindow = null;
+    var _mapReady = false;
+
+    var STATUS_COLORS = {
+      'Online':  { bg: '#4ADE80', border: '#ffffff', glyph: '#166534' },
+      'Offline': { bg: '#F87171', border: '#ffffff', glyph: '#7f1d1d' },
+      'Idle':    { bg: '#FBBF24', border: '#ffffff', glyph: '#78350f' }
+    };
+
+    var DARK_STYLES = [
+      { elementType: 'geometry',           stylers: [{ color: '#1a1a2e' }] },
+      { elementType: 'labels.text.stroke', stylers: [{ color: '#1a1a2e' }] },
+      { elementType: 'labels.text.fill',   stylers: [{ color: '#9ca3af' }] },
+      { featureType: 'road',               elementType: 'geometry',           stylers: [{ color: '#374151' }] },
+      { featureType: 'road',               elementType: 'labels.text.fill',   stylers: [{ color: '#6b7280' }] },
+      { featureType: 'water',              elementType: 'geometry',           stylers: [{ color: '#0f172a' }] },
+      { featureType: 'water',              elementType: 'labels.text.fill',   stylers: [{ color: '#374151' }] },
+      { featureType: 'poi',                elementType: 'geometry',           stylers: [{ color: '#1e293b' }] },
+      { featureType: 'poi',                elementType: 'labels.text.fill',   stylers: [{ color: '#6b7280' }] },
+      { featureType: 'poi.park',           elementType: 'geometry',           stylers: [{ color: '#1e2d1e' }] },
+      { featureType: 'administrative',     elementType: 'geometry.stroke',    stylers: [{ color: '#374151' }] },
+      { featureType: 'transit',            elementType: 'geometry',           stylers: [{ color: '#1e293b' }] }
+    ];
+
+    function initMap() {
+      _map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 20.5937, lng: 78.9629 },
+        zoom: 5,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER }
+      });
+
+      _infoWindow = new google.maps.InfoWindow();
+
+      window.chrome.webview.postMessage(JSON.stringify({ type: 'MapReady' }));
+    }
+
+    function applyTheme(theme) {
+      if (!_map) return;
+      _map.setOptions({ styles: theme === 'dark' ? DARK_STYLES : [] });
+    }
+
+    function createOrUpdateMarker(pin) {
+      var colors = STATUS_COLORS[pin.status] || STATUS_COLORS['Idle'];
+
+      if (_markers[pin.machineId]) {
+        var existing = _markers[pin.machineId];
+        existing.marker.setPosition({ lat: pin.latitude, lng: pin.longitude });
+        // Rebuild icon for status color change
+        existing.marker.setIcon(buildIcon(colors));
+        existing.marker.setTitle(buildTitle(pin));
+        existing.pin = pin;
+        return;
+      }
+
+      var marker = new google.maps.Marker({
+        map: _map,
+        position: { lat: pin.latitude, lng: pin.longitude },
+        title: buildTitle(pin),
+        icon: buildIcon(colors),
+        optimized: false
+      });
+
+      marker.addListener('click', function () {
+        window.chrome.webview.postMessage(JSON.stringify({
+          type: 'MarkerClicked',
+          machineId: pin.machineId
+        }));
+      });
+
+      _markers[pin.machineId] = { marker: marker, pin: pin };
+    }
+
+    function buildIcon(colors) {
+      return {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 10,
+        fillColor: colors.bg,
+        fillOpacity: 1,
+        strokeColor: colors.border,
+        strokeWeight: 2
+      };
+    }
+
+    function buildTitle(pin) {
+      return pin.machineName + (pin.city ? ' – ' + pin.city : '');
+    }
+
+    function fitBounds(pins) {
+      if (!pins || pins.length === 0) return;
+      if (pins.length === 1) {
+        _map.setCenter({ lat: pins[0].latitude, lng: pins[0].longitude });
+        _map.setZoom(13);
+        return;
+      }
+      var bounds = new google.maps.LatLngBounds();
+      for (var i = 0; i < pins.length; i++) {
+        bounds.extend({ lat: pins[i].latitude, lng: pins[i].longitude });
+      }
+      _map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
+    }
+
+    function clearAllMarkers() {
+      for (var id in _markers) {
+        _markers[id].marker.setMap(null);
+      }
+      _markers = {};
+    }
+
+    // ── Message handler ───────────────────────────────────────────────────────
+
+    window.chrome.webview.addEventListener('message', function (e) {
+      var msg;
+      try { msg = JSON.parse(e.data); } catch (err) { return; }
+
+      switch (msg.type) {
+        case 'InitMap':
+          applyTheme(msg.theme);
+          break;
+
+        case 'LoadPins':
+          clearAllMarkers();
+          if (msg.pins && msg.pins.length > 0) {
+            for (var i = 0; i < msg.pins.length; i++) {
+              createOrUpdateMarker(msg.pins[i]);
+            }
+            fitBounds(msg.pins);
+          }
+          break;
+
+        case 'UpdatePin':
+          if (msg.pin) createOrUpdateMarker(msg.pin);
+          break;
+
+        case 'FocusPin':
+          _map.panTo({ lat: msg.latitude, lng: msg.longitude });
+          _map.setZoom(14);
+          if (_markers[msg.machineId]) {
+            var m = _markers[msg.machineId].marker;
+            _infoWindow.setContent('<div style="color:#111;font-weight:600;">' + m.getTitle() + '</div>');
+            _infoWindow.open(_map, m);
+          }
+          break;
+
+        case 'FocusLocation':
+          _map.panTo({ lat: msg.latitude, lng: msg.longitude });
+          _map.setZoom(13);
+          if (msg.label) {
+            _infoWindow.setContent('<div style="color:#111;font-weight:600;">' + msg.label + '</div>');
+            _infoWindow.setPosition({ lat: msg.latitude, lng: msg.longitude });
+            _infoWindow.open(_map);
+          }
+          break;
+      }
+    });
+  </script>
+
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key={{API_KEY}}&callback=initMap&loading=async"
+    async defer>
+  </script>
+</body>
+</html>

@@ -8,13 +8,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
+
 namespace AadharLocation.Api.Services;
 
 public class AlertService(
     AppDbContext db,
     IHubContext<AadharLocationHub, ITrackingClient> hub,
     IOptions<GeofenceSettings> settings,
-    IOptionsMonitor<EmailSettings> emailSettings,
     EmailService emailService,
     ILogger<AlertService> logger)
 {
@@ -161,12 +161,16 @@ public class AlertService(
 
     private async Task<List<string>> GetAdminEmailsAsync()
     {
-        var dbEmails = await db.Users
+        var adminEmails = await db.Users
             .Where(u => u.Role == "Admin" && u.Email != string.Empty)
             .Select(u => u.Email)
             .ToListAsync();
 
-        var extraEmails = emailSettings.CurrentValue.AlertEmailRecipients;
-        return dbEmails.Union(extraEmails, StringComparer.OrdinalIgnoreCase).ToList();
+        var setting = await db.AppSettings.FindAsync("Email:AlertEmailRecipients");
+        var extraEmails = setting?.Value
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            ?? [];
+
+        return adminEmails.Union(extraEmails, StringComparer.OrdinalIgnoreCase).ToList();
     }
 }

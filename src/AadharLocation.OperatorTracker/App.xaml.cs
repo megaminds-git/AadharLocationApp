@@ -62,10 +62,9 @@ public partial class App
                     client.Timeout = TimeSpan.FromSeconds(20);
                 });
 
-                services.AddHttpClient("Nominatim", client =>
+                services.AddHttpClient("GoogleGeocoding", client =>
                 {
-                    client.BaseAddress = new Uri("https://nominatim.openstreetmap.org/");
-                    client.DefaultRequestHeaders.Add("User-Agent", "AadharLocationTracker/1.0");
+                    client.BaseAddress = new Uri("https://maps.googleapis.com/maps/api/geocode/");
                     client.Timeout = TimeSpan.FromSeconds(10);
                 });
 
