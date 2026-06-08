@@ -39,8 +39,14 @@ public partial class FleetMapPage : UserControl
         if (_webViewInitialized) return;
         _webViewInitialized = true;
 
-        var env = await WebViewEnvironment.GetAsync();
-        await MapWebView.EnsureCoreWebView2Async(env);
+        if (MapWebView.CoreWebView2 is null)
+        {
+            var env = await WebViewEnvironment.GetAsync();
+            try { await MapWebView.EnsureCoreWebView2Async(env); }
+            catch (ArgumentException) { /* auto-initialized before we got here */ }
+        }
+
+        if (MapWebView.CoreWebView2 is null) return;
         MapWebView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
         LoadMapHtml();
     }
