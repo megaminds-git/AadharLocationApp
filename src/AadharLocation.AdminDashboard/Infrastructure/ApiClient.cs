@@ -127,11 +127,12 @@ public class ApiClient
 
     // ── Machines ──────────────────────────────────────────────────────────────
 
-    public async Task<PagedResult<MachineDto>?> GetMachinesAsync(int page = 1, int pageSize = 50)
+    public async Task<PagedResult<MachineDto>?> GetMachinesAsync(int page = 1, int pageSize = 50, string? search = null)
     {
         SetAuthHeader();
-        return await _http.GetFromJsonAsync<PagedResult<MachineDto>>(
-            $"{ApiRoutes.Machines.Base}?page={page}&pageSize={pageSize}", _json);
+        var url = $"{ApiRoutes.Machines.Base}?page={page}&pageSize={pageSize}";
+        if (!string.IsNullOrWhiteSpace(search)) url += $"&search={Uri.EscapeDataString(search)}";
+        return await _http.GetFromJsonAsync<PagedResult<MachineDto>>(url, _json);
     }
 
     public async Task<List<MachineDto>?> GetLiveMachinesAsync()

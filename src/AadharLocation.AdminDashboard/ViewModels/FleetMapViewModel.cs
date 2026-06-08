@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows;
+using System.Windows.Data;
 using AadharLocation.AdminDashboard.Infrastructure;
 using AadharLocation.Shared.DTOs.SignalR;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -23,13 +25,35 @@ public partial class FleetMapViewModel : ObservableObject
     [ObservableProperty] private bool _isSearching;
     [ObservableProperty] private string _selectedPinAddress = string.Empty;
     [ObservableProperty] private bool _isLoadingAddress;
+    [ObservableProperty] private string _machineFilterText = string.Empty;
+
+    private string _appliedFilter = string.Empty;
 
     public ObservableCollection<MapMachinePin> Pins { get; } = [];
+    public ICollectionView FilteredPins { get; }
+
+    public string MachineCountText
+    {
+        get
+        {
+            var total = Pins.Count;
+            if (string.IsNullOrWhiteSpace(_appliedFilter))
+                return $"{total} machines tracked";
+            var visible = FilteredPins.Cast<MapMachinePin>().Count();
+            return $"{visible} of {total} machines";
+        }
+    }
+
+    public int[]? GetVisibleMachineIds() =>
+        string.IsNullOrWhiteSpace(_appliedFilter)
+            ? null
+            : FilteredPins.Cast<MapMachinePin>().Select(p => p.MachineId).ToArray();
 
     public event Action<MapMachinePin>?       PinUpdated;
     public event Action<List<MapMachinePin>>? PinsLoaded;
     public event Action<double, double>?      PlaceFound;
     public event Action<MapMachinePin>?       PinFocusRequested;
+    public event Action<int[]?>?              FilterChanged;
 
     public FleetMapViewModel(ApiClient api, SignalRClient signalR, IGeocodingService geocoding)
     {
@@ -40,6 +64,38 @@ public partial class FleetMapViewModel : ObservableObject
         _signalR.MachineLocationUpdated += OnLocationUpdate;
         _signalR.MachineWentOffline     += OnMachineOffline;
         _signalR.MachineOnline          += OnMachineOnline;
+
+        FilteredPins        = CollectionViewSource.GetDefaultView(Pins);
+        FilteredPins.Filter = FilterMachinePin;
+        Pins.CollectionChanged += (_, _) => OnPropertyChanged(nameof(MachineCountText));
+    }
+
+    private bool FilterMachinePin(object obj)
+    {
+        if (obj is not MapMachinePin pin) return false;
+        if (string.IsNullOrWhiteSpace(_appliedFilter)) return true;
+        return pin.MachineName.Contains(_appliedFilter, StringComparison.OrdinalIgnoreCase)
+            || (pin.OperatorName?.Contains(_appliedFilter, StringComparison.OrdinalIgnoreCase) ?? false)
+            || pin.City.Contains(_appliedFilter, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [RelayCommand]
+    private void ApplyMachineFilter()
+    {
+        _appliedFilter = MachineFilterText.Trim();
+        FilteredPins.Refresh();
+        OnPropertyChanged(nameof(MachineCountText));
+        FilterChanged?.Invoke(GetVisibleMachineIds());
+    }
+
+    [RelayCommand]
+    private void ClearMachineFilter()
+    {
+        MachineFilterText = string.Empty;
+        _appliedFilter    = string.Empty;
+        FilteredPins.Refresh();
+        OnPropertyChanged(nameof(MachineCountText));
+        FilterChanged?.Invoke(null);
     }
 
     [RelayCommand]

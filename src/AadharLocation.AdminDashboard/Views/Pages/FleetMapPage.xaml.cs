@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,6 +28,7 @@ public partial class FleetMapPage : UserControl
         vm.PinUpdated        += OnPinUpdated;
         vm.PlaceFound        += OnPlaceFound;
         vm.PinFocusRequested += OnPinFocusRequested;
+        vm.FilterChanged     += OnFilterChanged;
 
         Loaded += OnLoaded;
     }
@@ -70,6 +72,7 @@ public partial class FleetMapPage : UserControl
                     {
                         SendLoadPins(_pendingPins);
                         _pendingPins = null;
+                        ApplyCurrentFilter();
                     }
                     break;
 
@@ -88,9 +91,28 @@ public partial class FleetMapPage : UserControl
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
-            if (_mapReady) SendLoadPins(pins);
+            if (_mapReady)
+            {
+                SendLoadPins(pins);
+                ApplyCurrentFilter();
+            }
             else _pendingPins = pins;
         });
+    }
+
+    private void OnFilterChanged(int[]? visibleIds)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            if (!_mapReady) return;
+            SendMessage(new { type = "SetVisiblePins", machineIds = visibleIds });
+        });
+    }
+
+    private void ApplyCurrentFilter()
+    {
+        if (!_mapReady) return;
+        SendMessage(new { type = "SetVisiblePins", machineIds = _vm.GetVisibleMachineIds() });
     }
 
     private void OnPinUpdated(MapMachinePin pin)

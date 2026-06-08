@@ -37,6 +37,23 @@
             </StackPanel>
         </Grid>
 
+        <!-- Search bar -->
+        <Grid Grid.Row="1" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox materialDesign:HintAssist.Hint="Search machines..."
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                     Foreground="{DynamicResource PrimaryTextBrush}"
+                     materialDesign:HintAssist.Foreground="{DynamicResource SecondaryTextBrush}"
+                     materialDesign:TextFieldAssist.LeadingIcon="Magnify"/>
+            <Button Grid.Column="1" Content="Search" Margin="8,0,0,0"
+                    Command="{Binding SearchCommand}"
+                    Style="{StaticResource MaterialDesignOutlinedButton}"/>
+        </Grid>
+
         <!-- Export row — disabled for now
         <Border Grid.Row="1" CornerRadius="6" Padding="12,8"
                 Background="{DynamicResource MaterialDesignPaper}"

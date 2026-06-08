@@ -18,6 +18,8 @@
             </ResourceDictionary.MergedDictionaries>
             <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
                 <Setter Property="materialDesign:HintAssist.IsFloating" Value="True"/>
+                <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}"/>
+                <Setter Property="materialDesign:HintAssist.Foreground" Value="{DynamicResource MaterialDesignBodyLight}"/>
             </Style>
         </ResourceDictionary>
     </Window.Resources>
@@ -43,7 +45,7 @@
 
         <!-- ── Side panel ── -->
         <Border Grid.Column="1" Background="{DynamicResource MaterialDesignPaper}">
-            <Grid Margin="20">
+            <Grid Margin="20" TextBlock.Foreground="{DynamicResource MaterialDesignBody}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>  <!-- header -->
                     <RowDefinition Height="16"/>

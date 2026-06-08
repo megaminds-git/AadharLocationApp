@@ -77,16 +77,14 @@ public partial class GeofenceEditorDialog : Window
                 case "MarkerDragged":
                     var lat = doc.RootElement.GetProperty("latitude").GetDouble();
                     var lon = doc.RootElement.GetProperty("longitude").GetDouble();
-                    _suppressOverlayUpdate = true;
-                    try
+                    Dispatcher.Invoke(() =>
                     {
-                        Dispatcher.Invoke(() =>
-                        {
-                            _vm.CenterLatitude  = lat;
-                            _vm.CenterLongitude = lon;
-                        });
-                    }
-                    finally { _suppressOverlayUpdate = false; }
+                        _suppressOverlayUpdate = true;
+                        _vm.CenterLatitude  = lat;
+                        _vm.CenterLongitude = lon;
+                        _suppressOverlayUpdate = false;
+                        SendUpdateOverlay();
+                    });
                     break;
             }
         }

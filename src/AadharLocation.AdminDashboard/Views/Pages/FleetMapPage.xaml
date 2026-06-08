@@ -23,39 +23,6 @@
         <Grid Grid.Column="0">
             <wv2:WebView2 x:Name="MapWebView" Margin="0"/>
 
-            <!-- Search bar overlay (top-center) -->
-            <Border VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,14,0,0"
-                    Background="{DynamicResource CardBackgroundBrush}"
-                    BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
-                    CornerRadius="24" Padding="4" Width="380" Panel.ZIndex="10">
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.2"/>
-                </Border.Effect>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0"
-                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                             materialDesign:HintAssist.Hint="Search place on map..."
-                             materialDesign:HintAssist.Foreground="{DynamicResource SecondaryTextBrush}"
-                             Foreground="{DynamicResource PrimaryTextBrush}"
-                             CaretBrush="{DynamicResource PrimaryTextBrush}"
-                             BorderThickness="0" Margin="10,0,0,0" VerticalAlignment="Center"
-                             FontSize="13">
-                        <TextBox.InputBindings>
-                            <KeyBinding Key="Return" Command="{Binding SearchCommand}"/>
-                        </TextBox.InputBindings>
-                    </TextBox>
-                    <Button Grid.Column="1" Style="{StaticResource MaterialDesignIconButton}"
-                            Command="{Binding SearchCommand}" Width="36" Height="36"
-                            IsEnabled="{Binding IsSearching, Converter={StaticResource InverseBool}}">
-                        <materialDesign:PackIcon Kind="Magnify" Width="20" Height="20"/>
-                    </Button>
-                </Grid>
-            </Border>
-
             <!-- Status bar -->
             <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Left"
                         Margin="12" Background="#AA000000">
@@ -82,18 +49,54 @@
             <DockPanel>
 
                 <!-- Header -->
-                <StackPanel DockPanel.Dock="Top" Margin="16">
+                <StackPanel DockPanel.Dock="Top" Margin="16,16,16,8">
                     <TextBlock Text="Fleet Map" FontSize="18" FontWeight="SemiBold"
                                Foreground="{DynamicResource PrimaryTextBrush}"/>
-                    <TextBlock Text="{Binding Pins.Count, StringFormat='{}{0} machines tracked'}"
+                    <TextBlock Text="{Binding MachineCountText}"
                                Foreground="{DynamicResource SecondaryTextBrush}" FontSize="13"/>
                 </StackPanel>
+
+                <!-- Filter search bar -->
+                <Border DockPanel.Dock="Top" Margin="12,0,12,10"
+                        Background="{DynamicResource AppBackgroundBrush}"
+                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                        CornerRadius="8" Padding="4,2">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding MachineFilterText, UpdateSourceTrigger=PropertyChanged}"
+                                 materialDesign:HintAssist.Hint="Search machine, operator, city..."
+                                 materialDesign:HintAssist.Foreground="{DynamicResource SecondaryTextBrush}"
+                                 Foreground="{DynamicResource PrimaryTextBrush}"
+                                 CaretBrush="{DynamicResource PrimaryTextBrush}"
+                                 BorderThickness="0" Margin="8,0,0,0" VerticalAlignment="Center"
+                                 FontSize="12" Padding="4,6"/>
+                        <Button Grid.Column="1" Style="{StaticResource MaterialDesignIconButton}"
+                                Width="30" Height="30" Padding="0"
+                                Command="{Binding ApplyMachineFilterCommand}"
+                                Foreground="{StaticResource BrandTealBrush}"
+                                ToolTip="Search">
+                            <materialDesign:PackIcon Kind="Magnify" Width="16" Height="16"/>
+                        </Button>
+                        <Button Grid.Column="2" Style="{StaticResource MaterialDesignIconButton}"
+                                Width="28" Height="28" Padding="0"
+                                Command="{Binding ClearMachineFilterCommand}"
+                                Visibility="{Binding MachineFilterText, Converter={StaticResource StringNotEmptyToVisibility}}"
+                                ToolTip="Clear">
+                            <materialDesign:PackIcon Kind="Close" Width="13" Height="13"/>
+                        </Button>
+                    </Grid>
+                </Border>
 
                 <Separator DockPanel.Dock="Top" Background="{DynamicResource SeparatorBrush}" Height="1" Margin="0"/>
 
                 <!-- Machine list -->
                 <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding Pins}" Margin="8">
+                    <ItemsControl ItemsSource="{Binding FilteredPins}" Margin="8">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Padding="10,8" Margin="4,2" CornerRadius="6"
