@@ -15,6 +15,7 @@ public partial class FleetMapPage : UserControl
     private readonly FleetMapViewModel _vm;
     private readonly string _apiKey;
     private bool _mapReady = false;
+    private bool _webViewInitialized = false;
     private List<MapMachinePin>? _pendingPins = null;
 
     public FleetMapPage(FleetMapViewModel vm, IOptions<GoogleMapsOptions> mapsOptions)
@@ -35,7 +36,8 @@ public partial class FleetMapPage : UserControl
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        if (MapWebView.CoreWebView2 is not null) return;
+        if (_webViewInitialized) return;
+        _webViewInitialized = true;
 
         var userDataFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
