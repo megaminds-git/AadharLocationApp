@@ -1,10 +1,8 @@
 using System.Collections.ObjectModel;
-using System.Globalization;
-using System.Net.Http;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using System.ComponentModel;
+using System.Windows;
+using System.Windows.Data;
 using AadharLocation.AdminDashboard.Infrastructure;
-using AadharLocation.Shared.DTOs.Machines;
 using AadharLocation.Shared.DTOs.SignalR;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -18,28 +16,92 @@ public partial class FleetMapViewModel : ObservableObject
 {
     private readonly ApiClient _api;
     private readonly SignalRClient _signalR;
-    private readonly IHttpClientFactory _httpFactory;
+    private readonly IGeocodingService _geocoding;
 
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private MapMachinePin? _selectedPin;
     [ObservableProperty] private string _searchText = string.Empty;
     [ObservableProperty] private bool _isSearching;
-
-    public ObservableCollection<MapMachinePin> Pins { get; } = [];
-
     [ObservableProperty] private string _selectedPinAddress = string.Empty;
     [ObservableProperty] private bool _isLoadingAddress;
+    [ObservableProperty] private string _machineFilterText = string.Empty;
 
-    public event Action<MapMachinePin>?      PinUpdated;
+    private string _appliedFilter = string.Empty;
+
+    public ObservableCollection<MapMachinePin> Pins { get; } = [];
+    public ICollectionView FilteredPins { get; }
+
+    public string MachineCountText
+    {
+        get
+        {
+            var total = Pins.Count;
+            if (string.IsNullOrWhiteSpace(_appliedFilter))
+                return $"{total} machines tracked";
+            var visible = FilteredPins.Cast<MapMachinePin>().Count();
+            return $"{visible} of {total} machines";
+        }
+    }
+
+    public int[]? GetVisibleMachineIds() =>
+        string.IsNullOrWhiteSpace(_appliedFilter)
+            ? null
+            : FilteredPins.Cast<MapMachinePin>().Select(p => p.MachineId).ToArray();
+
+    public event Action<MapMachinePin>?       PinUpdated;
     public event Action<List<MapMachinePin>>? PinsLoaded;
-    public event Action<double, double>?     PlaceFound;
-    public event Action<MapMachinePin>?      PinFocusRequested;
+    public event Action<double, double>?      PlaceFound;
+    public event Action<MapMachinePin>?       PinFocusRequested;
+    public event Action<int[]?>?              FilterChanged;
+
+    public FleetMapViewModel(ApiClient api, SignalRClient signalR, IGeocodingService geocoding)
+    {
+        _api       = api;
+        _signalR   = signalR;
+        _geocoding = geocoding;
+
+        _signalR.MachineLocationUpdated += OnLocationUpdate;
+        _signalR.MachineWentOffline     += OnMachineOffline;
+        _signalR.MachineOnline          += OnMachineOnline;
+
+        FilteredPins        = CollectionViewSource.GetDefaultView(Pins);
+        FilteredPins.Filter = FilterMachinePin;
+        Pins.CollectionChanged += (_, _) => OnPropertyChanged(nameof(MachineCountText));
+    }
+
+    private bool FilterMachinePin(object obj)
+    {
+        if (obj is not MapMachinePin pin) return false;
+        if (string.IsNullOrWhiteSpace(_appliedFilter)) return true;
+        return pin.MachineName.Contains(_appliedFilter, StringComparison.OrdinalIgnoreCase)
+            || (pin.OperatorName?.Contains(_appliedFilter, StringComparison.OrdinalIgnoreCase) ?? false)
+            || pin.City.Contains(_appliedFilter, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [RelayCommand]
+    private void ApplyMachineFilter()
+    {
+        _appliedFilter = MachineFilterText.Trim();
+        FilteredPins.Refresh();
+        OnPropertyChanged(nameof(MachineCountText));
+        FilterChanged?.Invoke(GetVisibleMachineIds());
+    }
+
+    [RelayCommand]
+    private void ClearMachineFilter()
+    {
+        MachineFilterText = string.Empty;
+        _appliedFilter    = string.Empty;
+        FilteredPins.Refresh();
+        OnPropertyChanged(nameof(MachineCountText));
+        FilterChanged?.Invoke(null);
+    }
 
     [RelayCommand]
     private async Task SelectPin(MapMachinePin? pin)
     {
-        SelectedPin = pin;
+        SelectedPin        = pin;
         SelectedPinAddress = string.Empty;
         if (pin == null) return;
         PinFocusRequested?.Invoke(pin);
@@ -51,14 +113,8 @@ public partial class FleetMapViewModel : ObservableObject
         IsLoadingAddress = true;
         try
         {
-            var http = _httpFactory.CreateClient();
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("AadharLocationApp/1.0");
-            var url = $"https://nominatim.openstreetmap.org/reverse?lat={pin.Latitude.ToString(CultureInfo.InvariantCulture)}&lon={pin.Longitude.ToString(CultureInfo.InvariantCulture)}&format=json";
-            var json = await http.GetStringAsync(url);
-            var result = JsonSerializer.Deserialize<NominatimReverseResult>(json);
-            SelectedPinAddress = result?.display_name ?? string.Empty;
-
-            var city = ExtractCity(result?.address);
+            SelectedPinAddress = await _geocoding.GetAddressAsync(pin.Latitude, pin.Longitude);
+            var city = await _geocoding.GetCityAsync(pin.Latitude, pin.Longitude);
             if (!string.IsNullOrEmpty(city))
                 await UpdatePinCityAsync(pin.MachineId, city);
         }
@@ -73,43 +129,22 @@ public partial class FleetMapViewModel : ObservableObject
             if (!string.IsNullOrEmpty(pin.City)) continue;
             try
             {
-                var city = await FetchCityAsync(pin.Latitude, pin.Longitude);
+                var city = await _geocoding.GetCityAsync(pin.Latitude, pin.Longitude);
                 if (!string.IsNullOrEmpty(city))
                     await UpdatePinCityAsync(pin.MachineId, city);
             }
             catch (Exception ex) { StatusMessage = $"City lookup failed: {ex.Message}"; }
-            await Task.Delay(1100); // Nominatim rate limit: 1 req/sec
         }
     }
 
-    private async Task<string> FetchCityAsync(double lat, double lon)
-    {
-        var http = _httpFactory.CreateClient();
-        http.DefaultRequestHeaders.UserAgent.ParseAdd("AadharLocationApp/1.0");
-        var url = $"https://nominatim.openstreetmap.org/reverse?lat={lat.ToString(CultureInfo.InvariantCulture)}&lon={lon.ToString(CultureInfo.InvariantCulture)}&format=json";
-        var json = await http.GetStringAsync(url);
-        var result = JsonSerializer.Deserialize<NominatimReverseResult>(json);
-        return ExtractCity(result?.address);
-    }
-
-    private static string ExtractCity(NominatimAddress? addr) =>
-        addr?.city
-        ?? addr?.town
-        ?? addr?.municipality
-        ?? addr?.city_district
-        ?? addr?.county
-        ?? addr?.village
-        ?? addr?.suburb
-        ?? string.Empty;
-
     private Task UpdatePinCityAsync(int machineId, string city)
     {
-        var idx = -1;
+        var idx     = -1;
         MapMachinePin? current = null;
         for (var i = 0; i < Pins.Count; i++)
         {
             if (Pins[i].MachineId != machineId) continue;
-            idx = i;
+            idx     = i;
             current = Pins[i];
             break;
         }
@@ -125,20 +160,10 @@ public partial class FleetMapViewModel : ObservableObject
         return Task.CompletedTask;
     }
 
-    public FleetMapViewModel(ApiClient api, SignalRClient signalR, IHttpClientFactory httpFactory)
-    {
-        _api         = api;
-        _signalR     = signalR;
-        _httpFactory = httpFactory;
-        _signalR.MachineLocationUpdated += OnLocationUpdate;
-        _signalR.MachineWentOffline     += OnMachineOffline;
-        _signalR.MachineOnline          += OnMachineOnline;
-    }
-
     [RelayCommand]
     public async Task LoadAsync()
     {
-        IsLoading = true;
+        IsLoading     = true;
         StatusMessage = string.Empty;
         try
         {
@@ -149,7 +174,7 @@ public partial class FleetMapViewModel : ObservableObject
                 var pins = machines
                     .Where(m => m.CurrentLatitude.HasValue && m.CurrentLongitude.HasValue)
                     .Select(m => new MapMachinePin(m.Id, m.Name, m.AssignedOperatorName,
-                        m.CurrentLatitude!.Value, m.CurrentLongitude!.Value, m.Status, true))
+                        m.CurrentLatitude!.Value, m.CurrentLongitude!.Value, m.Status, m.IsWithinGeofence ?? true))
                     .ToList();
 
                 foreach (var p in pins) Pins.Add(p);
@@ -161,54 +186,19 @@ public partial class FleetMapViewModel : ObservableObject
         finally { IsLoading = false; }
     }
 
-    private void OnLocationUpdate(MachineLocationUpdate u)
-    {
-        var existing = Pins.FirstOrDefault(p => p.MachineId == u.MachineId);
-        var updated  = new MapMachinePin(u.MachineId, u.MachineName, u.OperatorName,
-            u.Latitude, u.Longitude, Shared.Enums.MachineStatus.Online, u.IsWithinGeofence,
-            existing?.City ?? string.Empty);
-
-        if (existing != null) Pins[Pins.IndexOf(existing)] = updated;
-        else Pins.Add(updated);
-
-        PinUpdated?.Invoke(updated);
-    }
-
-    private void OnMachineOffline(MachineOfflineEvent e)
-    {
-        var existing = Pins.FirstOrDefault(p => p.MachineId == e.MachineId);
-        if (existing == null) return;
-        var updated = existing with { Status = Shared.Enums.MachineStatus.Offline };
-        Pins[Pins.IndexOf(existing)] = updated;
-        PinUpdated?.Invoke(updated);
-    }
-
-    private void OnMachineOnline(int machineId, string machineName)
-    {
-        var existing = Pins.FirstOrDefault(p => p.MachineId == machineId);
-        if (existing == null) return;
-        var updated = existing with { Status = Shared.Enums.MachineStatus.Online };
-        Pins[Pins.IndexOf(existing)] = updated;
-        PinUpdated?.Invoke(updated);
-    }
-
     [RelayCommand]
     private async Task SearchAsync()
     {
         if (string.IsNullOrWhiteSpace(SearchText)) return;
-        IsSearching = true;
+        IsSearching   = true;
         StatusMessage = string.Empty;
         try
         {
-            var http = _httpFactory.CreateClient();
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("AadharLocationApp/1.0");
-            var url = $"https://nominatim.openstreetmap.org/search?q={Uri.EscapeDataString(SearchText)}&format=json&limit=1";
-            var json = await http.GetStringAsync(url);
-            var results = JsonSerializer.Deserialize<NominatimResult[]>(json);
-            if (results is { Length: > 0 })
+            var result = await _geocoding.SearchPlaceAsync(SearchText);
+            if (result.HasValue)
             {
-                PlaceFound?.Invoke(double.Parse(results[0].lat), double.Parse(results[0].lon));
-                StatusMessage = results[0].display_name;
+                PlaceFound?.Invoke(result.Value.Lat, result.Value.Lon);
+                StatusMessage = SearchText;
             }
             else
             {
@@ -219,21 +209,45 @@ public partial class FleetMapViewModel : ObservableObject
         finally { IsSearching = false; }
     }
 
-    private record NominatimResult(
-        [property: JsonPropertyName("lat")] string lat,
-        [property: JsonPropertyName("lon")] string lon,
-        [property: JsonPropertyName("display_name")] string display_name);
+    private void OnLocationUpdate(MachineLocationUpdate u)
+    {
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var existing = Pins.FirstOrDefault(p => p.MachineId == u.MachineId);
+            var updated  = new MapMachinePin(u.MachineId, u.MachineName, u.OperatorName,
+                u.Latitude, u.Longitude, Shared.Enums.MachineStatus.Online, u.IsWithinGeofence,
+                existing?.City ?? string.Empty);
 
-    private record NominatimReverseResult(
-        [property: JsonPropertyName("display_name")] string display_name,
-        [property: JsonPropertyName("address")] NominatimAddress? address);
+            if (existing != null) Pins[Pins.IndexOf(existing)] = updated;
+            else Pins.Add(updated);
 
-    private record NominatimAddress(
-        [property: JsonPropertyName("city")]          string? city,
-        [property: JsonPropertyName("town")]          string? town,
-        [property: JsonPropertyName("municipality")]  string? municipality,
-        [property: JsonPropertyName("city_district")] string? city_district,
-        [property: JsonPropertyName("county")]        string? county,
-        [property: JsonPropertyName("village")]       string? village,
-        [property: JsonPropertyName("suburb")]        string? suburb);
+            PinUpdated?.Invoke(updated);
+        });
+    }
+
+    private void OnMachineOffline(MachineOfflineEvent e)
+    {
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var existing = Pins.FirstOrDefault(p => p.MachineId == e.MachineId);
+            if (existing == null) return;
+            var updated = existing with { Status = Shared.Enums.MachineStatus.Offline };
+            Pins[Pins.IndexOf(existing)] = updated;
+            PinUpdated?.Invoke(updated);
+            if (SelectedPin?.MachineId == e.MachineId) SelectedPin = updated;
+        });
+    }
+
+    private void OnMachineOnline(int machineId, string machineName)
+    {
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var existing = Pins.FirstOrDefault(p => p.MachineId == machineId);
+            if (existing == null) return;
+            var updated = existing with { Status = Shared.Enums.MachineStatus.Online };
+            Pins[Pins.IndexOf(existing)] = updated;
+            PinUpdated?.Invoke(updated);
+            if (SelectedPin?.MachineId == machineId) SelectedPin = updated;
+        });
+    }
 }

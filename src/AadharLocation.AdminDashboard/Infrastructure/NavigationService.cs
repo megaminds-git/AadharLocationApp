@@ -6,6 +6,7 @@ public enum NavPage
 {
     Dashboard,
     Operators,
+    Admins,
     Machines,
     FleetMap,
     Alerts,
@@ -33,6 +34,7 @@ public class NavigationService
     {
         NavPage.Dashboard  => (UserControl)_services.GetService(typeof(Views.Pages.DashboardPage))!,
         NavPage.Operators  => (UserControl)_services.GetService(typeof(Views.Pages.OperatorsPage))!,
+        NavPage.Admins     => (UserControl)_services.GetService(typeof(Views.Pages.AdminsPage))!,
         NavPage.Machines   => (UserControl)_services.GetService(typeof(Views.Pages.MachinesPage))!,
         NavPage.FleetMap   => (UserControl)_services.GetService(typeof(Views.Pages.FleetMapPage))!,
         NavPage.Alerts     => (UserControl)_services.GetService(typeof(Views.Pages.AlertsPage))!,

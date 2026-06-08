@@ -16,12 +16,22 @@ public class MachinesController(AppDbContext db) : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? search = null)
     {
         var query = db.Machines
             .Include(m => m.AssignedOperator)
             .Include(m => m.Geofences.Where(g => g.IsActive))
             .AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var s = search.ToLower();
+            query = query.Where(m =>
+                m.Name.ToLower().Contains(s) ||
+                m.SerialNumber.ToLower().Contains(s) ||
+                (m.AssignedOperator != null && m.AssignedOperator.Name.ToLower().Contains(s)));
+        }
 
         var total = await query.CountAsync();
         var machines = await query

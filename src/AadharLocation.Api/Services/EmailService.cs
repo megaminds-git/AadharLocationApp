@@ -21,7 +21,7 @@ public class EmailService(
         var message = new EmailMessage
         {
             From        = $"{cfg.FromName} <{cfg.FromAddress}>",
-            Subject     = $"[AadharLocation] Alert Report — {DateTime.UtcNow:dd MMM yyyy}",
+            Subject     = $"[AadharLocation] Alert Report — {DateTime.Now:dd MMM yyyy}",
             HtmlBody    = BuildReportEmailHtml(fileName),
             Attachments = [new EmailAttachment { Filename = fileName, Content = csvBytes, ContentType = "text/csv" }],
         };
@@ -78,10 +78,14 @@ public class EmailService(
             From     = $"{cfg.FromName} <{cfg.FromAddress}>",
             Subject  = subject,
             HtmlBody = htmlBody,
+            Bcc      = new EmailAddressList(),
         };
 
+        // Send to the from-address so "To" shows a clean system address;
+        // actual recipients go in BCC so they cannot see each other.
+        message.To.Add(cfg.FromAddress);
         foreach (var recipient in recipients)
-            message.To.Add(recipient);
+            message.Bcc.Add(recipient);
 
         try
         {
@@ -138,8 +142,8 @@ public class EmailService(
                   <td style="padding:8px 0;color:#111827">{operatorName}</td>
                 </tr>
                 <tr>
-                  <td style="padding:8px 0;color:#6B7280;vertical-align:top">Time (UTC)</td>
-                  <td style="padding:8px 0;color:#111827">{breachedAt:dd MMM yyyy HH:mm:ss}</td>
+                  <td style="padding:8px 0;color:#6B7280;vertical-align:top">Time</td>
+                  <td style="padding:8px 0;color:#111827">{breachedAt.ToLocalTime():dd MMM yyyy HH:mm:ss}</td>
                 </tr>
                 <tr>
                   <td style="padding:8px 0;color:#6B7280;vertical-align:top">Coordinates</td>
@@ -178,8 +182,8 @@ public class EmailService(
                   <td style="padding:8px 0;font-weight:600;color:#111827">{machineName}</td>
                 </tr>
                 <tr>
-                  <td style="padding:8px 0;color:#6B7280;vertical-align:top">Last Seen (UTC)</td>
-                  <td style="padding:8px 0;color:#111827">{lastSeenAt:dd MMM yyyy HH:mm:ss}</td>
+                  <td style="padding:8px 0;color:#6B7280;vertical-align:top">Last Seen</td>
+                  <td style="padding:8px 0;color:#111827">{lastSeenAt.ToLocalTime():dd MMM yyyy HH:mm:ss}</td>
                 </tr>
                 <tr>
                   <td style="padding:8px 0;color:#6B7280;vertical-align:top">Offline Duration</td>

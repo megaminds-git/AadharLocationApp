@@ -21,11 +21,15 @@
     <SolidColorBrush x:Key="CardAccentGreenBrush" Color="#4ADE80"/>
     <SolidColorBrush x:Key="CardAccentRedBrush"   Color="#F87171"/>
     <SolidColorBrush x:Key="CardAccentAmberBrush" Color="#FBBF24"/>
+    <SolidColorBrush x:Key="CardAccentBlueBrush"  Color="#60A5FA"/>
+    <SolidColorBrush x:Key="CardAccentOrangeBrush" Color="#FB923C"/>
 
     <!-- Semi-transparent badge backgrounds (AARRGGBB) -->
     <SolidColorBrush x:Key="BadgeTealBrush"   Color="#262DD4BF"/>
     <SolidColorBrush x:Key="BadgeGreenBrush"  Color="#264ADE80"/>
     <SolidColorBrush x:Key="BadgeRedBrush"    Color="#26F87171"/>
     <SolidColorBrush x:Key="BadgeAmberBrush"  Color="#26FBBF24"/>
+    <SolidColorBrush x:Key="BadgeBlueBrush"   Color="#2660A5FA"/>
+    <SolidColorBrush x:Key="BadgeOrangeBrush" Color="#26FB923C"/>
 
 </ResourceDictionary>

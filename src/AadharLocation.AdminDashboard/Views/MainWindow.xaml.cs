@@ -47,6 +47,7 @@ public partial class MainWindow : Window
         {
             case DashboardPage p:  await p.ActivateAsync(); break;
             case OperatorsPage p:  await p.ActivateAsync(); break;
+            case AdminsPage p:     await p.ActivateAsync(); break;
             case MachinesPage p:   await p.ActivateAsync(); break;
             case FleetMapPage p:   await p.ActivateAsync(); break;
             case AlertsPage p:     await p.ActivateAsync(); break;
@@ -84,6 +85,7 @@ public partial class MainWindow : Window
         {
             case DashboardPage p:  await p.ActivateAsync(); break;
             case OperatorsPage p:  await p.ActivateAsync(); break;
+            case AdminsPage p:     await p.ActivateAsync(); break;
             case MachinesPage p:   await p.ActivateAsync(); break;
             case FleetMapPage p:   await p.ActivateAsync(); break;
             case AlertsPage p:     await p.ActivateAsync(); break;

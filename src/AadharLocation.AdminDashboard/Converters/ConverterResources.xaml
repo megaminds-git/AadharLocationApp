@@ -13,5 +13,6 @@
     <converters:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibility"/>
     <converters:BoundaryStatusToTextConverter       x:Key="BoundaryText"/>
     <converters:BoundaryStatusToColorConverter      x:Key="BoundaryColor"/>
+    <converters:StringNotEqualConverter             x:Key="StringNotEqual"/>
 
 </ResourceDictionary>

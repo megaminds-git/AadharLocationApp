@@ -13,6 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<LocationLog> LocationLogs => Set<LocationLog>();
     public DbSet<Alert> Alerts => Set<Alert>();
     public DbSet<TrackerActivation> TrackerActivations => Set<TrackerActivation>();
+    public DbSet<AppSetting> AppSettings => Set<AppSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -65,6 +66,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(t => t.DeviceKey).IsUnique();
             e.HasOne(t => t.Operator).WithMany(o => o.TrackerActivations).HasForeignKey(t => t.OperatorId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(t => t.Machine).WithMany(m => m.TrackerActivations).HasForeignKey(t => t.MachineId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AppSetting>(e =>
+        {
+            e.HasKey(s => s.Key);
+            e.Property(s => s.Key).HasMaxLength(100);
+            e.Property(s => s.Value).HasMaxLength(2000);
         });
     }
 }

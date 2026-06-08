@@ -9,6 +9,7 @@ using AadharLocation.Shared.DTOs.Alerts;
 using AadharLocation.Shared.DTOs.Auth;
 using AadharLocation.Shared.DTOs.Geofences;
 using AadharLocation.Shared.DTOs.Machines;
+using AadharLocation.Shared.DTOs.Admins;
 using AadharLocation.Shared.DTOs.Operators;
 
 namespace AadharLocation.AdminDashboard.Infrastructure;
@@ -50,6 +51,36 @@ public class ApiClient
         SetAuthHeader();
         var resp = await _http.PostAsJsonAsync(ApiRoutes.Auth.ChangePassword,
             new ChangePasswordRequest(currentPassword, newPassword));
+        resp.EnsureSuccessStatusCode();
+    }
+
+    // ── Admins ────────────────────────────────────────────────────────────────
+
+    public async Task<List<AdminDto>?> GetAdminsAsync()
+    {
+        SetAuthHeader();
+        return await _http.GetFromJsonAsync<List<AdminDto>>(ApiRoutes.Admins.Base, _json);
+    }
+
+    public async Task<AdminDto?> CreateAdminAsync(CreateAdminRequest req)
+    {
+        SetAuthHeader();
+        var resp = await _http.PostAsJsonAsync(ApiRoutes.Admins.Base, req);
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadFromJsonAsync<AdminDto>(_json);
+    }
+
+    public async Task UpdateAdminAsync(int id, UpdateAdminRequest req)
+    {
+        SetAuthHeader();
+        var resp = await _http.PutAsJsonAsync(ApiRoutes.Admins.Base + $"/{id}", req);
+        resp.EnsureSuccessStatusCode();
+    }
+
+    public async Task DeleteAdminAsync(int id)
+    {
+        SetAuthHeader();
+        var resp = await _http.DeleteAsync(ApiRoutes.Admins.Base + $"/{id}");
         resp.EnsureSuccessStatusCode();
     }
 
@@ -96,11 +127,12 @@ public class ApiClient
 
     // ── Machines ──────────────────────────────────────────────────────────────
 
-    public async Task<PagedResult<MachineDto>?> GetMachinesAsync(int page = 1, int pageSize = 50)
+    public async Task<PagedResult<MachineDto>?> GetMachinesAsync(int page = 1, int pageSize = 50, string? search = null)
     {
         SetAuthHeader();
-        return await _http.GetFromJsonAsync<PagedResult<MachineDto>>(
-            $"{ApiRoutes.Machines.Base}?page={page}&pageSize={pageSize}", _json);
+        var url = $"{ApiRoutes.Machines.Base}?page={page}&pageSize={pageSize}";
+        if (!string.IsNullOrWhiteSpace(search)) url += $"&search={Uri.EscapeDataString(search)}";
+        return await _http.GetFromJsonAsync<PagedResult<MachineDto>>(url, _json);
     }
 
     public async Task<List<MachineDto>?> GetLiveMachinesAsync()
@@ -202,8 +234,8 @@ public class ApiClient
         SetAuthHeader();
         var parts = new List<string>();
         if (machineId.HasValue) parts.Add($"machineId={machineId.Value}");
-        if (from.HasValue)      parts.Add($"from={from.Value:yyyy-MM-ddTHH:mm:ss}");
-        if (to.HasValue)        parts.Add($"to={to.Value:yyyy-MM-ddTHH:mm:ss}");
+        if (from.HasValue)      parts.Add($"from={from.Value.ToUniversalTime():yyyy-MM-ddTHH:mm:ss}Z");
+        if (to.HasValue)        parts.Add($"to={to.Value.ToUniversalTime():yyyy-MM-ddTHH:mm:ss}Z");
         var url = parts.Count > 0
             ? ApiRoutes.Reports.Device + "?" + string.Join("&", parts)
             : ApiRoutes.Reports.Device;
@@ -221,8 +253,8 @@ public class ApiClient
         var parts = new List<string> { $"page={page}", $"pageSize={pageSize}" };
         if (machineIds  != null) foreach (var id in machineIds)  parts.Add($"machineIds={id}");
         if (operatorIds != null) foreach (var id in operatorIds) parts.Add($"operatorIds={id}");
-        if (from.HasValue) parts.Add($"from={from.Value:yyyy-MM-ddTHH:mm:ss}");
-        if (to.HasValue)   parts.Add($"to={to.Value:yyyy-MM-ddTHH:mm:ss}");
+        if (from.HasValue) parts.Add($"from={from.Value.ToUniversalTime():yyyy-MM-ddTHH:mm:ss}Z");
+        if (to.HasValue)   parts.Add($"to={to.Value.ToUniversalTime():yyyy-MM-ddTHH:mm:ss}Z");
         return await _http.GetFromJsonAsync<PagedResult<AlertDto>>(
             ApiRoutes.Reports.Alerts + "?" + string.Join("&", parts), _json);
     }
@@ -235,8 +267,8 @@ public class ApiClient
         var parts = new List<string>();
         if (machineIds  != null) foreach (var id in machineIds)  parts.Add($"machineIds={id}");
         if (operatorIds != null) foreach (var id in operatorIds) parts.Add($"operatorIds={id}");
-        if (from.HasValue) parts.Add($"from={from.Value:yyyy-MM-ddTHH:mm:ss}");
-        if (to.HasValue)   parts.Add($"to={to.Value:yyyy-MM-ddTHH:mm:ss}");
+        if (from.HasValue) parts.Add($"from={from.Value.ToUniversalTime():yyyy-MM-ddTHH:mm:ss}Z");
+        if (to.HasValue)   parts.Add($"to={to.Value.ToUniversalTime():yyyy-MM-ddTHH:mm:ss}Z");
         var url = parts.Count > 0
             ? ApiRoutes.Reports.AlertsExport + "?" + string.Join("&", parts)
             : ApiRoutes.Reports.AlertsExport;
@@ -250,7 +282,9 @@ public class ApiClient
         DateTime? from, DateTime? to)
     {
         SetAuthHeader();
-        var body = new { email, machineIds, operatorIds, from, to };
+        var fromUtc = from?.ToUniversalTime();
+        var toUtc   = to?.ToUniversalTime();
+        var body = new { email, machineIds, operatorIds, from = fromUtc, to = toUtc };
         var resp = await _http.PostAsJsonAsync(ApiRoutes.Reports.AlertsEmail, body, _json);
         if (!resp.IsSuccessStatusCode)
         {

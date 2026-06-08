@@ -65,4 +65,10 @@ public static class ApiRoutes
     {
         public const string Base = $"{ApiRoutes.Base}/settings";
     }
+
+    public static class Admins
+    {
+        public const string Base = $"{ApiRoutes.Base}/admins";
+        public const string ById = $"{Base}/{{id}}";
+    }
 }

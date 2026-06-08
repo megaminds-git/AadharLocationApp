@@ -142,12 +142,13 @@ public partial class ReportsViewModel : ObservableObject
         {
             var machineIds  = MachineItems .Where(m => m.IsSelected).Select(m => m.Id).ToArray();
             var operatorIds = OperatorItems.Where(o => o.IsSelected).Select(o => o.Id).ToArray();
-            var toEndOfDay  = ToDate?.Date.AddDays(1).AddTicks(-1);
+            var fromStart   = FromDate?.Date;
+            var toEnd       = ToDate?.Date.AddDays(1).AddTicks(-1);
 
             var result = await _api.GetAlertReportAsync(
                 machineIds .Length > 0 ? machineIds  : null,
                 operatorIds.Length > 0 ? operatorIds : null,
-                FromDate, toEndOfDay,
+                fromStart, toEnd,
                 CurrentPage, PageSize);
 
             ReportRows.Clear();
@@ -179,11 +180,12 @@ public partial class ReportsViewModel : ObservableObject
             var machineIds  = MachineItems .Where(m => m.IsSelected).Select(m => m.Id).ToArray();
             var operatorIds = OperatorItems.Where(o => o.IsSelected).Select(o => o.Id).ToArray();
 
-            var toEndOfDay = ToDate?.Date.AddDays(1).AddTicks(-1);
+            var fromStart = FromDate?.Date;
+            var toEnd     = ToDate?.Date.AddDays(1).AddTicks(-1);
             var bytes = await _api.ExportAlertReportAsync(
                 machineIds .Length > 0 ? machineIds  : null,
                 operatorIds.Length > 0 ? operatorIds : null,
-                FromDate, toEndOfDay);
+                fromStart, toEnd);
 
             await File.WriteAllBytesAsync(dialog.FileName, bytes);
             ExportStatus = $"Saved: {Path.GetFileName(dialog.FileName)}";
@@ -208,13 +210,14 @@ public partial class ReportsViewModel : ObservableObject
         {
             var machineIds  = MachineItems .Where(m => m.IsSelected).Select(m => m.Id).ToArray();
             var operatorIds = OperatorItems.Where(o => o.IsSelected).Select(o => o.Id).ToArray();
-            var toEndOfDay  = ToDate?.Date.AddDays(1).AddTicks(-1);
+            var fromStart = FromDate?.Date;
+            var toEnd     = ToDate?.Date.AddDays(1).AddTicks(-1);
 
             await _api.EmailAlertReportAsync(
                 EmailAddress,
                 machineIds .Length > 0 ? machineIds  : null,
                 operatorIds.Length > 0 ? operatorIds : null,
-                FromDate, toEndOfDay);
+                fromStart, toEnd);
 
             ExportStatus = $"Report sent to {EmailAddress}";
         }

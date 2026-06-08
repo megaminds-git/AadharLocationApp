@@ -1,160 +1,172 @@
+using System.IO;
+using System.Linq;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using AadharLocation.AdminDashboard.Infrastructure;
 using AadharLocation.AdminDashboard.ViewModels;
-using BruTile.Predefined;
-using BruTile.Web;
-using Mapsui;
-using Mapsui.Extensions;
-using Mapsui.Layers;
-using Mapsui.Projections;
-using Mapsui.Styles;
-using Mapsui.Tiling.Layers;
-using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Options;
+using Microsoft.Web.WebView2.Core;
 
 namespace AadharLocation.AdminDashboard.Views.Pages;
 
 public partial class FleetMapPage : UserControl
 {
     private readonly FleetMapViewModel _vm;
-    private readonly WritableLayer _markerLayer = new() { Name = "Machines" };
-    private readonly Dictionary<int, PointFeature> _features = [];
+    private readonly string _apiKey;
+    private bool _mapReady = false;
+    private List<MapMachinePin>? _pendingPins = null;
 
-    public FleetMapPage(FleetMapViewModel vm)
+    public FleetMapPage(FleetMapViewModel vm, IOptions<GoogleMapsOptions> mapsOptions)
     {
         InitializeComponent();
-        _vm = vm;
+        _vm     = vm;
+        _apiKey = mapsOptions.Value.ApiKey;
         DataContext = vm;
 
         vm.PinsLoaded        += OnPinsLoaded;
         vm.PinUpdated        += OnPinUpdated;
         vm.PlaceFound        += OnPlaceFound;
         vm.PinFocusRequested += OnPinFocusRequested;
+        vm.FilterChanged     += OnFilterChanged;
 
-        InitMap();
+        Loaded += OnLoaded;
     }
 
-    private void InitMap()
+    private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        var map = new Map();
-        map.Layers.Add(CreateCartoVoyagerLayer());
-        map.Layers.Add(_markerLayer);
-        MapControl.Map = map;
+        await MapWebView.EnsureCoreWebView2Async();
+        MapWebView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
+        LoadMapHtml();
     }
 
-    private static TileLayer CreateCartoVoyagerLayer()
+    private void LoadMapHtml()
     {
-        var tileSource = new HttpTileSource(
-            new GlobalSphericalMercator(),
-            "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-            name: "CARTO Voyager");
-        return new TileLayer(tileSource) { Name = "Base Map" };
+        var html    = HtmlLoader.Load("fleet_map.html").Replace("{{API_KEY}}", _apiKey);
+        var tmpDir  = Path.Combine(Path.GetTempPath(), "AadharLocationMaps");
+        Directory.CreateDirectory(tmpDir);
+        var tmpFile = Path.Combine(tmpDir, "fleet_map.html");
+        File.WriteAllText(tmpFile, html, System.Text.Encoding.UTF8);
+
+        MapWebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+            "maps.aadhar.local", tmpDir, CoreWebView2HostResourceAccessKind.Allow);
+        MapWebView.CoreWebView2.Navigate("https://maps.aadhar.local/fleet_map.html");
     }
 
-    private void OnPlaceFound(double lat, double lon)
+    private void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
     {
-        var pt = SphericalMercator.FromLonLat(lon, lat);
-        MapControl.Map.Navigator.CenterOnAndZoomTo(new MPoint(pt.x, pt.y), resolution: 5);
-    }
+        var json = e.TryGetWebMessageAsString();
+        if (json is null) return;
 
-    private void OnPinFocusRequested(MapMachinePin pin)
-    {
-        Application.Current.Dispatcher.Invoke(() =>
+        try
         {
-            var pt = SphericalMercator.FromLonLat(pin.Longitude, pin.Latitude);
-            MapControl.Map.Navigator.CenterOnAndZoomTo(new MPoint(pt.x, pt.y), resolution: 5);
-        });
-    }
+            var doc  = JsonDocument.Parse(json);
+            var type = doc.RootElement.GetProperty("type").GetString();
 
-    public async Task ActivateAsync()
-    {
-        await _vm.LoadAsync();
+            switch (type)
+            {
+                case "MapReady":
+                    _mapReady = true;
+                    SendMessage(new { type = "InitMap", theme = GetTheme() });
+                    if (_pendingPins is not null)
+                    {
+                        SendLoadPins(_pendingPins);
+                        _pendingPins = null;
+                        ApplyCurrentFilter();
+                    }
+                    break;
+
+                case "MarkerClicked":
+                    var machineId = doc.RootElement.GetProperty("machineId").GetInt32();
+                    var pin = _vm.Pins.FirstOrDefault(p => p.MachineId == machineId);
+                    if (pin is not null)
+                        Application.Current.Dispatcher.InvokeAsync(() => _vm.SelectPinCommand.Execute(pin));
+                    break;
+            }
+        }
+        catch { /* ignore malformed messages */ }
     }
 
     private void OnPinsLoaded(List<MapMachinePin> pins)
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
-            _features.Clear();
-            _markerLayer.Clear();
-            foreach (var p in pins) AddOrUpdateFeature(p);
-            _markerLayer.DataHasChanged();
-            ZoomToFit();
+            if (_mapReady)
+            {
+                SendLoadPins(pins);
+                ApplyCurrentFilter();
+            }
+            else _pendingPins = pins;
         });
+    }
+
+    private void OnFilterChanged(int[]? visibleIds)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            if (!_mapReady) return;
+            SendMessage(new { type = "SetVisiblePins", machineIds = visibleIds });
+        });
+    }
+
+    private void ApplyCurrentFilter()
+    {
+        if (!_mapReady) return;
+        SendMessage(new { type = "SetVisiblePins", machineIds = _vm.GetVisibleMachineIds() });
     }
 
     private void OnPinUpdated(MapMachinePin pin)
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
-            AddOrUpdateFeature(pin);
-            _markerLayer.DataHasChanged();
+            if (!_mapReady) return;
+            SendMessage(new { type = "UpdatePin", pin = SerializePin(pin) });
         });
     }
 
-    private void AddOrUpdateFeature(MapMachinePin pin)
+    private void OnPlaceFound(double lat, double lon)
     {
-        var spherical = SphericalMercator.FromLonLat(pin.Longitude, pin.Latitude);
-        var mpoint    = new MPoint(spherical.x, spherical.y);
-
-        var color = pin.Status switch
-        {
-            Shared.Enums.MachineStatus.Online  => Mapsui.Styles.Color.FromString("#4ADE80"),
-            Shared.Enums.MachineStatus.Offline => Mapsui.Styles.Color.FromString("#F87171"),
-            _                                   => Mapsui.Styles.Color.FromString("#FBBF24"),
-        };
-
-        if (_features.TryGetValue(pin.MachineId, out var existing))
-        {
-            _markerLayer.TryRemove(existing);
-        }
-
-        var feature = new PointFeature(mpoint);
-        feature.Styles.Add(MakeSymbol(color));
-        feature.Styles.Add(new LabelStyle
-        {
-            Text       = pin.MachineName,
-            ForeColor  = Mapsui.Styles.Color.White,
-            BackColor  = new Mapsui.Styles.Brush(Mapsui.Styles.Color.FromArgb(180, 0, 0, 0)),
-            Offset     = new Offset(0, -20),
-            MaxVisible = double.MaxValue,
-            MinVisible = double.MinValue,
-        });
-        if (!string.IsNullOrEmpty(pin.City))
-        {
-            feature.Styles.Add(new LabelStyle
-            {
-                Text       = pin.City,
-                ForeColor  = Mapsui.Styles.Color.White,
-                BackColor  = new Mapsui.Styles.Brush(Mapsui.Styles.Color.FromArgb(150, 30, 30, 30)),
-                Offset     = new Offset(0, 20),
-                Font       = new Font { Size = 10 },
-                MaxVisible = double.MaxValue,
-                MinVisible = double.MinValue,
-            });
-        }
-        _features[pin.MachineId] = feature;
-        _markerLayer.Add(feature);
+        Application.Current.Dispatcher.Invoke(() =>
+            SendMessage(new { type = "FocusLocation", latitude = lat, longitude = lon }));
     }
 
-    private static IStyle MakeSymbol(Mapsui.Styles.Color fill) =>
-        new SymbolStyle
-        {
-            SymbolScale = 0.6,
-            Fill        = new Mapsui.Styles.Brush(fill),
-            Outline     = new Pen(Mapsui.Styles.Color.White, 2),
-            MaxVisible  = double.MaxValue,
-            MinVisible  = double.MinValue,
-        };
-
-    private void ZoomToFit()
+    private void OnPinFocusRequested(MapMachinePin pin)
     {
-        if (_features.Count == 0) return;
-        var points = _features.Values.Select(f => f.Point).ToList();
-        var minX = points.Min(p => p.X);
-        var maxX = points.Max(p => p.X);
-        var minY = points.Min(p => p.Y);
-        var maxY = points.Max(p => p.Y);
-        var extent = new MRect(minX - 5000, minY - 5000, maxX + 5000, maxY + 5000);
-        MapControl.Map.Navigator.ZoomToBox(extent);
+        Application.Current.Dispatcher.Invoke(() =>
+            SendMessage(new { type = "FocusPin", machineId = pin.MachineId, latitude = pin.Latitude, longitude = pin.Longitude }));
+    }
+
+    private void SendLoadPins(List<MapMachinePin> pins)
+    {
+        SendMessage(new { type = "LoadPins", pins = pins.Select(SerializePin).ToArray() });
+    }
+
+    private static object SerializePin(MapMachinePin p) => new
+    {
+        machineId        = p.MachineId,
+        machineName      = p.MachineName,
+        operatorName     = p.OperatorName,
+        latitude         = p.Latitude,
+        longitude        = p.Longitude,
+        status           = p.Status.ToString(),
+        isWithinGeofence = p.IsWithinGeofence,
+        city             = p.City
+    };
+
+    private void SendMessage(object payload)
+    {
+        if (MapWebView.CoreWebView2 is null) return;
+        MapWebView.CoreWebView2.PostWebMessageAsString(JsonSerializer.Serialize(payload));
+    }
+
+    private static string GetTheme()
+    {
+        var theme = Application.Current.Resources["ThemeMode"] as string;
+        return theme == "Dark" ? "dark" : "light";
+    }
+
+    public async Task ActivateAsync()
+    {
+        await _vm.LoadAsync();
     }
 }

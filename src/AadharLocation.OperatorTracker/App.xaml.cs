@@ -19,6 +19,11 @@ public partial class App
     private IHost? _host;
     private WinForms.NotifyIcon? _trayIcon;
     private ProfileWindow? _profileWindow;
+    private WinForms.ToolStripItem? _statusTrayItem;
+    private WinForms.ToolStripSeparator? _sep1TrayItem;
+    private WinForms.ToolStripItem? _openLoginTrayItem;
+    private WinForms.ToolStripSeparator? _sep2TrayItem;
+    private WinForms.ToolStripItem? _exitTrayItem;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -57,10 +62,9 @@ public partial class App
                     client.Timeout = TimeSpan.FromSeconds(20);
                 });
 
-                services.AddHttpClient("Nominatim", client =>
+                services.AddHttpClient("GoogleGeocoding", client =>
                 {
-                    client.BaseAddress = new Uri("https://nominatim.openstreetmap.org/");
-                    client.DefaultRequestHeaders.Add("User-Agent", "AadharLocationTracker/1.0");
+                    client.BaseAddress = new Uri("https://maps.googleapis.com/maps/api/geocode/");
                     client.Timeout = TimeSpan.FromSeconds(10);
                 });
 
@@ -91,15 +95,21 @@ public partial class App
             Dispatcher.Invoke(() =>
             {
                 _profileWindow?.Close();
+                UpdateTrayMenu(loggedIn: false);
                 ShowLoginWindow();
             });
 
-        await EnsureLocationAccessAsync();
-
         if (!activation.HasCredentials())
+        {
+            // First run: force Windows location access before showing login
+            await EnsureLocationAccessAsync();
             ShowLoginWindow();
+        }
         else
-            ShowProfileWindow();
+        {
+            // Credentials exist: run silently in background, no window shown
+            UpdateTrayMenu(loggedIn: true);
+        }
     }
 
     private void RunUninstallVerification()
@@ -161,33 +171,45 @@ public partial class App
         };
 
         var menu = new WinForms.ContextMenuStrip();
-        var statusItem = menu.Items.Add("Status: idle");
-        statusItem!.Enabled = false;
-        menu.Items.Add("-");
-        menu.Items.Add("Show Profile", null, (_, _) =>
-            Dispatcher.Invoke(() =>
-            {
-                var activation = _host!.Services.GetRequiredService<IActivationService>();
-                if (activation.HasCredentials())
-                    ShowProfileWindow();
-            }));
-        menu.Items.Add("-");
-        menu.Items.Add("Exit", null, (_, _) => ExitApp());
+
+        _statusTrayItem = menu.Items.Add("Status: idle");
+        _statusTrayItem!.Enabled = false;
+
+        _sep1TrayItem = new WinForms.ToolStripSeparator();
+        menu.Items.Add(_sep1TrayItem);
+
+        _openLoginTrayItem = menu.Items.Add("Open Login", null, (_, _) =>
+            Dispatcher.Invoke(ShowLoginWindow));
+
+        _sep2TrayItem = new WinForms.ToolStripSeparator();
+        menu.Items.Add(_sep2TrayItem);
+
+        _exitTrayItem = menu.Items.Add("Exit", null, (_, _) => ExitApp());
 
         _trayIcon.ContextMenuStrip = menu;
         _trayIcon.DoubleClick += (_, _) => Dispatcher.Invoke(() =>
         {
             var activation = _host!.Services.GetRequiredService<IActivationService>();
             if (activation.HasCredentials())
-                ShowProfileWindow();
+                _trayIcon.ShowBalloonTip(2000, "AadharLocation", "Tracking is active in the background", WinForms.ToolTipIcon.Info);
+            else
+                ShowLoginWindow();
         });
 
         sender.PingSent += (_, msg) => Dispatcher.Invoke(() =>
         {
             _trayIcon.Text = $"AadharLocation — {msg}";
-            if (menu.Items[0] is WinForms.ToolStripItem s)
-                s.Text = msg;
+            if (_statusTrayItem is not null)
+                _statusTrayItem.Text = msg;
         });
+    }
+
+    private void UpdateTrayMenu(bool loggedIn)
+    {
+        if (_sep1TrayItem is not null)      _sep1TrayItem.Visible      = !loggedIn;
+        if (_openLoginTrayItem is not null) _openLoginTrayItem.Visible = !loggedIn;
+        if (_sep2TrayItem is not null)      _sep2TrayItem.Visible      = !loggedIn;
+        if (_exitTrayItem is not null)      _exitTrayItem.Visible      = !loggedIn;
     }
 
     private void ShowLoginWindow()
@@ -197,7 +219,10 @@ public partial class App
         {
             var activation = _host.Services.GetRequiredService<IActivationService>();
             if (activation.HasCredentials())
-                ShowProfileWindow();
+            {
+                UpdateTrayMenu(loggedIn: true);
+                _trayIcon?.ShowBalloonTip(3000, "AadharLocation", "Tracking is now active", WinForms.ToolTipIcon.Info);
+            }
             else
                 ExitApp();
         };

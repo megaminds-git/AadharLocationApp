@@ -1,3 +1,4 @@
+using System.Windows;
 using AadharLocation.AdminDashboard.Infrastructure;
 using AadharLocation.Shared.DTOs.Alerts;
 using AadharLocation.Shared.DTOs.Machines;
@@ -20,12 +21,16 @@ public partial class DashboardViewModel : ObservableObject
     [ObservableProperty] private int _onlineMachines;
     [ObservableProperty] private int _offlineMachines;
     [ObservableProperty] private int _totalOperators;
-    [ObservableProperty] private int _unacknowledgedAlerts;
+    [ObservableProperty] private int _inBoundaryMachines;
+    [ObservableProperty] private int _outBoundaryMachines;
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _errorMessage = string.Empty;
 
     public List<AlertDto> RecentAlerts { get; private set; } = [];
     public List<MachineDto> RecentMachines { get; private set; } = [];
+
+    private List<MachineDto> _allMachines = [];
+    public Action<string, IEnumerable<MachineDto>>? ShowDetail { get; set; }
 
     public DashboardViewModel(ApiClient api, SignalRClient signalR, ILogger<DashboardViewModel> logger)
     {
@@ -33,10 +38,13 @@ public partial class DashboardViewModel : ObservableObject
         _signalR = signalR;
         _logger  = logger;
 
-        _signalR.MachineLocationUpdated  += OnMachineUpdate;
-        _signalR.MachineWentOffline      += OnMachineOffline;
-        _signalR.MachineOnline           += OnMachineOnline;
-        _signalR.GeofenceBreachDetected  += OnBreach;
+        _signalR.MachineLocationUpdated     += OnMachineUpdate;
+        _signalR.MachineWentOffline         += OnMachineOffline;
+        _signalR.MachineOnline              += OnMachineOnline;
+        _signalR.GeofenceBreachDetected     += OnBreach;
+        _signalR.AlertAcknowledged          += OnAlertAcknowledged;
+        _signalR.OperatorEventAlertReceived += OnOperatorEvent;
+        _signalR.ConnectionReconnected      += () => _ = LoadAsync();
     }
 
     [RelayCommand]
@@ -48,19 +56,20 @@ public partial class DashboardViewModel : ObservableObject
         {
             var machines  = await _api.GetMachinesAsync(pageSize: 100);
             var operators = await _api.GetOperatorsAsync(pageSize: 100);
-            var summary   = await _api.GetAlertSummaryAsync();
-            var alerts    = await _api.GetAlertsAsync(pageSize: 5);
+            var alerts    = await _api.GetAlertsAsync(pageSize: 500);
 
             if (machines != null)
             {
-                TotalMachines   = machines.TotalCount;
-                OnlineMachines  = machines.Items.Count(m => m.Status == MachineStatus.Online);
-                OfflineMachines = machines.Items.Count(m => m.Status == MachineStatus.Offline);
-                RecentMachines  = machines.Items.Take(6).ToList();
+                _allMachines        = machines.Items.ToList();
+                TotalMachines       = machines.TotalCount;
+                OnlineMachines      = machines.Items.Count(m => m.Status == MachineStatus.Online);
+                OfflineMachines     = machines.Items.Count(m => m.Status == MachineStatus.Offline);
+                InBoundaryMachines  = machines.Items.Count(m => m.IsWithinGeofence == true);
+                OutBoundaryMachines = machines.Items.Count(m => m.IsWithinGeofence == false);
+                RecentMachines      = machines.Items.Take(6).ToList();
             }
             if (operators != null) TotalOperators = operators.TotalCount;
-            if (summary  != null) UnacknowledgedAlerts = summary.UnacknowledgedCount;
-            if (alerts   != null) RecentAlerts = alerts.Items.ToList();
+            if (alerts    != null) RecentAlerts   = SortAlerts(alerts.Items);
 
             OnPropertyChanged(nameof(RecentAlerts));
             OnPropertyChanged(nameof(RecentMachines));
@@ -72,24 +81,192 @@ public partial class DashboardViewModel : ObservableObject
         finally { IsLoading = false; }
     }
 
-    private void OnMachineUpdate(MachineLocationUpdate _) => RefreshCountsAsync();
-    private void OnMachineOffline(MachineOfflineEvent _)  => RefreshCountsAsync();
-    private void OnMachineOnline(int _, string __)         => RefreshCountsAsync();
-    private void OnBreach(GeofenceBreachEvent _)           => RefreshCountsAsync();
-
-    private async void RefreshCountsAsync()
+    private void OnMachineUpdate(MachineLocationUpdate update)
     {
-        try
+        Application.Current.Dispatcher.InvokeAsync(() =>
         {
-            var summary  = await _api.GetAlertSummaryAsync();
-            var machines = await _api.GetMachinesAsync(pageSize: 100);
-            if (summary  != null) UnacknowledgedAlerts = summary.UnacknowledgedCount;
-            if (machines != null)
+            var idx = _allMachines.FindIndex(m => m.Id == update.MachineId);
+            if (idx >= 0)
+                _allMachines[idx] = _allMachines[idx] with
+                {
+                    CurrentLatitude  = update.Latitude,
+                    CurrentLongitude = update.Longitude,
+                    LastSeenAt       = update.RecordedAt,
+                    IsWithinGeofence = update.IsWithinGeofence
+                };
+
+            InBoundaryMachines  = _allMachines.Count(m => m.IsWithinGeofence == true);
+            OutBoundaryMachines = _allMachines.Count(m => m.IsWithinGeofence == false);
+
+            var ri = RecentMachines.FindIndex(m => m.Id == update.MachineId);
+            if (ri >= 0)
             {
-                OnlineMachines  = machines.Items.Count(m => m.Status == MachineStatus.Online);
-                OfflineMachines = machines.Items.Count(m => m.Status == MachineStatus.Offline);
+                var list = RecentMachines.ToList();
+                list[ri] = list[ri] with
+                {
+                    CurrentLatitude  = update.Latitude,
+                    CurrentLongitude = update.Longitude,
+                    LastSeenAt       = update.RecordedAt,
+                    IsWithinGeofence = update.IsWithinGeofence
+                };
+                RecentMachines = list;
+                OnPropertyChanged(nameof(RecentMachines));
             }
-        }
-        catch (Exception ex) { _logger.LogWarning(ex, "Background dashboard refresh failed"); }
+        });
+    }
+
+    private void OnMachineOnline(int machineId, string machineName)
+    {
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var idx = _allMachines.FindIndex(m => m.Id == machineId);
+            if (idx >= 0)
+                _allMachines[idx] = _allMachines[idx] with { Status = MachineStatus.Online };
+
+            OnlineMachines  = _allMachines.Count(m => m.Status == MachineStatus.Online);
+            OfflineMachines = _allMachines.Count(m => m.Status == MachineStatus.Offline);
+
+            var ri = RecentMachines.FindIndex(m => m.Id == machineId);
+            if (ri >= 0)
+            {
+                var list = RecentMachines.ToList();
+                list[ri] = list[ri] with { Status = MachineStatus.Online };
+                RecentMachines = list;
+                OnPropertyChanged(nameof(RecentMachines));
+            }
+        });
+    }
+
+    private void OnMachineOffline(MachineOfflineEvent evt)
+    {
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var idx = _allMachines.FindIndex(m => m.Id == evt.MachineId);
+            if (idx >= 0)
+                _allMachines[idx] = _allMachines[idx] with { Status = MachineStatus.Offline, LastSeenAt = evt.LastSeenAt };
+
+            OnlineMachines  = _allMachines.Count(m => m.Status == MachineStatus.Online);
+            OfflineMachines = _allMachines.Count(m => m.Status == MachineStatus.Offline);
+
+            var ri = RecentMachines.FindIndex(m => m.Id == evt.MachineId);
+            if (ri >= 0)
+            {
+                var list = RecentMachines.ToList();
+                list[ri] = list[ri] with { Status = MachineStatus.Offline, LastSeenAt = evt.LastSeenAt };
+                RecentMachines = list;
+                OnPropertyChanged(nameof(RecentMachines));
+            }
+        });
+    }
+
+    private void OnBreach(GeofenceBreachEvent breach)
+    {
+        var newAlert = new AlertDto(
+            Id:             breach.AlertId,
+            MachineId:      breach.MachineId,
+            MachineName:    breach.MachineName,
+            OperatorId:     breach.OperatorId,
+            OperatorName:   breach.OperatorName,
+            AlertType:      AlertType.GeofenceBreach,
+            Message:        $"Machine '{breach.MachineName}' exited geofence. Distance: {breach.DistanceMeters:F0}m outside boundary.",
+            Latitude:       breach.Latitude,
+            Longitude:      breach.Longitude,
+            CreatedAt:      breach.OccurredAt,
+            IsAcknowledged: false,
+            AcknowledgedAt: null
+        );
+
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var idx = _allMachines.FindIndex(m => m.Id == breach.MachineId);
+            if (idx >= 0)
+                _allMachines[idx] = _allMachines[idx] with { IsWithinGeofence = false };
+
+            InBoundaryMachines  = _allMachines.Count(m => m.IsWithinGeofence == true);
+            OutBoundaryMachines = _allMachines.Count(m => m.IsWithinGeofence == false);
+
+            RecentAlerts = SortAlerts([newAlert, .. RecentAlerts]);
+            OnPropertyChanged(nameof(RecentAlerts));
+
+            var ri = RecentMachines.FindIndex(m => m.Id == breach.MachineId);
+            if (ri >= 0)
+            {
+                var list = RecentMachines.ToList();
+                list[ri] = list[ri] with { IsWithinGeofence = false };
+                RecentMachines = list;
+                OnPropertyChanged(nameof(RecentMachines));
+            }
+        });
+    }
+
+    private void OnAlertAcknowledged(int alertId)
+    {
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            RecentAlerts = RecentAlerts.Where(a => a.Id != alertId).ToList();
+            OnPropertyChanged(nameof(RecentAlerts));
+        });
+    }
+
+    private void OnOperatorEvent(OperatorEventAlert evt)
+    {
+        var message = evt.AlertType == AlertType.Logout
+            ? $"Operator '{evt.OperatorName}' logged out from machine '{evt.MachineName}'."
+            : $"App was uninstalled from machine '{evt.MachineName}'.";
+
+        var newAlert = new AlertDto(
+            Id:             evt.AlertId,
+            MachineId:      evt.MachineId,
+            MachineName:    evt.MachineName,
+            OperatorId:     evt.OperatorId,
+            OperatorName:   evt.OperatorName,
+            AlertType:      evt.AlertType,
+            Message:        message,
+            Latitude:       null,
+            Longitude:      null,
+            CreatedAt:      evt.CreatedAt,
+            IsAcknowledged: false,
+            AcknowledgedAt: null
+        );
+
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            RecentAlerts = SortAlerts([newAlert, .. RecentAlerts]);
+            OnPropertyChanged(nameof(RecentAlerts));
+        });
+    }
+
+    private static List<AlertDto> SortAlerts(IEnumerable<AlertDto> alerts) =>
+        alerts
+            .OrderBy(a => a.AlertType is AlertType.Offline or AlertType.GeofenceBreach ? 0 : 1)
+            .ThenByDescending(a => a.CreatedAt)
+            .ToList();
+
+    [RelayCommand]
+    void ShowOnlineDetail()
+    {
+        var list = _allMachines.Where(m => m.Status == MachineStatus.Online).ToList();
+        ShowDetail?.Invoke($"Online Machines ({list.Count})", list);
+    }
+
+    [RelayCommand]
+    void ShowOfflineDetail()
+    {
+        var list = _allMachines.Where(m => m.Status == MachineStatus.Offline).ToList();
+        ShowDetail?.Invoke($"Offline Machines ({list.Count})", list);
+    }
+
+    [RelayCommand]
+    void ShowInBoundDetail()
+    {
+        var list = _allMachines.Where(m => m.IsWithinGeofence == true).ToList();
+        ShowDetail?.Invoke($"In-Boundary Machines ({list.Count})", list);
+    }
+
+    [RelayCommand]
+    void ShowOutBoundDetail()
+    {
+        var list = _allMachines.Where(m => m.IsWithinGeofence == false).ToList();
+        ShowDetail?.Invoke($"Out-Boundary Machines ({list.Count})", list);
     }
 }

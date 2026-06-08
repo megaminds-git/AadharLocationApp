@@ -36,7 +36,7 @@
             </Grid>
 
             <!-- ── KPI cards ── -->
-            <UniformGrid Grid.Row="1" Columns="4" Margin="0,0,0,24">
+            <UniformGrid Grid.Row="1" Columns="5" Margin="0,0,0,24">
 
                 <!-- Total Machines -->
                 <Border Margin="0,0,10,0" CornerRadius="10"
@@ -70,94 +70,136 @@
                 </Border>
 
                 <!-- Online Machines -->
-                <Border Margin="5,0,5,0" CornerRadius="10"
-                        Background="{DynamicResource CardBackgroundBrush}"
-                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
-                        ClipToBounds="True">
-                    <StackPanel>
-                        <Rectangle Height="3" Fill="{DynamicResource CardAccentGreenBrush}"/>
-                        <StackPanel Margin="20,16,20,20">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                <Border Width="38" Height="38" CornerRadius="8"
-                                        Background="{DynamicResource BadgeGreenBrush}">
-                                    <materialDesign:PackIcon Kind="CheckCircle" Width="20" Height="20"
-                                                             Foreground="{DynamicResource CardAccentGreenBrush}"
-                                                             HorizontalAlignment="Center"
-                                                             VerticalAlignment="Center"/>
-                                </Border>
-                                <TextBlock Text="Online" Margin="10,0,0,0"
-                                           Foreground="{DynamicResource SecondaryTextBrush}"
-                                           FontSize="13" VerticalAlignment="Center"/>
+                <Button Margin="5,0,5,0" Style="{StaticResource CardButtonStyle}"
+                        Command="{Binding ShowOnlineDetailCommand}">
+                    <Border CornerRadius="10"
+                            Background="{DynamicResource CardBackgroundBrush}"
+                            BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                            ClipToBounds="True">
+                        <StackPanel>
+                            <Rectangle Height="3" Fill="{DynamicResource CardAccentGreenBrush}"/>
+                            <StackPanel Margin="20,16,20,20">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <Border Width="38" Height="38" CornerRadius="8"
+                                            Background="{DynamicResource BadgeGreenBrush}">
+                                        <materialDesign:PackIcon Kind="CheckCircle" Width="20" Height="20"
+                                                                 Foreground="{DynamicResource CardAccentGreenBrush}"
+                                                                 HorizontalAlignment="Center"
+                                                                 VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Online" Margin="10,0,0,0"
+                                               Foreground="{DynamicResource SecondaryTextBrush}"
+                                               FontSize="13" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding OnlineMachines}"
+                                           FontSize="38" FontWeight="Bold"
+                                           Foreground="{DynamicResource CardAccentGreenBrush}"/>
+                                <TextBlock Text="Active machines"
+                                           FontSize="11" Foreground="{DynamicResource TertiaryTextBrush}"
+                                           Margin="0,4,0,0"/>
                             </StackPanel>
-                            <TextBlock Text="{Binding OnlineMachines}"
-                                       FontSize="38" FontWeight="Bold"
-                                       Foreground="{DynamicResource CardAccentGreenBrush}"/>
-                            <TextBlock Text="Active machines"
-                                       FontSize="11" Foreground="{DynamicResource TertiaryTextBrush}"
-                                       Margin="0,4,0,0"/>
                         </StackPanel>
-                    </StackPanel>
-                </Border>
+                    </Border>
+                </Button>
 
                 <!-- Offline Machines -->
-                <Border Margin="5,0,5,0" CornerRadius="10"
-                        Background="{DynamicResource CardBackgroundBrush}"
-                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
-                        ClipToBounds="True">
-                    <StackPanel>
-                        <Rectangle Height="3" Fill="{DynamicResource CardAccentRedBrush}"/>
-                        <StackPanel Margin="20,16,20,20">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                <Border Width="38" Height="38" CornerRadius="8"
-                                        Background="{DynamicResource BadgeRedBrush}">
-                                    <materialDesign:PackIcon Kind="WifiOff" Width="20" Height="20"
-                                                             Foreground="{DynamicResource CardAccentRedBrush}"
-                                                             HorizontalAlignment="Center"
-                                                             VerticalAlignment="Center"/>
-                                </Border>
-                                <TextBlock Text="Offline" Margin="10,0,0,0"
-                                           Foreground="{DynamicResource SecondaryTextBrush}"
-                                           FontSize="13" VerticalAlignment="Center"/>
+                <Button Margin="5,0,5,0" Style="{StaticResource CardButtonStyle}"
+                        Command="{Binding ShowOfflineDetailCommand}">
+                    <Border CornerRadius="10"
+                            Background="{DynamicResource CardBackgroundBrush}"
+                            BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                            ClipToBounds="True">
+                        <StackPanel>
+                            <Rectangle Height="3" Fill="{DynamicResource CardAccentRedBrush}"/>
+                            <StackPanel Margin="20,16,20,20">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <Border Width="38" Height="38" CornerRadius="8"
+                                            Background="{DynamicResource BadgeRedBrush}">
+                                        <materialDesign:PackIcon Kind="WifiOff" Width="20" Height="20"
+                                                                 Foreground="{DynamicResource CardAccentRedBrush}"
+                                                                 HorizontalAlignment="Center"
+                                                                 VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Offline" Margin="10,0,0,0"
+                                               Foreground="{DynamicResource SecondaryTextBrush}"
+                                               FontSize="13" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding OfflineMachines}"
+                                           FontSize="38" FontWeight="Bold"
+                                           Foreground="{DynamicResource CardAccentRedBrush}"/>
+                                <TextBlock Text="Need attention"
+                                           FontSize="11" Foreground="{DynamicResource TertiaryTextBrush}"
+                                           Margin="0,4,0,0"/>
                             </StackPanel>
-                            <TextBlock Text="{Binding OfflineMachines}"
-                                       FontSize="38" FontWeight="Bold"
-                                       Foreground="{DynamicResource CardAccentRedBrush}"/>
-                            <TextBlock Text="Need attention"
-                                       FontSize="11" Foreground="{DynamicResource TertiaryTextBrush}"
-                                       Margin="0,4,0,0"/>
                         </StackPanel>
-                    </StackPanel>
-                </Border>
+                    </Border>
+                </Button>
 
-                <!-- Unacknowledged Alerts -->
-                <Border Margin="10,0,0,0" CornerRadius="10"
-                        Background="{DynamicResource CardBackgroundBrush}"
-                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
-                        ClipToBounds="True">
-                    <StackPanel>
-                        <Rectangle Height="3" Fill="{DynamicResource CardAccentAmberBrush}"/>
-                        <StackPanel Margin="20,16,20,20">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                <Border Width="38" Height="38" CornerRadius="8"
-                                        Background="{DynamicResource BadgeAmberBrush}">
-                                    <materialDesign:PackIcon Kind="AlertCircle" Width="20" Height="20"
-                                                             Foreground="{DynamicResource CardAccentAmberBrush}"
-                                                             HorizontalAlignment="Center"
-                                                             VerticalAlignment="Center"/>
-                                </Border>
-                                <TextBlock Text="Unack. Alerts" Margin="10,0,0,0"
-                                           Foreground="{DynamicResource SecondaryTextBrush}"
-                                           FontSize="13" VerticalAlignment="Center"/>
+                <!-- In-Boundary Machines -->
+                <Button Margin="5,0,5,0" Style="{StaticResource CardButtonStyle}"
+                        Command="{Binding ShowInBoundDetailCommand}">
+                    <Border CornerRadius="10"
+                            Background="{DynamicResource CardBackgroundBrush}"
+                            BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                            ClipToBounds="True">
+                        <StackPanel>
+                            <Rectangle Height="3" Fill="{DynamicResource CardAccentBlueBrush}"/>
+                            <StackPanel Margin="20,16,20,20">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <Border Width="38" Height="38" CornerRadius="8"
+                                            Background="{DynamicResource BadgeBlueBrush}">
+                                        <materialDesign:PackIcon Kind="MapMarkerCheck" Width="20" Height="20"
+                                                                 Foreground="{DynamicResource CardAccentBlueBrush}"
+                                                                 HorizontalAlignment="Center"
+                                                                 VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="In-Boundary" Margin="10,0,0,0"
+                                               Foreground="{DynamicResource SecondaryTextBrush}"
+                                               FontSize="13" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding InBoundaryMachines}"
+                                           FontSize="38" FontWeight="Bold"
+                                           Foreground="{DynamicResource CardAccentBlueBrush}"/>
+                                <TextBlock Text="Within geofence"
+                                           FontSize="11" Foreground="{DynamicResource TertiaryTextBrush}"
+                                           Margin="0,4,0,0"/>
                             </StackPanel>
-                            <TextBlock Text="{Binding UnacknowledgedAlerts}"
-                                       FontSize="38" FontWeight="Bold"
-                                       Foreground="{DynamicResource CardAccentAmberBrush}"/>
-                            <TextBlock Text="Require action"
-                                       FontSize="11" Foreground="{DynamicResource TertiaryTextBrush}"
-                                       Margin="0,4,0,0"/>
                         </StackPanel>
-                    </StackPanel>
-                </Border>
+                    </Border>
+                </Button>
+
+                <!-- Out-Boundary Machines -->
+                <Button Margin="5,0,0,0" Style="{StaticResource CardButtonStyle}"
+                        Command="{Binding ShowOutBoundDetailCommand}">
+                    <Border CornerRadius="10"
+                            Background="{DynamicResource CardBackgroundBrush}"
+                            BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                            ClipToBounds="True">
+                        <StackPanel>
+                            <Rectangle Height="3" Fill="{DynamicResource CardAccentOrangeBrush}"/>
+                            <StackPanel Margin="20,16,20,20">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <Border Width="38" Height="38" CornerRadius="8"
+                                            Background="{DynamicResource BadgeOrangeBrush}">
+                                        <materialDesign:PackIcon Kind="MapMarkerAlert" Width="20" Height="20"
+                                                                 Foreground="{DynamicResource CardAccentOrangeBrush}"
+                                                                 HorizontalAlignment="Center"
+                                                                 VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Out-Boundary" Margin="10,0,0,0"
+                                               Foreground="{DynamicResource SecondaryTextBrush}"
+                                               FontSize="13" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding OutBoundaryMachines}"
+                                           FontSize="38" FontWeight="Bold"
+                                           Foreground="{DynamicResource CardAccentOrangeBrush}"/>
+                                <TextBlock Text="Outside geofence"
+                                           FontSize="11" Foreground="{DynamicResource TertiaryTextBrush}"
+                                           Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Button>
 
             </UniformGrid>
 
@@ -198,7 +240,9 @@
                         <ListView DockPanel.Dock="Top"
                                   ItemsSource="{Binding RecentAlerts}"
                                   BorderThickness="0" Background="Transparent"
-                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                  MaxHeight="350"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <ListView.ItemContainerStyle>
                                 <Style TargetType="ListViewItem">
                                     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
+
 namespace AadharLocation.Api.Services;
 
 public class AlertService(
@@ -158,9 +159,18 @@ public class AlertService(
                 logger.LogError(ex, "Background email send failed");
         }, TaskContinuationOptions.OnlyOnFaulted);
 
-    private Task<List<string>> GetAdminEmailsAsync() =>
-        db.Users
+    private async Task<List<string>> GetAdminEmailsAsync()
+    {
+        var adminEmails = await db.Users
             .Where(u => u.Role == "Admin" && u.Email != string.Empty)
             .Select(u => u.Email)
             .ToListAsync();
+
+        var setting = await db.AppSettings.FindAsync("Email:AlertEmailRecipients");
+        var extraEmails = setting?.Value
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            ?? [];
+
+        return adminEmails.Union(extraEmails, StringComparer.OrdinalIgnoreCase).ToList();
+    }
 }

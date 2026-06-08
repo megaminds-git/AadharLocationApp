@@ -1,27 +1,27 @@
 using System.ComponentModel;
+using System.IO;
+using System.Text.Json;
 using System.Windows;
+using AadharLocation.AdminDashboard.Infrastructure;
 using AadharLocation.AdminDashboard.ViewModels;
-using Mapsui;
-using Mapsui.Layers;
-using Mapsui.Nts;
-using Mapsui.Projections;
-using Mapsui.Styles;
-using Mapsui.Tiling;
-using NetTopologySuite.Geometries;
+using Microsoft.Extensions.Options;
+using Microsoft.Web.WebView2.Core;
 
 namespace AadharLocation.AdminDashboard.Views.Dialogs;
 
 public partial class GeofenceEditorDialog : Window
 {
     private readonly GeofenceEditorViewModel _vm;
-    private readonly WritableLayer _geofenceLayer = new() { Name = "Geofence" };
-    private readonly WritableLayer _markerLayer   = new() { Name = "Marker"   };
+    private readonly string _apiKey;
+    private bool _mapReady = false;
+    private bool _suppressOverlayUpdate = false;
 
-    public GeofenceEditorDialog(GeofenceEditorViewModel vm)
+    public GeofenceEditorDialog(GeofenceEditorViewModel vm, IOptions<GoogleMapsOptions> mapsOptions)
     {
         InitializeComponent();
         DataContext = vm;
-        _vm = vm;
+        _vm     = vm;
+        _apiKey = mapsOptions.Value.ApiKey;
 
         void onSaveSucceeded() { DialogResult = true; }
         vm.SaveSucceeded += onSaveSucceeded;
@@ -29,107 +29,111 @@ public partial class GeofenceEditorDialog : Window
         {
             vm.SaveSucceeded   -= onSaveSucceeded;
             vm.PropertyChanged -= OnVmPropertyChanged;
+            MapWebView.Dispose();
         };
 
-        InitMap();
-        vm.PropertyChanged += OnVmPropertyChanged;
+        Loaded += OnLoaded;
     }
 
-    // ── Map setup ────────────────────────────────────────────────────────────
-
-    private void InitMap()
+    private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        var map = new Map();
-        map.Layers.Add(OpenStreetMap.CreateTileLayer());
-        map.Layers.Add(_geofenceLayer);
-        map.Layers.Add(_markerLayer);
-        MapControl.Map = map;
-
-        MapControl.Info += OnMapClicked;
-
-        RefreshOverlay();
-        ZoomToGeofence();
+        await MapWebView.EnsureCoreWebView2Async();
+        MapWebView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
+        LoadMapHtml();
+        _vm.PropertyChanged += OnVmPropertyChanged;
     }
 
-    private void OnMapClicked(object? sender, MapInfoEventArgs e)
+    private void LoadMapHtml()
     {
-        if (e.WorldPosition is not MPoint world) return;
-        var (lon, lat) = SphericalMercator.ToLonLat(world.X, world.Y);
-        _vm.CenterLatitude  = lat;
-        _vm.CenterLongitude = lon;
+        var html    = HtmlLoader.Load("geofence_editor.html").Replace("{{API_KEY}}", _apiKey);
+        var tmpDir  = Path.Combine(Path.GetTempPath(), "AadharLocationMaps");
+        Directory.CreateDirectory(tmpDir);
+        var tmpFile = Path.Combine(tmpDir, "geofence_editor.html");
+        File.WriteAllText(tmpFile, html, System.Text.Encoding.UTF8);
+
+        MapWebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+            "maps.aadhar.local", tmpDir, CoreWebView2HostResourceAccessKind.Allow);
+        MapWebView.CoreWebView2.Navigate("https://maps.aadhar.local/geofence_editor.html");
     }
 
-    // ── VM → map sync ─────────────────────────────────────────────────────────
+    private void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+    {
+        var json = e.TryGetWebMessageAsString();
+        if (json is null) return;
+
+        try
+        {
+            var doc  = JsonDocument.Parse(json);
+            var type = doc.RootElement.GetProperty("type").GetString();
+
+            switch (type)
+            {
+                case "MapReady":
+                    _mapReady = true;
+                    SendInitMap();
+                    break;
+
+                case "MapClicked":
+                case "MarkerDragged":
+                    var lat = doc.RootElement.GetProperty("latitude").GetDouble();
+                    var lon = doc.RootElement.GetProperty("longitude").GetDouble();
+                    Dispatcher.Invoke(() =>
+                    {
+                        _suppressOverlayUpdate = true;
+                        _vm.CenterLatitude  = lat;
+                        _vm.CenterLongitude = lon;
+                        _suppressOverlayUpdate = false;
+                        SendUpdateOverlay();
+                    });
+                    break;
+            }
+        }
+        catch { /* ignore malformed messages */ }
+    }
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (_suppressOverlayUpdate) return;
         if (e.PropertyName is nameof(GeofenceEditorViewModel.CenterLatitude)
                            or nameof(GeofenceEditorViewModel.CenterLongitude)
                            or nameof(GeofenceEditorViewModel.RadiusMeters))
-            Dispatcher.Invoke(RefreshOverlay);
+            Dispatcher.Invoke(SendUpdateOverlay);
     }
 
-    // ── Drawing ───────────────────────────────────────────────────────────────
-
-    private void RefreshOverlay()
+    private void SendInitMap()
     {
-        _geofenceLayer.Clear();
-        _markerLayer.Clear();
-
-        var (cx, cy) = SphericalMercator.FromLonLat(_vm.CenterLongitude, _vm.CenterLatitude);
-
-        DrawCircle(cx, cy);
-        DrawCenterPin(cx, cy);
-
-        _geofenceLayer.DataHasChanged();
-        _markerLayer.DataHasChanged();
-    }
-
-    private void DrawCircle(double cx, double cy)
-    {
-        // Compute circle polygon in geographic space, then project each point
-        const int segments = 72;
-        double latRad = _vm.CenterLatitude * Math.PI / 180.0;
-        double latDeg = _vm.RadiusMeters / 111_320.0;
-        double lonDeg = _vm.RadiusMeters / (111_320.0 * Math.Max(Math.Cos(latRad), 0.0001));
-
-        var coords = new Coordinate[segments + 1];
-        for (int i = 0; i < segments; i++)
+        SendMessage(new
         {
-            double angle = 2 * Math.PI * i / segments;
-            double lat = _vm.CenterLatitude  + latDeg * Math.Sin(angle);
-            double lon = _vm.CenterLongitude + lonDeg * Math.Cos(angle);
-            var (x, y) = SphericalMercator.FromLonLat(lon, lat);
-            coords[i] = new Coordinate(x, y);
-        }
-        coords[segments] = coords[0]; // close ring
-
-        var polygon = new GeometryFactory().CreatePolygon(new LinearRing(coords));
-        var feature = new GeometryFeature { Geometry = polygon };
-        feature.Styles.Add(new VectorStyle
-        {
-            Fill    = new Brush(new Mapsui.Styles.Color(0x2D, 0xD4, 0xBF, 55)),
-            Outline = new Pen(Mapsui.Styles.Color.FromString("#2DD4BF"), 2.5),
+            type         = "InitMap",
+            theme        = GetTheme(),
+            latitude     = _vm.CenterLatitude,
+            longitude    = _vm.CenterLongitude,
+            radiusMeters = _vm.RadiusMeters
         });
-        _geofenceLayer.Add(feature);
+        SendMessage(new { type = "ZoomToGeofence" });
     }
 
-    private void DrawCenterPin(double cx, double cy)
+    private void SendUpdateOverlay()
     {
-        var pin = new PointFeature(new MPoint(cx, cy));
-        pin.Styles.Add(new SymbolStyle
+        if (!_mapReady) return;
+        SendMessage(new
         {
-            SymbolScale = 0.55,
-            Fill        = new Brush(Mapsui.Styles.Color.White),
-            Outline     = new Pen(Mapsui.Styles.Color.FromString("#2DD4BF"), 2.5),
+            type         = "UpdateOverlay",
+            latitude     = _vm.CenterLatitude,
+            longitude    = _vm.CenterLongitude,
+            radiusMeters = _vm.RadiusMeters
         });
-        _markerLayer.Add(pin);
     }
 
-    private void ZoomToGeofence()
+    private void SendMessage(object payload)
     {
-        var (cx, cy) = SphericalMercator.FromLonLat(_vm.CenterLongitude, _vm.CenterLatitude);
-        double pad = Math.Max(_vm.RadiusMeters * 3.5, 3_000);
-        MapControl.Map.Navigator.ZoomToBox(new MRect(cx - pad, cy - pad, cx + pad, cy + pad));
+        if (MapWebView.CoreWebView2 is null) return;
+        MapWebView.CoreWebView2.PostWebMessageAsString(JsonSerializer.Serialize(payload));
+    }
+
+    private static string GetTheme()
+    {
+        var theme = Application.Current.Resources["ThemeMode"] as string;
+        return theme == "Dark" ? "dark" : "light";
     }
 }

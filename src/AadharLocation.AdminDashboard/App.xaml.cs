@@ -9,6 +9,7 @@ using MaterialDesignThemes.Wpf;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Web.WebView2.Core;
 using Serilog;
 using Color = System.Windows.Media.Color;
 
@@ -46,6 +47,18 @@ public partial class App : Application
             WriteCrashLog(ex.Exception);
             ex.SetObserved();
         };
+
+        // Verify WebView2 runtime is installed before proceeding
+        try { CoreWebView2Environment.GetAvailableBrowserVersionString(); }
+        catch (WebView2RuntimeNotFoundException)
+        {
+            MessageBox.Show(
+                "Microsoft Edge WebView2 Runtime is required to display maps.\n\n" +
+                "Please install it from:\nhttps://developer.microsoft.com/microsoft-edge/webview2/",
+                "Missing Dependency", MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(1);
+            return;
+        }
 
         var appDataDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -134,11 +147,19 @@ public partial class App : Application
     {
         services.AddSingleton<AuthStateService>();
 
+        services.Configure<GoogleMapsOptions>(config.GetSection(GoogleMapsOptions.Section));
+
         services.AddHttpClient<ApiClient>(client =>
         {
             var baseUrl = config["ApiBaseUrl"] ?? "http://localhost:5000";
             client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
             client.Timeout = TimeSpan.FromSeconds(30);
+        });
+
+        services.AddHttpClient<IGeocodingService, GoogleGeocodingService>(client =>
+        {
+            client.BaseAddress = new Uri("https://maps.googleapis.com/maps/api/geocode/");
+            client.Timeout = TimeSpan.FromSeconds(10);
         });
 
         services.AddSingleton<SignalRClient>();
@@ -147,6 +168,7 @@ public partial class App : Application
         // Page ViewModels (singleton — preserve state on navigation)
         services.AddSingleton<DashboardViewModel>();
         services.AddSingleton<OperatorsViewModel>();
+        services.AddSingleton<AdminsViewModel>();
         services.AddSingleton<MachinesViewModel>();
         services.AddSingleton<FleetMapViewModel>();
         services.AddSingleton<AlertsViewModel>();
@@ -154,6 +176,7 @@ public partial class App : Application
         services.AddSingleton<SettingsViewModel>();
 
         // Dialog ViewModels (transient — fresh state each dialog open)
+        services.AddTransient<AddAdminViewModel>();
         services.AddTransient<AddOperatorViewModel>();
         services.AddTransient<AddMachineViewModel>();
         services.AddTransient<GeofenceEditorViewModel>();
@@ -169,6 +192,7 @@ public partial class App : Application
         // Pages (singleton — NavigationService resolves from DI)
         services.AddSingleton<DashboardPage>();
         services.AddSingleton<OperatorsPage>();
+        services.AddSingleton<AdminsPage>();
         services.AddSingleton<MachinesPage>();
         services.AddSingleton<FleetMapPage>();
         services.AddSingleton<AlertsPage>();

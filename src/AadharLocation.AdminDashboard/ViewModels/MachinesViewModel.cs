@@ -13,6 +13,7 @@ public partial class MachinesViewModel : ObservableObject
     private readonly SignalRClient _signalR;
 
     [ObservableProperty] private bool _isLoading;
+    [ObservableProperty] private string _searchText = string.Empty;
     [ObservableProperty] private string _errorMessage = string.Empty;
     [ObservableProperty] private int _currentPage = 1;
     [ObservableProperty] private MachineDto? _selectedMachine;
@@ -32,6 +33,7 @@ public partial class MachinesViewModel : ObservableObject
     public event Action<MachineDto?>? EditRequested;
     public event Action? AddRequested;
     public event Action<MachineDto>? GeofenceRequested;
+    public Func<string, bool>? ConfirmDelete { get; set; }
 
     public MachinesViewModel(ApiClient api, SignalRClient signalR)
     {
@@ -49,7 +51,8 @@ public partial class MachinesViewModel : ObservableObject
         ErrorMessage = string.Empty;
         try
         {
-            var result = await _api.GetMachinesAsync(CurrentPage, PageSize);
+            var result = await _api.GetMachinesAsync(CurrentPage, PageSize,
+                string.IsNullOrWhiteSpace(SearchText) ? null : SearchText);
             if (result != null)
             {
                 Machines.Clear();
@@ -79,9 +82,13 @@ public partial class MachinesViewModel : ObservableObject
     {
         var target = m ?? SelectedMachine;
         if (target == null) return;
+        if (ConfirmDelete != null && !ConfirmDelete(target.Name)) return;
         try { await _api.DeleteMachineAsync(target.Id); await LoadAsync(); }
         catch (Exception ex) { ErrorMessage = ex.Message; }
     }
+
+    [RelayCommand]
+    private async Task SearchAsync() { CurrentPage = 1; await LoadAsync(); }
 
     [RelayCommand]
     private async Task GoToPageAsync(int page)

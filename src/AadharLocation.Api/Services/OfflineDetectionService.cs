@@ -18,7 +18,7 @@ public class OfflineDetectionService(
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            await Task.Delay(TimeSpan.FromMinutes(2), stoppingToken);
+            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
             await DetectOfflineMachinesAsync(stoppingToken);
         }
     }
