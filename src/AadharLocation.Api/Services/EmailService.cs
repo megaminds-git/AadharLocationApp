@@ -8,6 +8,9 @@ public class EmailService(
     IOptions<EmailSettings> settings,
     ILogger<EmailService> logger)
 {
+    private static readonly TimeZoneInfo IstZone = TimeZoneInfo.FindSystemTimeZoneById(
+        OperatingSystem.IsWindows() ? "India Standard Time" : "Asia/Kolkata");
+
     private bool IsConfigured =>
         !string.IsNullOrWhiteSpace(settings.Value.ApiKey) &&
         !string.IsNullOrWhiteSpace(settings.Value.FromAddress);
@@ -143,7 +146,7 @@ public class EmailService(
                 </tr>
                 <tr>
                   <td style="padding:8px 0;color:#6B7280;vertical-align:top">Time</td>
-                  <td style="padding:8px 0;color:#111827">{breachedAt.ToLocalTime():dd MMM yyyy HH:mm:ss}</td>
+                  <td style="padding:8px 0;color:#111827">{TimeZoneInfo.ConvertTimeFromUtc(breachedAt, IstZone):dd MMM yyyy HH:mm:ss}</td>
                 </tr>
                 <tr>
                   <td style="padding:8px 0;color:#6B7280;vertical-align:top">Coordinates</td>
@@ -183,7 +186,7 @@ public class EmailService(
                 </tr>
                 <tr>
                   <td style="padding:8px 0;color:#6B7280;vertical-align:top">Last Seen</td>
-                  <td style="padding:8px 0;color:#111827">{lastSeenAt.ToLocalTime():dd MMM yyyy HH:mm:ss}</td>
+                  <td style="padding:8px 0;color:#111827">{TimeZoneInfo.ConvertTimeFromUtc(lastSeenAt, IstZone):dd MMM yyyy HH:mm:ss}</td>
                 </tr>
                 <tr>
                   <td style="padding:8px 0;color:#6B7280;vertical-align:top">Offline Duration</td>
