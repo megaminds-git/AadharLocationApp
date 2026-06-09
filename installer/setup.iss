@@ -107,10 +107,20 @@ begin
     Exit;
   end;
 
+  // Verification passed — clear operator session so login page shows on next install
+  DeleteFile(ExpandConstant('{localappdata}\AadharLocation\tracker.dat'));
+
   // Kill the running tracker instance so it is removed from the taskbar and tray
   Exec(ExpandConstant('{sys}') + '\taskkill.exe',
        '/F /IM AadharLocation.OperatorTracker.exe', '',
        SW_HIDE, ewWaitUntilTerminated, ResultCode);
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if CurUninstallStep = usUninstall then
+    // Clear admin session so login page is shown on next install
+    DeleteFile(ExpandConstant('{userappdata}\AadharLocation\admin-auth.json'));
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
@@ -170,6 +180,15 @@ Name: "{commondesktop}\AadharLocation Operator"; \
 ; Uninstall
 Name: "{group}\Uninstall {#MyAppName}"; \
   Filename: "{uninstallexe}"
+
+[Registry]
+Root: HKCU; \
+  Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; \
+  ValueType: string; \
+  ValueName: "AadharLocationTracker"; \
+  ValueData: """{app}\{#OperatorExeName}"""; \
+  Check: IsOperator; \
+  Flags: uninsdeletevalue
 
 [UninstallDelete]
 Type: files; Name: "{app}\server_config.json"
