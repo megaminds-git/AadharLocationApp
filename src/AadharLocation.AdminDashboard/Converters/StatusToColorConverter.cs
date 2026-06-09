@@ -45,6 +45,7 @@ public class AlertTypeToColorConverter : IValueConverter
             {
                 AlertType.GeofenceBreach => new SolidColorBrush(Color.FromRgb(0xF8, 0x71, 0x71)),
                 AlertType.Offline        => new SolidColorBrush(Color.FromRgb(0xFB, 0xBF, 0x24)),
+                AlertType.GeofenceEntry  => new SolidColorBrush(Color.FromRgb(0x4A, 0xDE, 0x80)),
                 _ => Brushes.Gray
             };
         }

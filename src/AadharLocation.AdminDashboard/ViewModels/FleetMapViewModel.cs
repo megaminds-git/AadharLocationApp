@@ -19,7 +19,13 @@ public partial class FleetMapViewModel : ObservableObject
     private readonly IGeocodingService _geocoding;
 
     [ObservableProperty] private bool _isLoading;
+    [ObservableProperty] private bool _isMapLoading = true;
     [ObservableProperty] private string _statusMessage = string.Empty;
+
+    public bool IsMapOrDataLoading => IsLoading || IsMapLoading;
+
+    partial void OnIsLoadingChanged(bool value)    => OnPropertyChanged(nameof(IsMapOrDataLoading));
+    partial void OnIsMapLoadingChanged(bool value) => OnPropertyChanged(nameof(IsMapOrDataLoading));
     [ObservableProperty] private MapMachinePin? _selectedPin;
     [ObservableProperty] private string _searchText = string.Empty;
     [ObservableProperty] private bool _isSearching;

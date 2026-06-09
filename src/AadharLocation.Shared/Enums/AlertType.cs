@@ -5,5 +5,6 @@ public enum AlertType
     GeofenceBreach,
     Offline,
     Logout,
-    Uninstall
+    Uninstall,
+    GeofenceEntry
 }

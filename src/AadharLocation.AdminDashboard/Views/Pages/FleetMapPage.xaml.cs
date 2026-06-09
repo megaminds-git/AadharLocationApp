@@ -78,6 +78,7 @@ public partial class FleetMapPage : UserControl
             {
                 case "MapReady":
                     _mapReady = true;
+                    Application.Current.Dispatcher.InvokeAsync(() => _vm.IsMapLoading = false);
                     SendMessage(new { type = "InitMap", theme = GetTheme() });
                     if (_pendingPins is not null)
                     {

@@ -6,15 +6,48 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body, #map { width: 100%; height: 100%; overflow: hidden; }
+
+    #map-type-ctrl {
+      position: absolute;
+      bottom: 24px;
+      left: 12px;
+      z-index: 10;
+      display: flex;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    #map-type-ctrl button {
+      padding: 6px 12px;
+      border: none;
+      cursor: pointer;
+      background: rgba(30,30,30,0.88);
+      color: #d1d5db;
+      transition: background 0.15s, color 0.15s;
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+    #map-type-ctrl button:last-child { border-right: none; }
+    #map-type-ctrl button:hover { background: rgba(60,60,60,0.95); color: #fff; }
+    #map-type-ctrl button.active { background: #3b82f6; color: #fff; }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
+  <div id="map-type-ctrl">
+    <button id="btn-satellite" class="active" onclick="setMapType('satellite')">Satellite</button>
+    <button id="btn-hybrid"    onclick="setMapType('hybrid')">Hybrid</button>
+    <button id="btn-road"      onclick="setMapType('roadmap')">Road</button>
+  </div>
+
   <script>
     var _map         = null;
     var _circle      = null;
     var _marker      = null;
+    var _currentTheme = 'light';
 
     var DARK_STYLES = [
       { elementType: 'geometry',           stylers: [{ color: '#1a1a2e' }] },
@@ -31,10 +64,24 @@
       { featureType: 'transit',            elementType: 'geometry',           stylers: [{ color: '#1e293b' }] }
     ];
 
+    function setMapType(type) {
+      if (!_map) return;
+      _map.setMapTypeId(type);
+      document.getElementById('btn-satellite').classList.toggle('active', type === 'satellite');
+      document.getElementById('btn-hybrid').classList.toggle('active',    type === 'hybrid');
+      document.getElementById('btn-road').classList.toggle('active',      type === 'roadmap');
+      if (type === 'roadmap') {
+        _map.setOptions({ styles: _currentTheme === 'dark' ? DARK_STYLES : [] });
+      } else {
+        _map.setOptions({ styles: [] });
+      }
+    }
+
     function initMap() {
       _map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 20.5937, lng: 78.9629 },
         zoom: 5,
+        mapTypeId: 'satellite',
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
@@ -54,7 +101,9 @@
 
     function applyTheme(theme) {
       if (!_map) return;
-      _map.setOptions({ styles: theme === 'dark' ? DARK_STYLES : [] });
+      _currentTheme = theme;
+      var isRoad = _map.getMapTypeId() === 'roadmap';
+      _map.setOptions({ styles: (isRoad && theme === 'dark') ? DARK_STYLES : [] });
     }
 
     function createOrUpdateOverlay(lat, lng, radiusMeters) {

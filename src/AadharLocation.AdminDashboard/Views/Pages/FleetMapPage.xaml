@@ -33,11 +33,14 @@
             </StackPanel>
 
             <!-- Loading -->
-            <Grid Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"
-                  Background="#66000000">
-                <ProgressBar IsIndeterminate="True" Style="{StaticResource MaterialDesignCircularProgressBar}"
-                             Width="48" Height="48" HorizontalAlignment="Center" VerticalAlignment="Center"
-                             Value="35"/>
+            <Grid Visibility="{Binding IsMapOrDataLoading, Converter={StaticResource BoolToVisibility}}"
+                  Background="#CC1A1A2E">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <ProgressBar IsIndeterminate="True" Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                 Width="48" Height="48" HorizontalAlignment="Center" Value="35"/>
+                    <TextBlock Text="Loading map..." Foreground="White" FontSize="13"
+                               HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                </StackPanel>
             </Grid>
         </Grid>
 
