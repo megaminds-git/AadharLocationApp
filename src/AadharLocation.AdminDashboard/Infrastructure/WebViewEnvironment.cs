@@ -18,7 +18,16 @@ public static class WebViewEnvironment
         await _lock.WaitAsync();
         try
         {
-            _instance ??= await CoreWebView2Environment.CreateAsync(userDataFolder: UserDataFolder);
+            if (_instance is not null) return _instance;
+            try
+            {
+                _instance = await CoreWebView2Environment.CreateAsync(userDataFolder: UserDataFolder);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Cache folder is locked by a previous or concurrent process; fall back to a temp directory.
+                _instance = await CoreWebView2Environment.CreateAsync(userDataFolder: null);
+            }
             return _instance;
         }
         finally { _lock.Release(); }
