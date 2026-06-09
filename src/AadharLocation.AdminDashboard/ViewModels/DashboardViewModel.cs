@@ -210,9 +210,12 @@ public partial class DashboardViewModel : ObservableObject
 
     private void OnOperatorEvent(OperatorEventAlert evt)
     {
-        var message = evt.AlertType == AlertType.Logout
-            ? $"Operator '{evt.OperatorName}' logged out from machine '{evt.MachineName}'."
-            : $"App was uninstalled from machine '{evt.MachineName}'.";
+        var message = evt.AlertType switch
+        {
+            AlertType.Logout        => $"Operator '{evt.OperatorName}' logged out from machine '{evt.MachineName}'.",
+            AlertType.GeofenceEntry => $"Machine '{evt.MachineName}' returned inside geofence boundary.",
+            _                       => $"App was uninstalled from machine '{evt.MachineName}'."
+        };
 
         var newAlert = new AlertDto(
             Id:             evt.AlertId,
@@ -238,7 +241,7 @@ public partial class DashboardViewModel : ObservableObject
 
     private static List<AlertDto> SortAlerts(IEnumerable<AlertDto> alerts) =>
         alerts
-            .OrderBy(a => a.AlertType is AlertType.Offline or AlertType.GeofenceBreach ? 0 : 1)
+            .OrderBy(a => a.AlertType is AlertType.Offline or AlertType.GeofenceBreach or AlertType.GeofenceEntry ? 0 : 1)
             .ThenByDescending(a => a.CreatedAt)
             .ToList();
 

@@ -56,6 +56,49 @@ public class AlertService(
         return alert;
     }
 
+    public async Task<Alert?> CreateGeofenceEntryAlertAsync(
+        Machine machine, Operator op, double lat, double lon)
+    {
+        var lastBreach = await db.Alerts
+            .Where(a => a.MachineId == machine.Id && a.AlertType == AlertType.GeofenceBreach)
+            .OrderByDescending(a => a.CreatedAt)
+            .Select(a => (DateTime?)a.CreatedAt)
+            .FirstOrDefaultAsync();
+
+        if (lastBreach == null) return null;
+
+        var alreadyRecorded = await db.Alerts.AnyAsync(a =>
+            a.MachineId == machine.Id &&
+            a.AlertType == AlertType.GeofenceEntry &&
+            a.CreatedAt > lastBreach);
+
+        if (alreadyRecorded) return null;
+
+        var alert = new Alert
+        {
+            MachineId = machine.Id,
+            OperatorId = op.Id,
+            AlertType = AlertType.GeofenceEntry,
+            Message = $"Machine '{machine.Name}' returned inside geofence boundary.",
+            Latitude = lat,
+            Longitude = lon,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        db.Alerts.Add(alert);
+        await db.SaveChangesAsync();
+
+        await hub.Clients.Group("admins").OperatorEventAlertReceived(new OperatorEventAlert(
+            alert.Id, machine.Id, machine.Name, op.Id, op.Name,
+            AlertType.GeofenceEntry, alert.CreatedAt));
+
+        var adminEmails = await GetAdminEmailsAsync();
+        FireAndForgetEmail(emailService.SendGeofenceEntryAlertAsync(
+            machine.Name, op.Name, lat, lon, alert.CreatedAt, adminEmails));
+
+        return alert;
+    }
+
     public async Task<Alert?> CreateOfflineAlertAsync(Machine machine)
     {
         var cooldown = settings.Value.OfflineAlertCooldownMinutes;

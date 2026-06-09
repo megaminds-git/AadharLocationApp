@@ -18,6 +18,9 @@ public record EmailAlertReportRequest(
 [Authorize(Roles = "Admin")]
 public class ReportsController(AppDbContext db, EmailService emailService, ILogger<ReportsController> logger) : ControllerBase
 {
+    private static readonly TimeZoneInfo IstZone = TimeZoneInfo.FindSystemTimeZoneById(
+        OperatingSystem.IsWindows() ? "India Standard Time" : "Asia/Kolkata");
+
     [HttpGet("device")]
     public async Task<IActionResult> ExportDevice(
         [FromQuery] int?      machineId,
@@ -148,7 +151,7 @@ public class ReportsController(AppDbContext db, EmailService emailService, ILogg
                 $"\"{a.AlertType}\",\"{machineName}\",\"{operatorName}\",\"{message}\"," +
                 $"{(a.Latitude.HasValue  ? a.Latitude.Value.ToString()  : string.Empty)}," +
                 $"{(a.Longitude.HasValue ? a.Longitude.Value.ToString() : string.Empty)}," +
-                $"\"{a.CreatedAt.ToLocalTime():yyyy-MM-dd HH:mm:ss}\"");
+                $"\"{TimeZoneInfo.ConvertTimeFromUtc(a.CreatedAt, IstZone):yyyy-MM-dd HH:mm:ss}\"");
         }
 
         var fileName = $"alert_report_{DateTime.Now:yyyyMMddHHmmss}.csv";
@@ -198,7 +201,7 @@ public class ReportsController(AppDbContext db, EmailService emailService, ILogg
                 $"\"{a.AlertType}\",\"{machineName}\",\"{operatorName}\",\"{message}\"," +
                 $"{(a.Latitude.HasValue  ? a.Latitude.Value.ToString()  : string.Empty)}," +
                 $"{(a.Longitude.HasValue ? a.Longitude.Value.ToString() : string.Empty)}," +
-                $"\"{a.CreatedAt.ToLocalTime():yyyy-MM-dd HH:mm:ss}\"");
+                $"\"{TimeZoneInfo.ConvertTimeFromUtc(a.CreatedAt, IstZone):yyyy-MM-dd HH:mm:ss}\"");
         }
 
         var fileName = $"alert_report_{DateTime.Now:yyyyMMddHHmmss}.csv";
