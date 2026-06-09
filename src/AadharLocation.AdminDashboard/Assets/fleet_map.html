@@ -6,10 +6,42 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body, #map { width: 100%; height: 100%; overflow: hidden; }
+
+    #map-type-ctrl {
+      position: absolute;
+      bottom: 24px;
+      left: 12px;
+      z-index: 10;
+      display: flex;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    #map-type-ctrl button {
+      padding: 6px 12px;
+      border: none;
+      cursor: pointer;
+      background: rgba(30,30,30,0.88);
+      color: #d1d5db;
+      transition: background 0.15s, color 0.15s;
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+    #map-type-ctrl button:last-child { border-right: none; }
+    #map-type-ctrl button:hover { background: rgba(60,60,60,0.95); color: #fff; }
+    #map-type-ctrl button.active { background: #3b82f6; color: #fff; }
   </style>
 </head>
 <body>
   <div id="map"></div>
+
+  <div id="map-type-ctrl">
+    <button id="btn-satellite" class="active" onclick="setMapType('satellite')">Satellite</button>
+    <button id="btn-hybrid"    onclick="setMapType('hybrid')">Hybrid</button>
+    <button id="btn-road"      onclick="setMapType('roadmap')">Road</button>
+  </div>
 
   <script>
     var _map = null;
@@ -17,6 +49,7 @@
     var _infoWindow = null;
     var _mapReady = false;
     var _visibleIds = null; // null = all visible; array = only these machineIds
+    var _currentTheme = 'light';
 
     var STATUS_COLORS = {
       'Online':  { bg: '#4ADE80', border: '#ffffff', glyph: '#166534' },
@@ -39,10 +72,25 @@
       { featureType: 'transit',            elementType: 'geometry',           stylers: [{ color: '#1e293b' }] }
     ];
 
+    function setMapType(type) {
+      if (!_map) return;
+      _map.setMapTypeId(type);
+      document.getElementById('btn-satellite').classList.toggle('active', type === 'satellite');
+      document.getElementById('btn-hybrid').classList.toggle('active',    type === 'hybrid');
+      document.getElementById('btn-road').classList.toggle('active',      type === 'roadmap');
+      // Road styles only relevant for roadmap type
+      if (type === 'roadmap') {
+        _map.setOptions({ styles: _currentTheme === 'dark' ? DARK_STYLES : [] });
+      } else {
+        _map.setOptions({ styles: [] });
+      }
+    }
+
     function initMap() {
       _map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 20.5937, lng: 78.9629 },
         zoom: 5,
+        mapTypeId: 'satellite',
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
@@ -56,7 +104,10 @@
 
     function applyTheme(theme) {
       if (!_map) return;
-      _map.setOptions({ styles: theme === 'dark' ? DARK_STYLES : [] });
+      _currentTheme = theme;
+      // Custom styles only affect roadmap type
+      var isRoad = _map.getMapTypeId() === 'roadmap';
+      _map.setOptions({ styles: (isRoad && theme === 'dark') ? DARK_STYLES : [] });
     }
 
     function createOrUpdateMarker(pin) {
@@ -65,9 +116,7 @@
       if (_markers[pin.machineId]) {
         var existing = _markers[pin.machineId];
         existing.marker.setPosition({ lat: pin.latitude, lng: pin.longitude });
-        // Rebuild icon for status color change
-        existing.marker.setIcon(buildIcon(colors));
-        existing.marker.setTitle(buildTitle(pin));
+        existing.marker.setIcon(buildMarkerIcon(colors, pin.machineName, pin.operatorName));
         existing.pin = pin;
         return;
       }
@@ -76,8 +125,7 @@
       var marker = new google.maps.Marker({
         map: isVisible ? _map : null,
         position: { lat: pin.latitude, lng: pin.longitude },
-        title: buildTitle(pin),
-        icon: buildIcon(colors),
+        icon: buildMarkerIcon(colors, pin.machineName, pin.operatorName),
         optimized: false
       });
 
@@ -91,19 +139,49 @@
       _markers[pin.machineId] = { marker: marker, pin: pin };
     }
 
-    function buildIcon(colors) {
-      return {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 10,
-        fillColor: colors.bg,
-        fillOpacity: 1,
-        strokeColor: colors.border,
-        strokeWeight: 2
-      };
+    function escapeXml(s) {
+      return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    function buildTitle(pin) {
-      return pin.machineName + (pin.city ? ' – ' + pin.city : '');
+    function buildMarkerIcon(colors, machineName, operatorName) {
+      var hasOp = !!(operatorName && operatorName.trim());
+      var DOT_R = 7, PAD = 6, LINE_H = 15, FSM = 11, FSO = 10;
+
+      var labelW = Math.max(
+        (machineName || '').length * 6.8,
+        hasOp ? (operatorName || '').length * 6.2 : 0,
+        50
+      ) + PAD * 2;
+      var labelH = (hasOp ? LINE_H * 2 : LINE_H) + PAD * 2;
+
+      var svgW  = DOT_R * 2 + 6 + labelW;
+      var svgH  = Math.max(DOT_R * 2 + 4, labelH + 4);
+      var dotCX = DOT_R + 1;
+      var dotCY = Math.round(svgH / 2);
+      var boxX  = DOT_R * 2 + 4;
+      var boxY  = Math.round((svgH - labelH) / 2);
+      var tX    = boxX + PAD;
+      var t1Y   = boxY + PAD + FSM;
+      var t2Y   = t1Y + LINE_H;
+
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + svgW + '" height="' + svgH + '">'
+        + '<rect x="' + boxX + '" y="' + boxY + '" width="' + labelW + '" height="' + labelH
+        + '" rx="4" fill="rgba(255,255,255,0.93)" stroke="#d1d5db" stroke-width="1"/>'
+        + '<circle cx="' + dotCX + '" cy="' + dotCY + '" r="' + DOT_R
+        + '" fill="' + colors.bg + '" stroke="white" stroke-width="2"/>'
+        + '<text x="' + tX + '" y="' + t1Y + '" font-family="Arial,sans-serif" font-size="' + FSM
+        + '" font-weight="700" fill="#111">' + escapeXml(machineName) + '</text>';
+      if (hasOp) {
+        svg += '<text x="' + tX + '" y="' + t2Y + '" font-family="Arial,sans-serif" font-size="' + FSO
+          + '" fill="#6b7280">' + escapeXml(operatorName) + '</text>';
+      }
+      svg += '</svg>';
+
+      return {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+        anchor: new google.maps.Point(dotCX, dotCY),
+        scaledSize: new google.maps.Size(svgW, svgH)
+      };
     }
 
     function fitBounds(pins) {
@@ -165,18 +243,7 @@
 
         case 'FocusPin':
           _map.panTo({ lat: msg.latitude, lng: msg.longitude });
-          _map.setZoom(14);
-          if (_markers[msg.machineId]) {
-            var entry = _markers[msg.machineId];
-            var p = entry.pin;
-            var title = '<div style="font-weight:700;font-size:13px;color:#111;line-height:1.4;">'
-              + p.machineName + (p.city ? ' – ' + p.city : '') + '</div>';
-            var operator = p.operatorName
-              ? '<div style="font-size:12px;color:#555;margin-top:3px;">' + p.operatorName + '</div>'
-              : '';
-            _infoWindow.setContent('<div style="font-family:sans-serif;padding:2px 4px;">' + title + operator + '</div>');
-            _infoWindow.open(_map, entry.marker);
-          }
+          _map.setZoom(20);
           break;
 
         case 'FocusLocation':
