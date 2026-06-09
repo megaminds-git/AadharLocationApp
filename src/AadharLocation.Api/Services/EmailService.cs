@@ -50,6 +50,22 @@ public class EmailService(
         await SendAsync(subject, body, adminEmails);
     }
 
+    public async Task SendGeofenceEntryAlertAsync(
+        string machineName, string operatorName,
+        double lat, double lon, DateTime enteredAt,
+        IEnumerable<string> adminEmails)
+    {
+        if (!IsConfigured)
+        {
+            logger.LogWarning("Email not configured — skipping geofence entry alert for {Machine}", machineName);
+            return;
+        }
+
+        var subject = $"[AadharLocation] Machine Returned Inside Boundary — {machineName}";
+        var body    = BuildGeofenceEntryHtml(machineName, operatorName, lat, lon, enteredAt);
+        await SendAsync(subject, body, adminEmails);
+    }
+
     public async Task SendMachineOfflineAlertAsync(
         string machineName, DateTime lastSeenAt, int minutesOffline,
         IEnumerable<string> adminEmails)
@@ -160,6 +176,47 @@ public class EmailService(
               <div style="margin-top:24px;padding-top:16px;border-top:1px solid #E5E7EB">
                 <p style="margin:0;font-size:13px;color:#6B7280">
                   Log in to the AadharLocation Admin Dashboard to acknowledge this alert and view the live map.
+                </p>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+        """;
+
+    private static string BuildGeofenceEntryHtml(
+        string machineName, string operatorName,
+        double lat, double lon, DateTime enteredAt) =>
+        $"""
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family:sans-serif;background:#f4f4f4;padding:24px;margin:0">
+          <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+            <div style="background:#22C55E;padding:20px 24px">
+              <h2 style="margin:0;color:#fff;font-size:18px;font-weight:600">&#10003; Machine Returned Inside Boundary</h2>
+            </div>
+            <div style="padding:24px">
+              <table style="width:100%;border-collapse:collapse;font-size:14px">
+                <tr>
+                  <td style="padding:8px 0;color:#6B7280;width:140px;vertical-align:top">Machine</td>
+                  <td style="padding:8px 0;font-weight:600;color:#111827">{machineName}</td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;color:#6B7280;vertical-align:top">Operator</td>
+                  <td style="padding:8px 0;color:#111827">{operatorName}</td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;color:#6B7280;vertical-align:top">Time</td>
+                  <td style="padding:8px 0;color:#111827">{TimeZoneInfo.ConvertTimeFromUtc(enteredAt, IstZone):dd MMM yyyy HH:mm:ss}</td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;color:#6B7280;vertical-align:top">Coordinates</td>
+                  <td style="padding:8px 0;color:#111827">{lat:F6}, {lon:F6}</td>
+                </tr>
+              </table>
+              <div style="margin-top:24px;padding-top:16px;border-top:1px solid #E5E7EB">
+                <p style="margin:0;font-size:13px;color:#6B7280">
+                  Log in to the AadharLocation Admin Dashboard to view the live map.
                 </p>
               </div>
             </div>

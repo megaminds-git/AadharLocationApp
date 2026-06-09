@@ -24,6 +24,10 @@ public class GeofenceService(AppDbContext db, AlertService alertService)
             var excess = distance - fence.RadiusMeters;
             await alertService.CreateGeofenceBreachAlertAsync(machine, op, lat, lon, excess);
         }
+        else
+        {
+            await alertService.CreateGeofenceEntryAlertAsync(machine, op, lat, lon);
+        }
 
         return isWithin;
     }
