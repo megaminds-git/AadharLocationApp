@@ -191,9 +191,30 @@ Root: HKCU; \
   Flags: uninsdeletevalue
 
 [UninstallDelete]
-Type: files; Name: "{app}\server_config.json"
-Type: files; Name: "{app}\install-mode.txt"
-Type: dirifempty; Name: "{app}"
+; Files written by the installer itself
+Type: files;          Name: "{app}\server_config.json"
+Type: files;          Name: "{app}\install-mode.txt"
+
+; Operator Tracker runtime logs (written to install dir)
+Type: filesandordirs; Name: "{app}\logs"
+
+; Admin Dashboard — AppData\Roaming\AadharLocation
+Type: files;          Name: "{userappdata}\AadharLocation\admin-prefs.json"
+Type: files;          Name: "{userappdata}\AadharLocation\theme.txt"
+Type: files;          Name: "{userappdata}\AadharLocation\server_config.json"
+Type: files;          Name: "{userappdata}\AadharLocation\crash.log"
+Type: filesandordirs; Name: "{userappdata}\AadharLocation\logs"
+Type: dirifempty;     Name: "{userappdata}\AadharLocation"
+
+; Operator Tracker + Admin — AppData\Local\AadharLocation
+Type: filesandordirs; Name: "{localappdata}\AadharLocation\WebView2Cache"
+Type: dirifempty;     Name: "{localappdata}\AadharLocation"
+
+; Temp map HTML files
+Type: filesandordirs; Name: "{%TEMP%}\AadharLocationMaps"
+
+; Remove install dir itself when empty
+Type: dirifempty;     Name: "{app}"
 
 [Run]
 Filename: "{app}\{#AdminExeName}"; \

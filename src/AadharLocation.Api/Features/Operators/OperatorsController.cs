@@ -115,16 +115,21 @@ public class OperatorsController(AppDbContext db) : ControllerBase
     [HttpPost("{id:int}/generate-uninstall-code")]
     public async Task<IActionResult> GenerateUninstallCode(int id)
     {
-        var op = await db.Operators.FindAsync(id);
-        if (op is null) return NotFound();
+        if (!await db.Operators.AnyAsync(o => o.Id == id))
+            return NotFound();
+
+        var activation = await db.TrackerActivations
+            .FirstOrDefaultAsync(t => t.OperatorId == id && t.IsActive);
+
+        if (activation is null)
+            return BadRequest(new { message = "Operator has no active device. They must log in to the tracker app first." });
 
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         var code = new string(Enumerable.Range(0, 6)
             .Select(_ => chars[Random.Shared.Next(chars.Length)])
             .ToArray());
 
-        op.UninstallCodeHash = BCrypt.Net.BCrypt.HashPassword(code);
-        op.UpdatedAt = DateTime.UtcNow;
+        activation.UninstallCodeHash = BCrypt.Net.BCrypt.HashPassword(code);
         await db.SaveChangesAsync();
 
         return Ok(new GenerateUninstallCodeResponse(code));
