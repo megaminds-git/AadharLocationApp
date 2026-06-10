@@ -211,7 +211,7 @@ Type: filesandordirs; Name: "{localappdata}\AadharLocation\WebView2Cache"
 Type: dirifempty;     Name: "{localappdata}\AadharLocation"
 
 ; Temp map HTML files
-Type: filesandordirs; Name: "{%TEMP%}\AadharLocationMaps"
+Type: filesandordirs; Name: "{%TEMP}\AadharLocationMaps"
 
 ; Remove install dir itself when empty
 Type: dirifempty;     Name: "{app}"
