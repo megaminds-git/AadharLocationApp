@@ -87,6 +87,12 @@ var
   ResultCode: Integer;
 begin
   Result := True;
+
+  // Kill admin dashboard if running (prevents any file-lock during cleanup)
+  Exec(ExpandConstant('{sys}') + '\taskkill.exe',
+       '/F /IM {#AdminExeName}', '',
+       SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
   AppPath := ExpandConstant('{app}') + '\{#OperatorExeName}';
 
   if not FileExists(AppPath) then
@@ -119,8 +125,10 @@ end;
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   if CurUninstallStep = usUninstall then
-    // Clear admin session so login page is shown on next install
+  begin
     DeleteFile(ExpandConstant('{userappdata}\AadharLocation\admin-auth.json'));
+    DeleteFile(ExpandConstant('{localappdata}\AadharLocation\tracker.dat'));
+  end;
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
@@ -138,6 +146,12 @@ begin
       '{"ApiBaseUrl":"http://157.15.203.127:81"}',
       False
     );
+
+    // Always clear stale session on fresh install so login screen is shown
+    if IsAdmin then
+      DeleteFile(ExpandConstant('{userappdata}\AadharLocation\admin-auth.json'));
+    if IsOperator then
+      DeleteFile(ExpandConstant('{localappdata}\AadharLocation\tracker.dat'));
   end;
 end;
 
