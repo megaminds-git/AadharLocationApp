@@ -1,3 +1,4 @@
+using System.Text;
 using AadharLocation.Api.Data;
 using AadharLocation.Api.Domain.Entities;
 using AadharLocation.Shared.DTOs;
@@ -15,6 +16,38 @@ namespace AadharLocation.Api.Features.Operators;
 [Authorize(Roles = "Admin")]
 public class OperatorsController(AppDbContext db) : ControllerBase
 {
+    [HttpGet("export")]
+    public async Task<IActionResult> Export()
+    {
+        var operators = await db.Operators
+            .Include(o => o.AssignedMachine)
+            .AsNoTracking()
+            .OrderBy(o => o.Name)
+            .Select(o => new
+            {
+                o.Name, o.Email, o.Phone, o.District,
+                AssignedMachineName = o.AssignedMachine != null ? o.AssignedMachine.Name : string.Empty,
+                o.Status
+            })
+            .ToListAsync();
+
+        var sb = new StringBuilder();
+        sb.AppendLine("Name,Email,Phone,District,Assigned Machine,Status");
+
+        foreach (var op in operators)
+        {
+            var name     = op.Name.Replace("\"", "\"\"");
+            var email    = op.Email.Replace("\"", "\"\"");
+            var phone    = (op.Phone    ?? string.Empty).Replace("\"", "\"\"");
+            var district = (op.District ?? string.Empty).Replace("\"", "\"\"");
+            var machine  = op.AssignedMachineName.Replace("\"", "\"\"");
+            sb.AppendLine($"\"{name}\",\"{email}\",\"{phone}\",\"{district}\",\"{machine}\",\"{op.Status}\"");
+        }
+
+        var fileName = $"operators_{DateTime.Now:yyyyMMddHHmmss}.csv";
+        return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv", fileName);
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1,

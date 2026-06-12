@@ -18,6 +18,7 @@ public static class ApiRoutes
         public const string Base = $"{ApiRoutes.Base}/operators";
         public const string ById = $"{Base}/{{id}}";
         public const string GenerateUninstallCode = $"{Base}/{{id}}/generate-uninstall-code";
+        public const string Export = $"{Base}/export";
     }
 
     public static class Machines
@@ -25,6 +26,7 @@ public static class ApiRoutes
         public const string Base = $"{ApiRoutes.Base}/machines";
         public const string ById = $"{Base}/{{id}}";
         public const string Live = $"{Base}/live";
+        public const string Export = $"{Base}/export";
     }
 
     public static class Geofences

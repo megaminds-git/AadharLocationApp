@@ -1,8 +1,10 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using AadharLocation.AdminDashboard.Infrastructure;
 using AadharLocation.Shared.DTOs.Operators;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
 
 namespace AadharLocation.AdminDashboard.ViewModels;
 
@@ -13,6 +15,7 @@ public partial class OperatorsViewModel : ObservableObject
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _searchText = string.Empty;
     [ObservableProperty] private string _errorMessage = string.Empty;
+    [ObservableProperty] private string _exportStatus = string.Empty;
     [ObservableProperty] private int _currentPage = 1;
     [ObservableProperty] private OperatorDto? _selectedOperator;
 
@@ -87,6 +90,29 @@ public partial class OperatorsViewModel : ObservableObject
                 UninstallCodeGenerated?.Invoke(result.Code);
         }
         catch (Exception ex) { ErrorMessage = ex.Message; }
+    }
+
+    [RelayCommand]
+    private async Task ExportAsync()
+    {
+        ExportStatus = string.Empty;
+        var dialog = new SaveFileDialog
+        {
+            Title    = "Save Operators Report",
+            Filter   = "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*",
+            FileName = $"operators_{DateTime.Now:yyyyMMddHHmmss}.csv"
+        };
+        if (dialog.ShowDialog() != true) return;
+
+        IsLoading = true;
+        try
+        {
+            var bytes = await _api.ExportOperatorsCsvAsync();
+            await File.WriteAllBytesAsync(dialog.FileName, bytes);
+            ExportStatus = $"Saved: {Path.GetFileName(dialog.FileName)}";
+        }
+        catch (Exception ex) { ErrorMessage = ex.Message; }
+        finally { IsLoading = false; }
     }
 
     [RelayCommand]

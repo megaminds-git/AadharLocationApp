@@ -30,9 +30,15 @@
             </Grid.ColumnDefinitions>
             <TextBlock Text="Operators" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"
                        Foreground="{DynamicResource PrimaryTextBrush}"/>
-            <Button Grid.Column="1" Content="+ Add Operator"
-                    Command="{Binding AddOperatorCommand}"
-                    Style="{StaticResource PrimaryButtonStyle}"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="Export CSV" Margin="0,0,8,0"
+                        Command="{Binding ExportCommand}"
+                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBool}}"/>
+                <Button Content="+ Add Operator"
+                        Command="{Binding AddOperatorCommand}"
+                        Style="{StaticResource PrimaryButtonStyle}"/>
+            </StackPanel>
         </Grid>
 
         <!-- Search bar -->
@@ -141,9 +147,12 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="#F87171"
-                       VerticalAlignment="Center"
-                       Visibility="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="#F87171"
+                           Visibility="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                <TextBlock Text="{Binding ExportStatus}" Foreground="#2DD4BF"
+                           Visibility="{Binding ExportStatus, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+            </StackPanel>
             <controls:PaginationControl Grid.Column="1"
                 CurrentPage="{Binding CurrentPage, Mode=OneWay}"
                 TotalPages="{Binding TotalPages, Mode=OneWay}"
