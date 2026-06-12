@@ -16,6 +16,9 @@ namespace AadharLocation.Api.Features.Operators;
 [Authorize(Roles = "Admin")]
 public class OperatorsController(AppDbContext db) : ControllerBase
 {
+    private static readonly TimeZoneInfo IstZone = TimeZoneInfo.FindSystemTimeZoneById(
+        OperatingSystem.IsWindows() ? "India Standard Time" : "Asia/Kolkata");
+
     [HttpGet("export")]
     public async Task<IActionResult> Export()
     {
@@ -27,21 +30,29 @@ public class OperatorsController(AppDbContext db) : ControllerBase
             {
                 o.Name, o.Email, o.Phone, o.District,
                 AssignedMachineName = o.AssignedMachine != null ? o.AssignedMachine.Name : string.Empty,
-                o.Status
+                o.Status, o.CreatedAt, o.LastLoginAt
             })
             .ToListAsync();
 
         var sb = new StringBuilder();
-        sb.AppendLine("Name,Email,Phone,District,Assigned Machine,Status");
+        sb.AppendLine("Name,Email,Phone,District,Assigned Machine,Status,Created At,Last Login");
 
         foreach (var op in operators)
         {
-            var name     = op.Name.Replace("\"", "\"\"");
-            var email    = op.Email.Replace("\"", "\"\"");
-            var phone    = (op.Phone    ?? string.Empty).Replace("\"", "\"\"");
-            var district = (op.District ?? string.Empty).Replace("\"", "\"\"");
-            var machine  = op.AssignedMachineName.Replace("\"", "\"\"");
-            sb.AppendLine($"\"{name}\",\"{email}\",\"{phone}\",\"{district}\",\"{machine}\",\"{op.Status}\"");
+            var name      = op.Name.Replace("\"", "\"\"");
+            var email     = op.Email.Replace("\"", "\"\"");
+            var phone     = (op.Phone    ?? string.Empty).Replace("\"", "\"\"");
+            var district  = (op.District ?? string.Empty).Replace("\"", "\"\"");
+            var machine   = op.AssignedMachineName.Replace("\"", "\"\"");
+            var createdAt = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.SpecifyKind(op.CreatedAt, DateTimeKind.Utc), IstZone)
+                .ToString("yyyy-MM-dd HH:mm:ss");
+            var lastLogin = op.LastLoginAt.HasValue
+                ? TimeZoneInfo.ConvertTimeFromUtc(
+                    DateTime.SpecifyKind(op.LastLoginAt.Value, DateTimeKind.Utc), IstZone)
+                    .ToString("yyyy-MM-dd HH:mm:ss")
+                : string.Empty;
+            sb.AppendLine($"\"{name}\",\"{email}\",\"{phone}\",\"{district}\",\"{machine}\",\"{op.Status}\",\"{createdAt}\",\"{lastLogin}\"");
         }
 
         var fileName = $"operators_{DateTime.Now:yyyyMMddHHmmss}.csv";

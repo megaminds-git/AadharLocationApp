@@ -14,6 +14,9 @@ namespace AadharLocation.Api.Features.Machines;
 [Authorize(Roles = "Admin")]
 public class MachinesController(AppDbContext db) : ControllerBase
 {
+    private static readonly TimeZoneInfo IstZone = TimeZoneInfo.FindSystemTimeZoneById(
+        OperatingSystem.IsWindows() ? "India Standard Time" : "Asia/Kolkata");
+
     [HttpGet("export")]
     public async Task<IActionResult> Export()
     {
@@ -33,7 +36,9 @@ public class MachinesController(AppDbContext db) : ControllerBase
             var code     = m.SerialNumber.Replace("\"", "\"\"");
             var op       = (m.AssignedOperator?.Name ?? string.Empty).Replace("\"", "\"\"");
             var lastSeen = m.LastSeenAt.HasValue
-                ? m.LastSeenAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+                ? TimeZoneInfo.ConvertTimeFromUtc(
+                    DateTime.SpecifyKind(m.LastSeenAt.Value, DateTimeKind.Utc), IstZone)
+                    .ToString("yyyy-MM-dd HH:mm:ss")
                 : string.Empty;
 
             var fence = m.Geofences?.FirstOrDefault(g => g.IsActive);
