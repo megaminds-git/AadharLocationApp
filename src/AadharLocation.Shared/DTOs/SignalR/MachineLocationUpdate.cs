@@ -1,3 +1,5 @@
+using AadharLocation.Shared.Enums;
+
 namespace AadharLocation.Shared.DTOs.SignalR;
 
 public record MachineLocationUpdate(
@@ -9,4 +11,5 @@ public record MachineLocationUpdate(
     double Longitude,
     double Accuracy,
     DateTime RecordedAt,
-    bool IsWithinGeofence);
+    bool IsWithinGeofence,
+    LocationType LocationType = LocationType.Unknown);

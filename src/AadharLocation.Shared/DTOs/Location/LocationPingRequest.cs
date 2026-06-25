@@ -1,3 +1,5 @@
+using AadharLocation.Shared.Enums;
+
 namespace AadharLocation.Shared.DTOs.Location;
 
 public record LocationPingRequest(
@@ -7,4 +9,5 @@ public record LocationPingRequest(
     double Latitude,
     double Longitude,
     double Accuracy,
-    DateTime RecordedAt);
+    DateTime RecordedAt,
+    LocationType LocationType = LocationType.Unknown);

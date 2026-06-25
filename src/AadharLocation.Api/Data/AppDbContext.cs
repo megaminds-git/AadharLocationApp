@@ -43,6 +43,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
              .HasForeignKey(m => m.AssignedOperatorId)
              .OnDelete(DeleteBehavior.SetNull);
             e.Property(m => m.Status).HasConversion<string>();
+            e.Property(m => m.CurrentLocationType).HasConversion<string>();
         });
 
         modelBuilder.Entity<LocationLog>(e =>
@@ -50,6 +51,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(l => new { l.MachineId, l.RecordedAt });
             e.HasOne(l => l.Machine).WithMany(m => m.LocationLogs).HasForeignKey(l => l.MachineId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(l => l.Operator).WithMany(o => o.LocationLogs).HasForeignKey(l => l.OperatorId).OnDelete(DeleteBehavior.Cascade);
+            e.Property(l => l.LocationType).HasConversion<string>();
         });
 
         modelBuilder.Entity<Alert>(e =>

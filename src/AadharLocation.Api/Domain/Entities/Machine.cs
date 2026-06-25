@@ -14,6 +14,7 @@ public class Machine
     public double? CurrentLongitude { get; set; }
     public DateTime? LastSeenAt { get; set; }
     public MachineStatus Status { get; set; } = MachineStatus.Offline;
+    public LocationType? CurrentLocationType { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
     public string? MachineAuthCode { get; set; }

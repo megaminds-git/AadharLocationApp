@@ -17,4 +17,5 @@ public record MachineDto(
     DateTime? UpdatedAt,
     string? MachineAuthCode,
     bool IsDeleted,
-    bool? IsWithinGeofence);
+    bool? IsWithinGeofence,
+    LocationType? CurrentLocationType = null);

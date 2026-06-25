@@ -1,3 +1,5 @@
+using AadharLocation.Shared.Enums;
+
 namespace AadharLocation.Api.Domain.Entities;
 
 public class LocationLog
@@ -12,4 +14,5 @@ public class LocationLog
     public double Accuracy { get; set; }
     public DateTime RecordedAt { get; set; }
     public bool IsWithinGeofence { get; set; }
+    public LocationType LocationType { get; set; } = LocationType.Unknown;
 }
