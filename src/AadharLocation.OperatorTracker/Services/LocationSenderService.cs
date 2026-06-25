@@ -17,6 +17,10 @@ public class LocationSenderService : BackgroundService
     private readonly ILogger<LocationSenderService> _logger;
 
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan StaleReadingMax = TimeSpan.FromMinutes(15);
+
+    private GpsReading? _lastKnownReading;
+    private DateTime _lastKnownReadingTime = DateTime.MinValue;
 
     public event EventHandler<string>? PingSent;
 
@@ -69,9 +73,19 @@ public class LocationSenderService : BackgroundService
             return false;
         }
 
-        if (reading is null)
+        if (reading is not null)
         {
-            _logger.LogWarning("GPS unavailable — skipping ping.");
+            _lastKnownReading = reading;
+            _lastKnownReadingTime = DateTime.UtcNow;
+        }
+        else if (_lastKnownReading is not null && (DateTime.UtcNow - _lastKnownReadingTime) < StaleReadingMax)
+        {
+            _logger.LogWarning("GPS unavailable — using last known location from {Age:F0}s ago.", (DateTime.UtcNow - _lastKnownReadingTime).TotalSeconds);
+            reading = _lastKnownReading;
+        }
+        else
+        {
+            _logger.LogWarning("GPS unavailable and no recent fallback — skipping ping.");
             return false;
         }
 

@@ -45,7 +45,7 @@ public class GpsService : IGpsService
 
             var position = await geolocator
                 .GetGeopositionAsync(
-                    maximumAge: TimeSpan.FromMinutes(2),
+                    maximumAge: TimeSpan.FromMinutes(5),
                     timeout: TimeSpan.FromSeconds(15))
                 .AsTask(ct);
 
