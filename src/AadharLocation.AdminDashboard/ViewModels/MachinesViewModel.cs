@@ -114,11 +114,12 @@ public partial class MachinesViewModel : ObservableObject
         var idx = Machines.IndexOf(m);
         Machines[idx] = m with
         {
-            CurrentLatitude  = u.Latitude,
-            CurrentLongitude = u.Longitude,
-            LastSeenAt       = u.RecordedAt,
-            Status           = Shared.Enums.MachineStatus.Online,
-            IsWithinGeofence = m.IsWithinGeofence.HasValue ? u.IsWithinGeofence : null
+            CurrentLatitude     = u.Latitude,
+            CurrentLongitude    = u.Longitude,
+            LastSeenAt          = u.RecordedAt,
+            Status              = Shared.Enums.MachineStatus.Online,
+            IsWithinGeofence    = m.IsWithinGeofence.HasValue ? u.IsWithinGeofence : null,
+            CurrentLocationType = u.LocationType
         };
     }
 

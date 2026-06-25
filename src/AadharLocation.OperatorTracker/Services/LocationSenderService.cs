@@ -82,7 +82,8 @@ public class LocationSenderService : BackgroundService
             Latitude: reading.Latitude,
             Longitude: reading.Longitude,
             Accuracy: reading.AccuracyMeters,
-            RecordedAt: DateTime.UtcNow);
+            RecordedAt: DateTime.UtcNow,
+            LocationType: reading.Source);
 
         try
         {

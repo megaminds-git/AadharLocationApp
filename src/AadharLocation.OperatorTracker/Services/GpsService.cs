@@ -1,9 +1,10 @@
+using AadharLocation.Shared.Enums;
 using Microsoft.Extensions.Logging;
 using Windows.Devices.Geolocation;
 
 namespace AadharLocation.OperatorTracker.Services;
 
-public record GpsReading(double Latitude, double Longitude, double AccuracyMeters);
+public record GpsReading(double Latitude, double Longitude, double AccuracyMeters, LocationType Source = LocationType.Unknown);
 
 public interface IGpsService
 {
@@ -50,9 +51,17 @@ public class GpsService : IGpsService
 
             var coord = position.Coordinate;
             double accuracy = coord.Accuracy;
+            var source = coord.PositionSource switch
+            {
+                PositionSource.Satellite => LocationType.GPS,
+                PositionSource.WiFi      => LocationType.WiFi,
+                PositionSource.IPAddress => LocationType.IP,
+                PositionSource.Cellular  => LocationType.IP,
+                _                        => LocationType.Unknown
+            };
 
-            _logger.LogDebug("GPS: {Lat}, {Lon} ±{Acc}m", coord.Latitude, coord.Longitude, accuracy);
-            return new GpsReading(coord.Latitude, coord.Longitude, accuracy);
+            _logger.LogDebug("GPS: {Lat}, {Lon} ±{Acc}m [{Source}]", coord.Latitude, coord.Longitude, accuracy, source);
+            return new GpsReading(coord.Latitude, coord.Longitude, accuracy, source);
         }
         catch (OperationCanceledException)
         {

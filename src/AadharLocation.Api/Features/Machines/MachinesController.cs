@@ -162,7 +162,7 @@ public class MachinesController(AppDbContext db) : ControllerBase
             m.AssignedOperatorId, m.AssignedOperator?.Name,
             m.CurrentLatitude, m.CurrentLongitude, m.LastSeenAt,
             m.Status, m.CreatedAt, m.UpdatedAt, m.MachineAuthCode, m.IsDeleted,
-            isWithinGeofence);
+            isWithinGeofence, m.CurrentLocationType);
     }
 
     private static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)

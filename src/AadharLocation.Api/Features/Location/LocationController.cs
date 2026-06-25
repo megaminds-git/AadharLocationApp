@@ -43,7 +43,8 @@ public class LocationController(
             Longitude = request.Longitude,
             Accuracy = request.Accuracy,
             RecordedAt = request.RecordedAt.ToUniversalTime(),
-            IsWithinGeofence = isWithin
+            IsWithinGeofence = isWithin,
+            LocationType = request.LocationType
         };
         db.LocationLogs.Add(log);
 
@@ -51,6 +52,7 @@ public class LocationController(
         machine.CurrentLongitude = request.Longitude;
         machine.LastSeenAt = DateTime.UtcNow;
         machine.Status = MachineStatus.Online;
+        machine.CurrentLocationType = request.LocationType;
 
         await db.SaveChangesAsync();
 
@@ -60,7 +62,7 @@ public class LocationController(
         await hub.Clients.Group("admins").MachineLocationUpdated(new MachineLocationUpdate(
             machine.Id, machine.Name, op.Id, op.Name,
             request.Latitude, request.Longitude, request.Accuracy,
-            log.RecordedAt, isWithin));
+            log.RecordedAt, isWithin, request.LocationType));
 
         return Ok(new LocationPingResponse(isWithin ? "ok" : "geofence_breach"));
     }

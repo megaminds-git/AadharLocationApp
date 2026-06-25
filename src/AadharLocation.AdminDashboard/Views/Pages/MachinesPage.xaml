@@ -138,6 +138,9 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Location Type"
+                                        Binding="{Binding CurrentLocationType}"
+                                        Width="120" ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="Last Seen"
                                         Binding="{Binding LastSeenAt, Converter={StaticResource DateTimeConverter}}"
                                         Width="150" ElementStyle="{StaticResource CellText}"/>
