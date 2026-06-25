@@ -161,10 +161,6 @@
                         </StackPanel>
                     </Button>
 
-                    <!-- Hint -->
-                    <TextBlock Text="Default: admin@aadhar.local / Admin@123"
-                               Foreground="{DynamicResource TertiaryTextBrush}" FontSize="11"
-                               HorizontalAlignment="Center" Margin="0,16,0,0"/>
                 </StackPanel>
             </Grid>
         </Border>

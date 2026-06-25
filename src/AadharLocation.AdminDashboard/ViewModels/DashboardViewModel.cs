@@ -54,8 +54,8 @@ public partial class DashboardViewModel : ObservableObject
         ErrorMessage = string.Empty;
         try
         {
-            var machines  = await _api.GetMachinesAsync(pageSize: 100);
-            var operators = await _api.GetOperatorsAsync(pageSize: 100);
+            var machines  = await _api.GetMachinesAsync(pageSize: 1000);
+            var operators = await _api.GetOperatorsAsync(pageSize: 1000);
             var alerts    = await _api.GetAlertsAsync(pageSize: 500);
 
             if (machines != null)
