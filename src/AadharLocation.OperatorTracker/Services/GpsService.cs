@@ -38,7 +38,7 @@ public class GpsService : IGpsService
 
             var geolocator = new Geolocator
             {
-                DesiredAccuracyInMeters = 100,
+                DesiredAccuracy = PositionAccuracy.High,
                 ReportInterval = 0
             };
 
