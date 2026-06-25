@@ -1,5 +1,5 @@
 #define MyAppName "AadharLocation"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.1"
 #define MyAppPublisher "sstelecomjk"
 #define MyAppURL "https://megamindstechnologies.com"
 #define AdminExeName "AadharLocation.AdminDashboard.exe"
