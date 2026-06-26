@@ -53,6 +53,8 @@ public class LocationController(
         machine.LastSeenAt = DateTime.UtcNow;
         machine.Status = MachineStatus.Online;
         machine.CurrentLocationType = request.LocationType;
+        if (request.AppVersion is not null)
+            machine.AppVersion = request.AppVersion;
 
         await db.SaveChangesAsync();
 

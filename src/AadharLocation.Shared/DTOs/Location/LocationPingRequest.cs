@@ -10,4 +10,5 @@ public record LocationPingRequest(
     double Longitude,
     double Accuracy,
     DateTime RecordedAt,
-    LocationType LocationType = LocationType.Unknown);
+    LocationType LocationType = LocationType.Unknown,
+    string? AppVersion = null);
