@@ -97,7 +97,8 @@ public class LocationSenderService : BackgroundService
             Longitude: reading.Longitude,
             Accuracy: reading.AccuracyMeters,
             RecordedAt: DateTime.UtcNow,
-            LocationType: reading.Source);
+            LocationType: reading.Source,
+            AppVersion: typeof(LocationSenderService).Assembly.GetName().Version?.ToString(3));
 
         try
         {

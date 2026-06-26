@@ -18,6 +18,7 @@ public class Machine
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
     public string? MachineAuthCode { get; set; }
+    public string? AppVersion { get; set; }
     public bool IsDeleted { get; set; } = false;
 
     public ICollection<Geofence> Geofences { get; set; } = [];
