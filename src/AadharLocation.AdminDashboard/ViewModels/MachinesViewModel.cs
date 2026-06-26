@@ -1,9 +1,11 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using AadharLocation.AdminDashboard.Infrastructure;
 using AadharLocation.Shared.DTOs.Machines;
 using AadharLocation.Shared.DTOs.SignalR;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
 
 namespace AadharLocation.AdminDashboard.ViewModels;
 
@@ -15,6 +17,7 @@ public partial class MachinesViewModel : ObservableObject
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _searchText = string.Empty;
     [ObservableProperty] private string _errorMessage = string.Empty;
+    [ObservableProperty] private string _exportStatus = string.Empty;
     [ObservableProperty] private int _currentPage = 1;
     [ObservableProperty] private MachineDto? _selectedMachine;
 
@@ -85,6 +88,29 @@ public partial class MachinesViewModel : ObservableObject
         if (ConfirmDelete != null && !ConfirmDelete(target.Name)) return;
         try { await _api.DeleteMachineAsync(target.Id); await LoadAsync(); }
         catch (Exception ex) { ErrorMessage = ex.Message; }
+    }
+
+    [RelayCommand]
+    private async Task ExportAsync()
+    {
+        ExportStatus = string.Empty;
+        var dialog = new SaveFileDialog
+        {
+            Title    = "Save Machines Report",
+            Filter   = "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*",
+            FileName = $"machines_{DateTime.Now:yyyyMMddHHmmss}.csv"
+        };
+        if (dialog.ShowDialog() != true) return;
+
+        IsLoading = true;
+        try
+        {
+            var bytes = await _api.ExportMachinesCsvAsync();
+            await File.WriteAllBytesAsync(dialog.FileName, bytes);
+            ExportStatus = $"Saved: {Path.GetFileName(dialog.FileName)}";
+        }
+        catch (Exception ex) { ErrorMessage = ex.Message; }
+        finally { IsLoading = false; }
     }
 
     [RelayCommand]

@@ -145,9 +145,12 @@ public partial class ReportsViewModel : ObservableObject
             var fromStart   = FromDate?.Date;
             var toEnd       = ToDate?.Date.AddDays(1).AddTicks(-1);
 
+            // Pass null when all items are selected — no filter needed, avoids oversized URLs
+            var machineFilter  = machineIds .Length > 0 && machineIds .Length < MachineItems .Count ? machineIds  : null;
+            var operatorFilter = operatorIds.Length > 0 && operatorIds.Length < OperatorItems.Count ? operatorIds : null;
+
             var result = await _api.GetAlertReportAsync(
-                machineIds .Length > 0 ? machineIds  : null,
-                operatorIds.Length > 0 ? operatorIds : null,
+                machineFilter, operatorFilter,
                 fromStart, toEnd,
                 CurrentPage, PageSize);
 
@@ -180,11 +183,12 @@ public partial class ReportsViewModel : ObservableObject
             var machineIds  = MachineItems .Where(m => m.IsSelected).Select(m => m.Id).ToArray();
             var operatorIds = OperatorItems.Where(o => o.IsSelected).Select(o => o.Id).ToArray();
 
-            var fromStart = FromDate?.Date;
-            var toEnd     = ToDate?.Date.AddDays(1).AddTicks(-1);
+            var fromStart      = FromDate?.Date;
+            var toEnd          = ToDate?.Date.AddDays(1).AddTicks(-1);
+            var machineFilter  = machineIds .Length > 0 && machineIds .Length < MachineItems .Count ? machineIds  : null;
+            var operatorFilter = operatorIds.Length > 0 && operatorIds.Length < OperatorItems.Count ? operatorIds : null;
             var bytes = await _api.ExportAlertReportAsync(
-                machineIds .Length > 0 ? machineIds  : null,
-                operatorIds.Length > 0 ? operatorIds : null,
+                machineFilter, operatorFilter,
                 fromStart, toEnd);
 
             await File.WriteAllBytesAsync(dialog.FileName, bytes);
@@ -210,13 +214,14 @@ public partial class ReportsViewModel : ObservableObject
         {
             var machineIds  = MachineItems .Where(m => m.IsSelected).Select(m => m.Id).ToArray();
             var operatorIds = OperatorItems.Where(o => o.IsSelected).Select(o => o.Id).ToArray();
-            var fromStart = FromDate?.Date;
-            var toEnd     = ToDate?.Date.AddDays(1).AddTicks(-1);
+            var fromStart      = FromDate?.Date;
+            var toEnd          = ToDate?.Date.AddDays(1).AddTicks(-1);
+            var machineFilter  = machineIds .Length > 0 && machineIds .Length < MachineItems .Count ? machineIds  : null;
+            var operatorFilter = operatorIds.Length > 0 && operatorIds.Length < OperatorItems.Count ? operatorIds : null;
 
             await _api.EmailAlertReportAsync(
                 EmailAddress,
-                machineIds .Length > 0 ? machineIds  : null,
-                operatorIds.Length > 0 ? operatorIds : null,
+                machineFilter, operatorFilter,
                 fromStart, toEnd);
 
             ExportStatus = $"Report sent to {EmailAddress}";

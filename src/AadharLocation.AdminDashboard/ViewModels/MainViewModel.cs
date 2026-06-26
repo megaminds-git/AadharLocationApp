@@ -16,9 +16,8 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private NavPage _activePage = NavPage.Dashboard;
     [ObservableProperty] private int _alertBadgeCount;
     [ObservableProperty] private bool _isSignalRConnected;
-
-    public string UserName  => _auth.UserName;
-    public string UserEmail => _auth.UserEmail;
+    [ObservableProperty] private string _userName  = string.Empty;
+    [ObservableProperty] private string _userEmail = string.Empty;
 
     public event Action? LogoutRequested;
     public event Action? ChangePasswordRequested;
@@ -31,6 +30,9 @@ public partial class MainViewModel : ObservableObject
         _signalR   = signalR;
         _alertsVm  = alertsVm;
         _api       = api;
+
+        _userName  = auth.UserName;
+        _userEmail = auth.UserEmail;
 
         alertsVm.PropertyChanged += (_, e) =>
         {
@@ -45,6 +47,9 @@ public partial class MainViewModel : ObservableObject
 
     public async Task InitAsync()
     {
+        UserName  = _auth.UserName;
+        UserEmail = _auth.UserEmail;
+
         try
         {
             await _signalR.ConnectAsync();

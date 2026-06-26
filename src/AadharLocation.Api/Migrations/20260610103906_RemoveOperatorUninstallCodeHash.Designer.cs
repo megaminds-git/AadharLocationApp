@@ -3,6 +3,7 @@ using System;
 using AadharLocation.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AadharLocation.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260610103906_RemoveOperatorUninstallCodeHash")]
+    partial class RemoveOperatorUninstallCodeHash
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -136,10 +139,6 @@ namespace AadharLocation.Api.Migrations
                     b.Property<double>("Latitude")
                         .HasColumnType("double precision");
 
-                    b.Property<string>("LocationType")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<double>("Longitude")
                         .HasColumnType("double precision");
 
@@ -169,9 +168,6 @@ namespace AadharLocation.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AppVersion")
-                        .HasColumnType("text");
-
                     b.Property<int?>("AssignedOperatorId")
                         .HasColumnType("integer");
 
@@ -180,9 +176,6 @@ namespace AadharLocation.Api.Migrations
 
                     b.Property<double?>("CurrentLatitude")
                         .HasColumnType("double precision");
-
-                    b.Property<string>("CurrentLocationType")
-                        .HasColumnType("text");
 
                     b.Property<double?>("CurrentLongitude")
                         .HasColumnType("double precision");

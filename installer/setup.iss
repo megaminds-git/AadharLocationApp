@@ -89,6 +89,12 @@ var
   ResultCode: Integer;
 begin
   Result := True;
+
+  // Kill admin dashboard if running (prevents any file-lock during cleanup)
+  Exec(ExpandConstant('{sys}') + '\taskkill.exe',
+       '/F /IM {#AdminExeName}', '',
+       SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
   AppPath := ExpandConstant('{app}') + '\{#OperatorExeName}';
 
   if not FileExists(AppPath) then
@@ -121,8 +127,10 @@ end;
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   if CurUninstallStep = usUninstall then
-    // Clear admin session so login page is shown on next install
+  begin
     DeleteFile(ExpandConstant('{userappdata}\AadharLocation\admin-auth.json'));
+    DeleteFile(ExpandConstant('{localappdata}\AadharLocation\tracker.dat'));
+  end;
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
@@ -140,6 +148,12 @@ begin
       '{"ApiBaseUrl":"http://157.15.203.127:81"}',
       False
     );
+
+    // Always clear stale session on fresh install so login screen is shown
+    if IsAdmin then
+      DeleteFile(ExpandConstant('{userappdata}\AadharLocation\admin-auth.json'));
+    if IsOperator then
+      DeleteFile(ExpandConstant('{localappdata}\AadharLocation\tracker.dat'));
   end;
 end;
 
@@ -193,9 +207,30 @@ Root: HKCU; \
   Flags: uninsdeletevalue
 
 [UninstallDelete]
-Type: files; Name: "{app}\server_config.json"
-Type: files; Name: "{app}\install-mode.txt"
-Type: dirifempty; Name: "{app}"
+; Files written by the installer itself
+Type: files;          Name: "{app}\server_config.json"
+Type: files;          Name: "{app}\install-mode.txt"
+
+; Operator Tracker runtime logs (written to install dir)
+Type: filesandordirs; Name: "{app}\logs"
+
+; Admin Dashboard — AppData\Roaming\AadharLocation
+Type: files;          Name: "{userappdata}\AadharLocation\admin-prefs.json"
+Type: files;          Name: "{userappdata}\AadharLocation\theme.txt"
+Type: files;          Name: "{userappdata}\AadharLocation\server_config.json"
+Type: files;          Name: "{userappdata}\AadharLocation\crash.log"
+Type: filesandordirs; Name: "{userappdata}\AadharLocation\logs"
+Type: dirifempty;     Name: "{userappdata}\AadharLocation"
+
+; Operator Tracker + Admin — AppData\Local\AadharLocation
+Type: filesandordirs; Name: "{localappdata}\AadharLocation\WebView2Cache"
+Type: dirifempty;     Name: "{localappdata}\AadharLocation"
+
+; Temp map HTML files
+Type: filesandordirs; Name: "{%TEMP}\AadharLocationMaps"
+
+; Remove install dir itself when empty
+Type: dirifempty;     Name: "{app}"
 
 [Run]
 Filename: "{app}\{#AdminExeName}"; \

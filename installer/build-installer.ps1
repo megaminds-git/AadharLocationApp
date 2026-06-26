@@ -61,6 +61,35 @@ if (-not $SkipPublish) {
     Write-Step "Skipping publish (-SkipPublish flag set)"
 }
 
+# -- 2b. Inject GoogleMaps API key from .env into published appsettings.json --
+if (-not $SkipPublish) {
+    $envFile = Join-Path $RepoRoot "src\AadharLocation.Api\.env"
+    if (Test-Path $envFile) {
+        $googleMapsKey = ""
+        foreach ($line in Get-Content $envFile) {
+            if ($line -match "^GoogleMaps__ApiKey=(.+)$") {
+                $googleMapsKey = $Matches[1].Trim()
+                break
+            }
+        }
+        if ($googleMapsKey) {
+            Write-Step "Injecting GoogleMaps API key into Admin appsettings.json..."
+            $settingsPath = Join-Path $PublishAdmin "appsettings.json"
+            if (Test-Path $settingsPath) {
+                $json = Get-Content $settingsPath -Raw | ConvertFrom-Json
+            } else {
+                $json = [PSCustomObject]@{}
+            }
+            $json | Add-Member -Force -NotePropertyName "GoogleMaps" -NotePropertyValue ([PSCustomObject]@{ ApiKey = $googleMapsKey })
+            $json | ConvertTo-Json -Depth 10 | Out-File $settingsPath -Encoding utf8
+        } else {
+            Write-Warning "GoogleMaps__ApiKey not found in .env - map will show watermark"
+        }
+    } else {
+        Write-Warning ".env file not found at $envFile - skipping GoogleMaps key injection"
+    }
+}
+
 # ── 3. Verify publish output exists ──────────────────────────────────────────
 foreach ($dir in @($PublishAdmin, $PublishOp)) {
     if (-not (Test-Path $dir)) {

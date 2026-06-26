@@ -15,6 +15,7 @@ public partial class FleetMapPage : UserControl
     private readonly FleetMapViewModel _vm;
     private readonly string _apiKey;
     private bool _mapReady = false;
+    private bool _webViewInitialized = false;
     private List<MapMachinePin>? _pendingPins = null;
 
     public FleetMapPage(FleetMapViewModel vm, IOptions<GoogleMapsOptions> mapsOptions)
@@ -35,7 +36,17 @@ public partial class FleetMapPage : UserControl
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        await MapWebView.EnsureCoreWebView2Async();
+        if (_webViewInitialized) return;
+        _webViewInitialized = true;
+
+        if (MapWebView.CoreWebView2 is null)
+        {
+            var env = await WebViewEnvironment.GetAsync();
+            try { await MapWebView.EnsureCoreWebView2Async(env); }
+            catch (ArgumentException) { /* auto-initialized before we got here */ }
+        }
+
+        if (MapWebView.CoreWebView2 is null) return;
         MapWebView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
         LoadMapHtml();
     }

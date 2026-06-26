@@ -116,6 +116,14 @@ public class ApiClient
         resp.EnsureSuccessStatusCode();
     }
 
+    public async Task<byte[]> ExportOperatorsCsvAsync()
+    {
+        SetAuthHeader();
+        var resp = await _http.GetAsync(ApiRoutes.Operators.Export);
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadAsByteArrayAsync();
+    }
+
     public async Task<GenerateUninstallCodeResponse?> GenerateOperatorUninstallCodeAsync(int operatorId)
     {
         SetAuthHeader();
@@ -161,6 +169,14 @@ public class ApiClient
         SetAuthHeader();
         var resp = await _http.DeleteAsync(ApiRoutes.Machines.Base + $"/{id}");
         resp.EnsureSuccessStatusCode();
+    }
+
+    public async Task<byte[]> ExportMachinesCsvAsync()
+    {
+        SetAuthHeader();
+        var resp = await _http.GetAsync(ApiRoutes.Machines.Export);
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadAsByteArrayAsync();
     }
 
     // ── Geofences ─────────────────────────────────────────────────────────────

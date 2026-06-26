@@ -1,3 +1,4 @@
+using System.Text;
 using AadharLocation.Api.Data;
 using AadharLocation.Api.Domain.Entities;
 using AadharLocation.Shared.DTOs;
@@ -13,6 +14,52 @@ namespace AadharLocation.Api.Features.Machines;
 [Authorize(Roles = "Admin")]
 public class MachinesController(AppDbContext db) : ControllerBase
 {
+    private static readonly TimeZoneInfo IstZone = TimeZoneInfo.FindSystemTimeZoneById(
+        OperatingSystem.IsWindows() ? "India Standard Time" : "Asia/Kolkata");
+
+    [HttpGet("export")]
+    public async Task<IActionResult> Export()
+    {
+        var machines = await db.Machines
+            .Include(m => m.AssignedOperator)
+            .Include(m => m.Geofences.Where(g => g.IsActive))
+            .AsNoTracking()
+            .OrderBy(m => m.Name)
+            .ToListAsync();
+
+        var sb = new StringBuilder();
+        sb.AppendLine("Name,Machine Code,Assigned Operator,Status,Boundary,Last Seen");
+
+        foreach (var m in machines)
+        {
+            var name     = m.Name.Replace("\"", "\"\"");
+            var code     = m.SerialNumber.Replace("\"", "\"\"");
+            var op       = (m.AssignedOperator?.Name ?? string.Empty).Replace("\"", "\"\"");
+            var lastSeen = m.LastSeenAt.HasValue
+                ? TimeZoneInfo.ConvertTimeFromUtc(
+                    DateTime.SpecifyKind(m.LastSeenAt.Value, DateTimeKind.Utc), IstZone)
+                    .ToString("yyyy-MM-dd HH:mm:ss")
+                : string.Empty;
+
+            var fence = m.Geofences?.FirstOrDefault(g => g.IsActive);
+            string boundary;
+            if (fence == null || !m.CurrentLatitude.HasValue || !m.CurrentLongitude.HasValue)
+                boundary = "N/A";
+            else
+            {
+                var dist = HaversineDistance(
+                    m.CurrentLatitude.Value, m.CurrentLongitude.Value,
+                    fence.CenterLatitude, fence.CenterLongitude);
+                boundary = dist <= fence.RadiusMeters ? "Inside" : "Outside";
+            }
+
+            sb.AppendLine($"\"{name}\",\"{code}\",\"{op}\",\"{m.Status}\",\"{boundary}\",\"{lastSeen}\"");
+        }
+
+        var fileName = $"machines_{DateTime.Now:yyyyMMddHHmmss}.csv";
+        return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv", fileName);
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1,
