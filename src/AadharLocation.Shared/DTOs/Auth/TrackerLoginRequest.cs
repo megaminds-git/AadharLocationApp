@@ -1,3 +1,3 @@
 namespace AadharLocation.Shared.DTOs.Auth;
 
-public record TrackerLoginRequest(string Email, string Password);
+public record TrackerLoginRequest(string Email, string Password, string? AppVersion = null);

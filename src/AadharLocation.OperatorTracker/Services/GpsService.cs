@@ -57,10 +57,15 @@ public class GpsService : IGpsService
                 PositionSource.WiFi      => LocationType.WiFi,
                 PositionSource.IPAddress => LocationType.IP,
                 PositionSource.Cellular  => LocationType.IP,
-                _                        => LocationType.Unknown
+                _ => accuracy switch
+                {
+                    <= 50  => LocationType.GPS,
+                    <= 500 => LocationType.WiFi,
+                    _      => LocationType.IP
+                }
             };
 
-            _logger.LogDebug("GPS: {Lat}, {Lon} ±{Acc}m [{Source}]", coord.Latitude, coord.Longitude, accuracy, source);
+            _logger.LogInformation("GPS: {Lat}, {Lon} ±{Acc}m [{Source}] (raw PositionSource: {RawSource})", coord.Latitude, coord.Longitude, accuracy, source, coord.PositionSource);
             return new GpsReading(coord.Latitude, coord.Longitude, accuracy, source);
         }
         catch (OperationCanceledException)

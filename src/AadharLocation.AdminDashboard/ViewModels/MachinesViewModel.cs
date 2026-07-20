@@ -45,6 +45,7 @@ public partial class MachinesViewModel : ObservableObject
         _signalR.MachineLocationUpdated += OnLocationUpdate;
         _signalR.MachineWentOffline     += OnMachineOffline;
         _signalR.MachineOnline          += OnMachineOnline;
+        _signalR.ConnectionReconnected  += () => _ = LoadAsync();
     }
 
     [RelayCommand]
@@ -133,35 +134,38 @@ public partial class MachinesViewModel : ObservableObject
         await LoadAsync();
     }
 
-    private void OnLocationUpdate(MachineLocationUpdate u)
-    {
-        var m = Machines.FirstOrDefault(x => x.Id == u.MachineId);
-        if (m == null) return;
-        var idx = Machines.IndexOf(m);
-        Machines[idx] = m with
+    private void OnLocationUpdate(MachineLocationUpdate u) =>
+        System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
         {
-            CurrentLatitude     = u.Latitude,
-            CurrentLongitude    = u.Longitude,
-            LastSeenAt          = u.RecordedAt,
-            Status              = Shared.Enums.MachineStatus.Online,
-            IsWithinGeofence    = m.IsWithinGeofence.HasValue ? u.IsWithinGeofence : null,
-            CurrentLocationType = u.LocationType
-        };
-    }
+            var m = Machines.FirstOrDefault(x => x.Id == u.MachineId);
+            if (m == null) return;
+            var idx = Machines.IndexOf(m);
+            Machines[idx] = m with
+            {
+                CurrentLatitude     = u.Latitude,
+                CurrentLongitude    = u.Longitude,
+                LastSeenAt          = u.RecordedAt,
+                Status              = Shared.Enums.MachineStatus.Online,
+                IsWithinGeofence    = m.IsWithinGeofence.HasValue ? u.IsWithinGeofence : null,
+                CurrentLocationType = u.LocationType
+            };
+        });
 
-    private void OnMachineOffline(MachineOfflineEvent e)
-    {
-        var m = Machines.FirstOrDefault(x => x.Id == e.MachineId);
-        if (m == null) return;
-        var idx = Machines.IndexOf(m);
-        Machines[idx] = m with { Status = Shared.Enums.MachineStatus.Offline };
-    }
+    private void OnMachineOffline(MachineOfflineEvent e) =>
+        System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var m = Machines.FirstOrDefault(x => x.Id == e.MachineId);
+            if (m == null) return;
+            var idx = Machines.IndexOf(m);
+            Machines[idx] = m with { Status = Shared.Enums.MachineStatus.Offline };
+        });
 
-    private void OnMachineOnline(int machineId, string _)
-    {
-        var m = Machines.FirstOrDefault(x => x.Id == machineId);
-        if (m == null) return;
-        var idx = Machines.IndexOf(m);
-        Machines[idx] = m with { Status = Shared.Enums.MachineStatus.Online };
-    }
+    private void OnMachineOnline(int machineId, string _) =>
+        System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var m = Machines.FirstOrDefault(x => x.Id == machineId);
+            if (m == null) return;
+            var idx = Machines.IndexOf(m);
+            Machines[idx] = m with { Status = Shared.Enums.MachineStatus.Online };
+        });
 }

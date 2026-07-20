@@ -39,9 +39,11 @@ public class ActivationService : IActivationService
 
     public async Task<TrackerLoginResponse> LoginAsync(string email, string password, CancellationToken ct = default)
     {
+        var appVersion = typeof(ActivationService).Assembly.GetName().Version?.ToString(3);
+
         var response = await _http.PostAsJsonAsync(
             Shared.Constants.ApiRoutes.Auth.TrackerLogin,
-            new TrackerLoginRequest(email, password),
+            new TrackerLoginRequest(email, password, appVersion),
             ct);
 
         if (!response.IsSuccessStatusCode)

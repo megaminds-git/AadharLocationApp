@@ -70,6 +70,7 @@ public partial class FleetMapViewModel : ObservableObject
         _signalR.MachineLocationUpdated += OnLocationUpdate;
         _signalR.MachineWentOffline     += OnMachineOffline;
         _signalR.MachineOnline          += OnMachineOnline;
+        _signalR.ConnectionReconnected  += () => _ = LoadAsync();
 
         FilteredPins        = CollectionViewSource.GetDefaultView(Pins);
         FilteredPins.Filter = FilterMachinePin;
