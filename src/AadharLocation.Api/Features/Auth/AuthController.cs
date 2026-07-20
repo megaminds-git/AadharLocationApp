@@ -58,6 +58,14 @@ public class AuthController(AppDbContext db, JwtService jwt, AlertService alertS
         }
 
         op.LastLoginAt = DateTime.UtcNow;
+
+        if (request.AppVersion is not null)
+        {
+            var machine = await db.Machines.FindAsync(activation.MachineId);
+            if (machine is not null)
+                machine.AppVersion = request.AppVersion;
+        }
+
         await db.SaveChangesAsync();
 
         var token = jwt.GenerateTrackerToken(op, activation.DeviceKey);

@@ -43,6 +43,8 @@ public partial class MainViewModel : ObservableObject
         _signalR.GeofenceBreachDetected     += _ => RefreshAlertBadge();
         _signalR.MachineWentOffline         += _ => RefreshAlertBadge();
         _signalR.OperatorEventAlertReceived += _ => RefreshAlertBadge();
+        _signalR.ConnectionStateChanged     += connected =>
+            System.Windows.Application.Current.Dispatcher.InvokeAsync(() => IsSignalRConnected = connected);
     }
 
     public async Task InitAsync()
